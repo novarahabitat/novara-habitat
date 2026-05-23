@@ -1,9 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-html { scroll-behavior: smooth; }
-body { background: #080806; color: #F6F1E7; }
-.reveal-card { opacity: 0; transform: translateY(24px); animation: reveal .8s ease forwards; }
-@keyframes reveal { to { opacity: 1; transform: translateY(0); } }
-.gold-gradient { background: linear-gradient(135deg, #C8A24A, #F5D77A, #8E6C22); }
