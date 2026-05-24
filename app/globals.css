@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #070707; color: white; }
+.reveal { opacity: 0; transform: translateY(36px); animation: reveal .9s ease forwards; }
+.reveal-delay { opacity: 0; transform: translateY(36px); animation: reveal .9s ease forwards; animation-delay: .25s; }
+.reveal-delay-2 { opacity: 0; transform: translateY(36px); animation: reveal .9s ease forwards; animation-delay: .45s; }
+@keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+.glass { background: rgba(255,255,255,.06); border: 1px solid rgba(201,164,92,.28); backdrop-filter: blur(18px); }
+input, textarea, select { outline: none; }
