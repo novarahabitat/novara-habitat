@@ -1,0 +1,35 @@
+"use client";
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+
+export default function EspaceClientPage() {
+  const router = useRouter();
+
+  async function logout() {
+    await supabase.auth.signOut();
+    router.push("/connexion");
+  }
+
+  return (
+    <main className="min-h-screen bg-[#070707] text-white">
+      <Header />
+      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 pt-24">
+        <p className="text-sm uppercase tracking-[0.35em] text-[#c9a45c]">NOVARA Habitat</p>
+        <h1 className="mt-5 text-5xl font-semibold">Espace client</h1>
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70">
+          Tableau de bord chantier, documents, devis, factures et SAV.
+        </p>
+        <div className="mt-10 rounded-3xl border border-[#c9a45c]/25 bg-white/5 p-8">
+          <p className="text-white/70">Module client prêt pour les prochaines étapes : projets, documents, devis, factures, messagerie et SAV.</p>
+          <button onClick={logout} className="mt-8 rounded-full bg-[#c9a45c] px-6 py-3 font-medium text-black hover:bg-white">
+            Déconnexion
+          </button>
+        </div>
+      </section>
+      <Footer />
+    </main>
+  );
+}
