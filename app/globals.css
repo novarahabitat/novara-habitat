@@ -1,0 +1,2 @@
+@tailwind base;@tailwind components;@tailwind utilities;
+html{scroll-behavior:smooth}body{margin:0;background:#070707;color:white}input,textarea,select{outline:none}.glass{background:rgba(255,255,255,.06);border:1px solid rgba(201,164,92,.25);backdrop-filter:blur(18px)}.hero{background:radial-gradient(circle at 70% 20%,rgba(201,164,92,.25),transparent 32%),linear-gradient(135deg,#050505,#15110a,#050505)}
