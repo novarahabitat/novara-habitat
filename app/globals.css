@@ -8,13 +8,9 @@ html {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top right, rgba(201,164,92,.15), transparent 25%),
-    radial-gradient(circle at bottom left, rgba(255,255,255,.04), transparent 20%),
-    #050505;
-
-  color: white;
   overflow-x: hidden;
+  color: white;
+  background: #050505;
 }
 
 input,
@@ -42,18 +38,6 @@ select {
   border: 1px solid rgba(255,255,255,.08);
 }
 
-.hero-gradient {
-  background:
-    radial-gradient(circle at 70% 20%, rgba(201,164,92,.18), transparent 30%),
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,.05), transparent 25%),
-    linear-gradient(
-      135deg,
-      #050505 0%,
-      #0d0d0d 35%,
-      #15110a 65%,
-      #050505 100%
-    );
-}
 .hero {
   background:
     radial-gradient(
@@ -81,8 +65,6 @@ select {
       #0f0d09 58%,
       #050505 100%
     );
-}
-  filter: blur(0px);
 }
 
 img {
