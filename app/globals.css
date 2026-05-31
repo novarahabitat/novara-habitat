@@ -72,7 +72,6 @@ select {
 
   filter: blur(0px);
 }
-}
 
 img {
   object-fit: contain;
