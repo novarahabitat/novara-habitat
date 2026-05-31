@@ -56,9 +56,22 @@ select {
 }
 .hero {
   background:
-    radial-gradient(circle at 70% 20%, rgba(201,164,92,.22), transparent 32%),
-    radial-gradient(circle at 15% 85%, rgba(255,255,255,.06), transparent 28%),
-    linear-gradient(135deg, #050505 0%, #0d0d0d 35%, #18130a 65%, #050505 100%);
+    radial-gradient(circle at 70% 20%, rgba(201,164,92,.32), transparent 45%),
+
+    radial-gradient(circle at 15% 85%, rgba(255,255,255,.05), transparent 40%),
+
+    radial-gradient(circle at center, rgba(201,164,92,.08), transparent 60%),
+
+    linear-gradient(
+      135deg,
+      #050505 0%,
+      #0b0b0b 35%,
+      #16120a 60%,
+      #050505 100%
+    );
+
+  filter: blur(0px);
+}
 }
 
 img {
