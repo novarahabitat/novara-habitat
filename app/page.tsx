@@ -50,10 +50,10 @@ export default function Home() {
     <main className="min-h-screen bg-[#f5f0e8] text-black">
       <Header />
 
-      <section className="relative min-h-screen overflow-hidden bg-[#f5f0e8] pt-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(201,164,92,0.18),transparent_30%),linear-gradient(120deg,#f5f0e8_0%,#fffaf2_45%,#eadfcf_100%)]" />
+      <section className="relative overflow-hidden bg-[#f5f0e8] pt-28">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(201,164,92,0.18),transparent_32%),linear-gradient(120deg,#f5f0e8_0%,#fffaf2_50%,#eadfce_100%)]" />
 
-        <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="z-10">
             <p className="mb-6 text-xs uppercase tracking-[0.45em] text-[#9b7b39]">
               NOVARA Habitat
@@ -71,53 +71,76 @@ export default function Home() {
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
-              <a
-                href="#contact"
+              <Link
+                href="#portfolio"
                 className="rounded-full bg-[#c9a45c] px-8 py-4 font-semibold text-black shadow-[0_20px_60px_rgba(201,164,92,0.25)] transition hover:bg-black hover:text-white"
               >
-                Demander un devis
-              </a>
+                Portfolio
+              </Link>
 
               <Link
-                href="/property"
-                className="rounded-full border border-black/15 bg-white/40 px-8 py-4 font-semibold text-black transition hover:bg-black hover:text-white"
+                href="#garanties"
+                className="rounded-full border border-black/15 bg-white/45 px-8 py-4 font-semibold text-black transition hover:bg-black hover:text-white"
               >
-                Découvrir l’écosystème
+                Les garanties NOVARA
               </Link>
             </div>
           </div>
 
           <div className="relative min-h-[560px] overflow-hidden rounded-[2.6rem] bg-white shadow-[0_35px_120px_rgba(0,0,0,.16)]">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600210492493-0946911123ea?q=80&w=1600&auto=format&fit=crop')] bg-cover bg-center" />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(245,240,232,0.12),rgba(245,240,232,0.0)),radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.45),transparent_35%)]" />
-          </div>
-        </div>
-
-        <div className="relative mx-auto -mt-20 max-w-6xl px-6 pb-20">
-          <div className="rounded-[2rem] border border-black/10 bg-white/75 p-6 shadow-[0_25px_90px_rgba(0,0,0,.08)] backdrop-blur-2xl">
-            <p className="text-center text-sm font-medium text-black/70">
-              Notre écosystème au service de votre projet
-            </p>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
-              <EcoLight title="Property" text="Mémoire du bien" />
-              <EcoLight title="SMART" text="Maison connectée" />
-              <EcoLight title="Core" text="Suivi chantier" />
-              <EcoLight title="Dynamics" text="Écosystème complet" />
-            </div>
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(245,240,232,0.18),rgba(245,240,232,0.0)),radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.45),transparent_35%)]" />
           </div>
         </div>
       </section>
 
-      <section className="bg-[#050505] px-6 py-24 text-white">
+      <section id="portfolio" className="overflow-hidden bg-[#f5f0e8] px-6 py-24 text-black">
+        <div className="mx-auto max-w-7xl">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#9b7b39]">
+            Portfolio
+          </p>
+
+          <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-5xl">
+            Des espaces pensés pour durer, vivre et évoluer.
+          </h2>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=1200&auto=format&fit=crop"
+              title="Rénovation intérieure"
+              text="Espaces lumineux, matériaux cohérents, finitions maîtrisées."
+            />
+
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=1200&auto=format&fit=crop"
+              title="Aménagement premium"
+              text="Confort, circulation et esthétique au service du quotidien."
+              offset
+            />
+
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop"
+              title="Habitat valorisé"
+              text="Chaque intervention prépare la valeur future du bien."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="garanties" className="bg-[#050505] px-6 py-24 text-white">
         <div className="mx-auto max-w-7xl">
           <p className="text-xs uppercase tracking-[0.35em] text-[#c9a45c]">
             Signature NOVARA
           </p>
 
-          <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-5xl">
+          <h2 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-5xl">
             Rénovation premium, technologie utile et expérience client claire.
           </h2>
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/55">
+            Une approche pensée pour rassurer, organiser et valoriser votre
+            projet avec un niveau d’exigence constant.
+          </p>
 
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             <DarkCard
@@ -130,7 +153,7 @@ export default function Home() {
             />
             <DarkCard
               title="Valoriser"
-              text="Conserver la mémoire du bien et préparer son évolution."
+              text="Préserver la qualité du bien et préparer son évolution."
             />
           </div>
         </div>
@@ -236,18 +259,37 @@ export default function Home() {
   );
 }
 
-function EcoLight({ title, text }: { title: string; text: string }) {
+function PortfolioCard({
+  image,
+  title,
+  text,
+  offset,
+}: {
+  image: string;
+  title: string;
+  text: string;
+  offset?: boolean;
+}) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white/65 p-6 text-center">
-      <p className="font-semibold text-black">{title}</p>
-      <p className="mt-2 text-sm text-black/50">{text}</p>
+    <div className={offset ? "md:translate-y-12" : ""}>
+      <div className="overflow-hidden rounded-[2.2rem] bg-white shadow-[0_25px_90px_rgba(0,0,0,.10)]">
+        <div
+          className="h-80 bg-cover bg-center"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+        <div className="p-7">
+          <p className="text-2xl font-semibold tracking-[-0.025em]">{title}</p>
+          <p className="mt-3 leading-7 text-black/55">{text}</p>
+        </div>
+      </div>
     </div>
   );
 }
 
 function DarkCard({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-8">
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-8 shadow-[0_20px_80px_rgba(0,0,0,.25)]">
+      <div className="mb-8 h-10 w-10 rounded-2xl border border-[#c9a45c]/35 bg-[#c9a45c]/10" />
       <p className="text-2xl font-semibold">{title}</p>
       <p className="mt-4 leading-7 text-white/55">{text}</p>
     </div>
