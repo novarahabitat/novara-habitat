@@ -3,51 +3,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
-import { useState } from "react";
 
 export default function Home() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [projectType, setProjectType] = useState("");
-  const [budget, setBudget] = useState("");
-  const [city, setCity] = useState("");
-  const [message, setMessage] = useState("");
-  const [formStatus, setFormStatus] = useState("");
-
-  async function submitLead(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    setFormStatus("Envoi...");
-
-    const { error } = await supabase.from("leads").insert({
-      full_name: fullName,
-      email,
-      phone,
-      project_type: projectType,
-      budget,
-      city,
-      message,
-      status: "new",
-    });
-
-    if (error) {
-      setFormStatus("Erreur : " + error.message);
-      return;
-    }
-
-    setFullName("");
-    setEmail("");
-    setPhone("");
-    setProjectType("");
-    setBudget("");
-    setCity("");
-    setMessage("");
-
-    setFormStatus("Demande envoyée.");
-  }
-
   return (
     <main className="min-h-screen bg-[#f5f0e8] text-black">
 
@@ -159,36 +116,37 @@ export default function Home() {
 
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_50%,rgba(201,164,92,0.18),transparent_34%)]" />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-20 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative mx-auto max-w-7xl">
 
-          <div>
+          <div className="mb-20 max-w-4xl">
 
             <p className="mb-6 text-sm uppercase tracking-[0.5em] text-[#c9a45c]">
               SIGNATURE NOVARA
             </p>
 
-            <h2 className="max-w-3xl text-5xl font-semibold leading-[1.05] tracking-[-0.04em]">
+            <h2 className="text-5xl font-semibold leading-[1.05] tracking-[-0.04em]">
               Vous restez informé,
               accompagné et au
               centre de chaque
               décision.
             </h2>
 
-            <p className="mt-8 max-w-xl text-lg leading-8 text-white/60">
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/60">
               Un suivi humain, clair et structuré pour que chaque étape du chantier
               soit comprise, visible et maîtrisée.
             </p>
 
           </div>
 
-          <div className="relative mx-auto h-[620px] w-[620px]">
+          <div className="relative mx-auto h-[720px] w-[720px]">
 
-            <div className="absolute inset-0 rounded-full border border-[#c9a45c]/18" />
-            <div className="absolute inset-14 rounded-full border border-[#c9a45c]/10" />
+            <div className="absolute inset-10 rounded-full border border-[#c9a45c]/15" />
 
-            <div className="absolute left-1/2 top-1/2 z-20 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-[2.2rem] border border-[#c9a45c]/35 bg-[#c9a45c]/10 p-8 text-center shadow-[0_0_80px_rgba(201,164,92,.16)] backdrop-blur-xl">
+            <div className="absolute inset-28 rounded-full border border-white/10" />
 
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#c9a45c]/35 text-[#c9a45c]">
+            <div className="absolute left-1/2 top-1/2 z-20 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-[2.4rem] border border-[#c9a45c]/35 bg-[#c9a45c]/10 p-8 text-center shadow-[0_0_90px_rgba(201,164,92,.18)] backdrop-blur-xl">
+
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c9a45c]/35 text-[#c9a45c]">
                 ⌂
               </div>
 
@@ -231,7 +189,7 @@ export default function Home() {
             />
 
             <CircleNode
-              className="right-[90px] top-[90px]"
+              className="right-[120px] top-[120px]"
               icon="◎"
               title="Interlocuteur dédié"
               text="Un contact unique à vos côtés."
@@ -239,115 +197,6 @@ export default function Home() {
             />
 
           </div>
-
-        </div>
-
-      </section>
-
-      <section
-        id="contact"
-        className="relative overflow-hidden bg-[#f5f0e8] px-6 py-28 text-black"
-      >
-
-        <div className="absolute -left-20 top-20 h-72 w-72 rounded-full bg-[#c9a45c]/20 blur-[120px]" />
-
-        <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1fr_520px]">
-
-          <div>
-
-            <p className="text-sm uppercase tracking-[0.35em] text-[#9b7b39]">
-              Contact
-            </p>
-
-            <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-6xl">
-              Parlez-nous de votre projet.
-            </h2>
-
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-black/60">
-              Votre demande est transmise à NOVARA Sales pour être suivie comme
-              un vrai projet : qualification, rendez-vous, devis, dossier client
-              et accompagnement.
-            </p>
-
-          </div>
-
-          <form
-            onSubmit={submitLead}
-            className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-[0_25px_80px_rgba(0,0,0,.08)]"
-          >
-
-            <div className="grid gap-4 md:grid-cols-2">
-
-              <input
-                className="rounded-2xl border border-black/10 px-4 py-4"
-                placeholder="Nom complet"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-
-              <input
-                className="rounded-2xl border border-black/10 px-4 py-4"
-                placeholder="Téléphone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-
-            </div>
-
-            <input
-              className="mt-4 w-full rounded-2xl border border-black/10 px-4 py-4"
-              placeholder="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-
-              <input
-                className="rounded-2xl border border-black/10 px-4 py-4"
-                placeholder="Type de projet"
-                value={projectType}
-                onChange={(e) => setProjectType(e.target.value)}
-              />
-
-              <input
-                className="rounded-2xl border border-black/10 px-4 py-4"
-                placeholder="Budget estimé"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-              />
-
-            </div>
-
-            <input
-              className="mt-4 w-full rounded-2xl border border-black/10 px-4 py-4"
-              placeholder="Ville"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
-
-            <textarea
-              className="mt-4 min-h-36 w-full rounded-2xl border border-black/10 px-4 py-4"
-              placeholder="Message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-            />
-
-            <button className="mt-6 rounded-full bg-black px-8 py-4 font-medium text-white transition hover:bg-[#c9a45c] hover:text-black">
-              Envoyer la demande
-            </button>
-
-            {formStatus && (
-              <p className="mt-5 text-sm text-black/60">
-                {formStatus}
-              </p>
-            )}
-
-          </form>
 
         </div>
 
@@ -413,14 +262,14 @@ function CircleNode({
 }) {
   return (
     <div
-      className={`absolute z-10 w-40 rounded-[1.5rem] border p-4 text-center backdrop-blur-xl ${
+      className={`absolute z-10 w-44 rounded-[1.6rem] border p-5 text-center backdrop-blur-xl ${
         gold
           ? "border-[#c9a45c]/50 bg-[#c9a45c]/12 shadow-[0_0_50px_rgba(201,164,92,.18)]"
           : "border-white/10 bg-white/[0.06]"
       } ${className}`}
     >
 
-      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#c9a45c]/30 bg-black/30 text-lg text-[#c9a45c]">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c9a45c]/30 bg-black/30 text-lg text-[#c9a45c]">
         {icon}
       </div>
 
