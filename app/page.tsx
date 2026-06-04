@@ -93,12 +93,12 @@ export default function Home() {
         id="garanties"
         className="relative overflow-hidden bg-black px-6 py-32 text-white"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_69%_48%,rgba(201,164,92,0.16),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_67%_48%,rgba(201,164,92,0.18),transparent_36%)]" />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-20 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="mb-8 text-sm uppercase tracking-[0.55em] text-[#c9a45c]">
-              LA SIGNATURE NOVARA
+              SIGNATURE NOVARA
             </p>
 
             <h2 className="max-w-3xl text-5xl font-semibold leading-[1.07] tracking-[-0.045em] md:text-6xl">
@@ -114,9 +114,9 @@ export default function Home() {
           </div>
 
           <div className="relative mx-auto h-[640px] w-full max-w-[640px]">
-            <div className="absolute inset-[56px] rounded-full border border-[#c9a45c]/25" />
-            <div className="absolute inset-[108px] rounded-full border border-[#c9a45c]/10" />
-            <div className="absolute inset-[36px] rounded-full border border-[#c9a45c]/6" />
+            <div className="absolute inset-[54px] rounded-full border border-[#c9a45c]/22" />
+            <div className="absolute inset-[104px] rounded-full border border-white/10" />
+            <div className="absolute inset-[30px] rounded-full border border-[#c9a45c]/8" />
 
             <div className="absolute left-1/2 top-1/2 z-20 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-[2.2rem] border border-[#c9a45c]/45 bg-[#c9a45c]/10 p-8 text-center shadow-[0_0_90px_rgba(201,164,92,.24)] backdrop-blur-xl">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c9a45c]/45 text-3xl text-[#c9a45c]">
@@ -132,14 +132,14 @@ export default function Home() {
             </div>
 
             <CircleNode
-              className="left-1/2 top-[10px] -translate-x-1/2"
+              className="left-1/2 top-0 -translate-x-1/2"
               icon="☎"
               title="Connexion client"
               text="Votre projet, notre priorité."
             />
 
             <CircleNode
-              className="right-[22px] top-[204px]"
+              className="right-[18px] top-[190px]"
               icon="◎"
               title="Interlocuteur dédié"
               text="Un contact unique à vos côtés."
@@ -147,21 +147,21 @@ export default function Home() {
             />
 
             <CircleNode
-              className="bottom-[46px] right-[92px]"
+              className="bottom-[34px] right-[86px]"
               icon="▧"
               title="Photos chantier"
               text="Suivi visuel et régulier."
             />
 
             <CircleNode
-              className="bottom-[46px] left-[92px]"
+              className="bottom-[34px] left-[86px]"
               icon="▤"
               title="Rapport clair"
               text="Compte-rendu simple et utile."
             />
 
             <CircleNode
-              className="left-[22px] top-[204px]"
+              className="left-[18px] top-[190px]"
               icon="◌"
               title="Communication"
               text="Réponses rapides et suivies."
@@ -221,10 +221,10 @@ function CircleNode({
 }) {
   return (
     <div
-      className={`absolute z-10 w-42 rounded-[1.6rem] border p-5 text-center backdrop-blur-xl ${
+      className={`absolute z-10 w-44 rounded-[1.6rem] border p-5 text-center backdrop-blur-xl ${
         gold
-          ? "border-[#c9a45c]/45 bg-[#c9a45c]/10 shadow-[0_0_45px_rgba(201,164,92,.18)]"
-          : "border-[#c9a45c]/24 bg-white/[0.045] shadow-[0_0_35px_rgba(0,0,0,.28)]"
+          ? "border-[#c9a45c]/50 bg-[#c9a45c]/12 shadow-[0_0_55px_rgba(201,164,92,.20)]"
+          : "border-[#c9a45c]/22 bg-white/[0.045] shadow-[0_0_45px_rgba(0,0,0,.30)]"
       } ${className}`}
     >
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#c9a45c]/35 bg-black/30 text-xl text-[#c9a45c]">
