@@ -2,298 +2,217 @@
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-black text-white">
+    <main className="min-h-screen bg-[#f5f0e8] text-black overflow-hidden">
 
       <Header />
 
-      {/* SIGNATURE NOVARA */}
-      <section className="relative overflow-hidden bg-black px-6 pb-32 pt-28 text-white">
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-[#f5f0e8] pt-28">
 
-        {/* GOLD GLOW */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(201,164,92,0.16),transparent_32%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_16%,rgba(201,164,92,0.18),transparent_32%),linear-gradient(120deg,#f5f0e8_0%,#fffaf2_50%,#eadfce_100%)]" />
 
-        <div className="relative mx-auto max-w-7xl">
+        <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-[0.92fr_1.08fr]">
 
-          {/* HERO */}
-          <div className="grid items-center gap-16 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="z-10">
 
-            {/* LEFT */}
-            <div>
+            <p className="mb-6 text-xs uppercase tracking-[0.45em] text-[#9b7b39]">
+              NOVARA Habitat
+            </p>
 
-              <p className="mb-6 text-xs uppercase tracking-[0.45em] text-[#c9a45c]">
-                SIGNATURE NOVARA
-              </p>
+            <h1 className="max-w-3xl text-5xl font-semibold leading-[1.02] tracking-[-0.05em] text-black md:text-7xl">
+              L’habitat réinventé.{" "}
+              <span className="italic text-[#9b7b39]">
+                Pour vous.
+              </span>
+            </h1>
 
-              <h1 className="max-w-3xl text-5xl font-semibold leading-[1.02] tracking-[-0.05em] md:text-7xl">
-                L’IA qui prend soin
-                <br />
-                de votre{" "}
-                <span className="text-[#c9a45c]">
-                  sérénité
-                </span>
-              </h1>
+            <p className="mt-8 max-w-xl text-lg leading-8 text-black/62">
+              NOVARA Habitat transforme chaque lieu en une expérience de vie
+              intelligente, durable et sur-mesure : rénovation, aménagement,
+              suivi chantier et valorisation du bien.
+            </p>
 
-              <p className="mt-8 max-w-xl text-lg leading-8 text-white/70">
-                NOVARA Concierge utilise l’intelligence artificielle
-                pour simplifier votre quotidien, anticiper vos besoins
-                et garder votre habitat sous contrôle.
-              </p>
+            <div className="mt-10 flex flex-wrap gap-4">
 
-              <p className="mt-4 max-w-xl text-lg leading-8 text-white/70">
-                Votre bien-être, votre tranquillité et votre sécurité
-                restent la priorité absolue.
-              </p>
+              <Link
+                href="#portfolio"
+                className="rounded-full bg-[#c9a45c] px-8 py-4 font-semibold text-black shadow-[0_20px_60px_rgba(201,164,92,0.25)] transition hover:bg-black hover:text-white"
+              >
+                Portfolio
+              </Link>
 
-              {/* VALUES */}
-              <div className="mt-12 flex flex-wrap gap-10">
-
-                <div className="flex flex-col items-center gap-3">
-                  <div className="text-3xl text-[#c9a45c]">♡</div>
-                  <p className="text-sm uppercase tracking-[0.18em] text-white/75">
-                    Bien-être
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-center gap-3">
-                  <div className="text-3xl text-[#c9a45c]">☼</div>
-                  <p className="text-sm uppercase tracking-[0.18em] text-white/75">
-                    Sérénité
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-center gap-3">
-                  <div className="text-3xl text-[#c9a45c]">⌂</div>
-                  <p className="text-sm uppercase tracking-[0.18em] text-white/75">
-                    Sous votre contrôle
-                  </p>
-                </div>
-
-              </div>
-
-              {/* BUTTON */}
-              <button className="mt-12 rounded-full border border-[#c9a45c]/40 px-8 py-4 text-sm uppercase tracking-[0.18em] text-white transition hover:bg-[#c9a45c] hover:text-black">
-                Découvrir l’expérience
-              </button>
-
-            </div>
-
-            {/* RIGHT */}
-            <div className="relative min-h-[880px]">
-
-              {/* WOMAN IMAGE */}
-              <div
-                className="absolute inset-0 rounded-[2.8rem] bg-cover bg-center"
-                style={{
-                  backgroundImage:
-                    "url('/signature-novara.jpg')",
-                }}
-              />
-
-              {/* DARK OVERLAY */}
-              <div className="absolute inset-0 rounded-[2.8rem] bg-[linear-gradient(90deg,rgba(0,0,0,0.48),rgba(0,0,0,0.12))]" />
-
-              {/* HOLOGRAPHIC PANEL */}
-              <div className="absolute right-[-20px] top-1/2 w-[280px] -translate-y-1/2 rounded-[2rem] border border-cyan-400/25 bg-cyan-400/10 p-6 backdrop-blur-xl">
-
-                <p className="text-lg font-medium uppercase tracking-[0.12em] text-white">
-                  Votre habitat
-                  <br />
-                  sous contrôle
-                </p>
-
-                <div className="mt-6 space-y-4 text-sm text-white/80">
-
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span>Sécurité</span>
-                    <span className="text-cyan-300">
-                      Tout est en ordre
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span>Énergie</span>
-                    <span className="text-cyan-300">
-                      Optimisée
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span>Confort</span>
-                    <span className="text-cyan-300">
-                      Ambiance idéale
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                    <span>Équipements</span>
-                    <span className="text-cyan-300">
-                      Fonctionnels
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span>Accès</span>
-                    <span className="text-cyan-300">
-                      Contrôlés
-                    </span>
-                  </div>
-
-                </div>
-
-              </div>
+              <Link
+                href="#garanties"
+                className="rounded-full border border-black/15 bg-white/45 px-8 py-4 font-semibold text-black transition hover:bg-black hover:text-white"
+              >
+                Les garanties NOVARA
+              </Link>
 
             </div>
 
           </div>
 
-          {/* EXPERIENCE */}
-          <div className="mt-36 text-center">
+          <div className="relative min-h-[560px] overflow-hidden rounded-[2.6rem] bg-white shadow-[0_35px_120px_rgba(0,0,0,.16)]">
 
-            <p className="text-sm uppercase tracking-[0.35em] text-[#c9a45c]">
-              Une expérience simple, intelligente et humaine
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600210492493-0946911123ea?q=80&w=1600&auto=format&fit=crop')] bg-cover bg-center" />
+
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(245,240,232,0.18),rgba(245,240,232,0.0)),radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.45),transparent_35%)]" />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* PORTFOLIO */}
+      <section
+        id="portfolio"
+        className="overflow-hidden bg-[#f5f0e8] px-6 py-24 text-black"
+      >
+
+        <div className="mx-auto max-w-7xl">
+
+          <p className="text-xs uppercase tracking-[0.35em] text-[#9b7b39]">
+            Portfolio
+          </p>
+
+          <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.035em] md:text-5xl">
+            Des espaces pensés pour durer, vivre et évoluer.
+          </h2>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=1200&auto=format&fit=crop"
+              title="Rénovation intérieure"
+              text="Espaces lumineux, matériaux cohérents et finitions maîtrisées."
+            />
+
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=1200&auto=format&fit=crop"
+              title="Aménagement premium"
+              text="Confort, circulation et esthétique au service du quotidien."
+              offset
+            />
+
+            <PortfolioCard
+              image="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&auto=format&fit=crop"
+              title="Habitat valorisé"
+              text="Chaque intervention prépare la valeur future du bien."
+            />
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* SIGNATURE NOVARA */}
+      <section
+        id="garanties"
+        className="relative overflow-hidden bg-black px-6 py-32 text-white"
+      >
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_48%,rgba(201,164,92,0.16),transparent_38%)]" />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-20 lg:grid-cols-[0.88fr_1.12fr]">
+
+          {/* LEFT */}
+          <div>
+
+            <p className="mb-8 text-sm uppercase tracking-[0.55em] text-[#c9a45c]">
+              LA SIGNATURE NOVARA
             </p>
 
-            <h2 className="mx-auto mt-5 max-w-4xl text-4xl font-semibold tracking-[-0.03em] md:text-6xl">
-              Signature NOVARA,
-              votre quotidien allégé
-              en 5 étapes
+            <h2 className="max-w-3xl text-5xl font-semibold leading-[1.02] tracking-[-0.05em] md:text-6xl">
+              Vous restez informé,
+              accompagné et au
+              centre de chaque
+              décision.
             </h2>
 
-          </div>
+            <div className="mt-8 h-[2px] w-16 bg-[#c9a45c]" />
 
-          {/* STEPS */}
-          <div className="mt-20 grid gap-6 lg:grid-cols-5">
-
-            {[
-              {
-                number: "1",
-                title: "Vous nous confiez votre habitat",
-                text: "Vous gardez le contrôle, nous collectons uniquement les informations essentielles à votre confort et à votre sécurité.",
-                value: "TRANSPARENCE TOTALE",
-              },
-              {
-                number: "2",
-                title: "Notre IA analyse et anticipe",
-                text: "Notre IA analyse vos préférences et le fonctionnement de votre habitat pour anticiper vos besoins.",
-                value: "INTELLIGENCE PRÉDICTIVE",
-              },
-              {
-                number: "3",
-                title: "Votre habitat s’adapte",
-                text: "Nous ajustons automatiquement les équipements et services pour votre bien-être au quotidien.",
-                value: "CONFORT SUR-MESURE",
-              },
-              {
-                number: "4",
-                title: "Vous êtes informé(e) en temps réel",
-                text: "Vous recevez des alertes et recommandations claires. Vous décidez, nous exécutons.",
-                value: "INFORMATION CLAIRE ET UTILE",
-              },
-              {
-                number: "5",
-                title: "Tout reste sous votre contrôle",
-                text: "Vous gardez la main à tout moment depuis votre espace client.",
-                value: "VOUS DÉCIDEZ, NOUS AGISSONS",
-              },
-            ].map((card) => (
-
-              <div
-                key={card.number}
-                className="group relative overflow-hidden rounded-[2rem] border border-[#c9a45c]/18 bg-white/[0.03] p-7 backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:border-[#c9a45c]/40 hover:bg-white/[0.05]"
-              >
-
-                {/* NUMBER */}
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-[#c9a45c]/35 text-xl font-semibold text-[#c9a45c]">
-                  {card.number}
-                </div>
-
-                {/* TITLE */}
-                <h3 className="text-2xl font-semibold leading-tight tracking-[-0.03em]">
-                  {card.title}
-                </h3>
-
-                {/* TEXT */}
-                <p className="mt-5 text-base leading-7 text-white/65">
-                  {card.text}
-                </p>
-
-                {/* VALUE */}
-                <div className="mt-8 border-t border-white/10 pt-5">
-
-                  <p className="text-sm uppercase tracking-[0.18em] text-[#c9a45c]">
-                    {card.value}
-                  </p>
-
-                </div>
-
-              </div>
-
-            ))}
+            <p className="mt-10 max-w-xl text-lg leading-8 text-white/62">
+              Un suivi humain, clair et structuré pour que chaque étape du
+              chantier soit comprise, visible et maîtrisée.
+            </p>
 
           </div>
 
-          {/* TRUST */}
-          <div className="mt-28 rounded-[2.4rem] border border-[#c9a45c]/18 bg-white/[0.03] p-10 backdrop-blur-xl">
+          {/* RIGHT */}
+          <div className="relative mx-auto h-[720px] w-full max-w-[720px]">
 
-            <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
+            {/* GOLD GLOW */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(201,164,92,0.22),transparent_55%)]" />
 
-              <div>
+            {/* RINGS */}
+            <div className="absolute inset-[80px] rounded-full border border-[#c9a45c]/22" />
+            <div className="absolute inset-[135px] rounded-full border border-[#c9a45c]/10" />
 
-                <p className="text-3xl font-semibold tracking-[-0.03em]">
-                  Votre sérénité,
-                  notre engagement
-                </p>
+            {/* CENTER */}
+            <div className="absolute left-1/2 top-1/2 z-20 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-[2.4rem] border border-[#c9a45c]/40 bg-[#c9a45c]/10 p-10 text-center shadow-[0_0_90px_rgba(201,164,92,.18)] backdrop-blur-xl">
 
-                <p className="mt-6 text-lg leading-8 text-white/65">
-                  Sécurité des données, confidentialité,
-                  fiabilité et discrétion.
-                </p>
-
-                <p className="mt-4 text-lg leading-8 text-white/65">
-                  NOVARA Concierge place votre tranquillité
-                  au cœur de chaque action.
-                </p>
-
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#c9a45c]/35 text-3xl text-[#c9a45c]">
+                ⌂
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <p className="text-4xl font-semibold tracking-[-0.03em]">
+                Votre projet
+              </p>
 
-                {[
-                  "Données sécurisées et chiffrées",
-                  "Respect total de votre vie privée",
-                  "IA éthique et responsable",
-                  "Support humain dédié 24/7",
-                ].map((item) => (
-
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-white/80"
-                  >
-                    ✓ {item}
-                  </div>
-
-                ))}
-
-              </div>
+              <p className="mt-4 text-base leading-7 text-white/60">
+                au centre du suivi{" "}
+                <span className="text-[#c9a45c]">
+                  NOVARA
+                </span>
+              </p>
 
             </div>
 
-          </div>
+            {/* TOP */}
+            <CircleNode
+              className="left-1/2 top-[10px] -translate-x-1/2"
+              icon="☎"
+              title="Connexion client"
+              text="Votre projet, notre priorité."
+            />
 
-          {/* FOOTER */}
-          <div className="mt-24 border-t border-white/10 pt-10 text-center">
+            {/* RIGHT */}
+            <CircleNode
+              className="right-[30px] top-1/2 -translate-y-1/2"
+              icon="◎"
+              title="Interlocuteur dédié"
+              text="Un contact unique à vos côtés."
+            />
 
-            <p className="text-lg uppercase tracking-[0.4em] text-[#c9a45c]">
-              NOVARA CONCIERGE
-            </p>
+            {/* BOTTOM RIGHT */}
+            <CircleNode
+              className="bottom-[60px] right-[120px]"
+              icon="▧"
+              title="Photos chantier"
+              text="Suivi visuel et régulier."
+            />
 
-            <p className="mt-4 text-white/55">
-              L’IA au service de votre bien-être,
-              sous votre contrôle.
-            </p>
+            {/* BOTTOM LEFT */}
+            <CircleNode
+              className="bottom-[60px] left-[120px]"
+              icon="▤"
+              title="Rapport clair"
+              text="Compte-rendu simple et utile."
+            />
+
+            {/* LEFT */}
+            <CircleNode
+              className="left-[30px] top-1/2 -translate-y-1/2"
+              icon="◌"
+              title="Communication"
+              text="Réponses rapides et suivies."
+            />
 
           </div>
 
@@ -304,5 +223,80 @@ export default function Home() {
       <Footer />
 
     </main>
+  );
+}
+
+/* CARD */
+
+function PortfolioCard({
+  image,
+  title,
+  text,
+  offset,
+}: {
+  image: string;
+  title: string;
+  text: string;
+  offset?: boolean;
+}) {
+  return (
+    <div className={offset ? "md:translate-y-12" : ""}>
+
+      <div className="overflow-hidden rounded-[2.2rem] bg-white shadow-[0_25px_90px_rgba(0,0,0,.10)]">
+
+        <div
+          className="h-80 bg-cover bg-center"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+
+        <div className="p-7">
+
+          <p className="text-2xl font-semibold tracking-[-0.025em]">
+            {title}
+          </p>
+
+          <p className="mt-3 leading-7 text-black/55">
+            {text}
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* WHEEL NODE */
+
+function CircleNode({
+  className,
+  icon,
+  title,
+  text,
+}: {
+  className: string;
+  icon: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div
+      className={`absolute z-10 w-52 rounded-[2rem] border border-[#c9a45c]/24 bg-white/[0.04] p-6 text-center shadow-[0_0_40px_rgba(0,0,0,.28)] backdrop-blur-xl ${className}`}
+    >
+
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#c9a45c]/35 bg-black/30 text-2xl text-[#c9a45c]">
+        {icon}
+      </div>
+
+      <p className="text-2xl font-semibold tracking-[-0.03em]">
+        {title}
+      </p>
+
+      <p className="mt-3 text-base leading-7 text-white/58">
+        {text}
+      </p>
+
+    </div>
   );
 }
