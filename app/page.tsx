@@ -130,7 +130,7 @@ export default function Home() {
             />
 
             <p className="mb-6 text-sm uppercase tracking-[0.35em] text-[#b99252]">
-              Signature NOVARA
+              La Signature NOVARA
             </p>
 
             <h2 className="text-5xl font-light leading-tight tracking-tight text-[#1f1f1f] md:text-7xl">
@@ -150,11 +150,12 @@ export default function Home() {
               contrôle.
             </p>
 
-            <button className="mt-12 rounded-full bg-[#153126] px-10 py-5 text-sm uppercase tracking-[0.22em] text-white shadow-[0_18px_45px_rgba(21,49,38,0.18)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#1d4435]">
-              Découvrir l’expérience
-            </button>
-          </div>
-
+           <a
+  href="/experience"
+  className="mt-12 inline-flex rounded-full bg-[#153126] px-10 py-5 text-sm uppercase tracking-[0.22em] text-white shadow-[0_18px_45px_rgba(21,49,38,0.18)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#1d4435]"
+>
+  Découvrir l’expérience
+</a>
           {/* RIGHT IMAGE */}
           <div className="relative">
             <div className="absolute -inset-8 rounded-[48px] bg-[#d6b06a]/20 blur-3xl" />
