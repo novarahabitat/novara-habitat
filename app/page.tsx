@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 export default function Home() {
   return (
     <main className="overflow-hidden bg-white text-[#1a1a1a]">
