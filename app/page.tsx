@@ -38,10 +38,12 @@ export default function Home() {
                   Portfolio
                 </a>
 
-                <a
-                  href="#signature"
-                  className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10"
-                >
+               <a
+  href="/contact"
+  className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10"
+>
+  Prendre contact
+</a>
                   Les garanties NOVARA
                 </a>
               </div>
