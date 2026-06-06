@@ -118,7 +118,7 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
           <div className="max-w-xl">
             <img
-              src="/images/novara-logo-noir.jpg"
+              src="/images/novara-logo-blanc.png"
               alt="NOVARA Habitat"
               className="mb-12 h-20 w-auto object-contain"
             />
