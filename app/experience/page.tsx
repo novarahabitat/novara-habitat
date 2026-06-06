@@ -1,8 +1,12 @@
 "use client";
 
+import Header from "@/components/Header";
+
 export default function ExperiencePage() {
   return (
     <main className="overflow-hidden bg-[#f6f1e8] text-[#1f1f1f]">
+      <Header />
+
       <section className="relative py-32">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(185,146,82,0.16),transparent_35%)]" />
 
