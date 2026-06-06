@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
-
 export default function Home() {
   return (
     <main className="overflow-hidden bg-white text-[#1a1a1a]">
+      {/* HERO */}
       <section className="relative min-h-screen overflow-hidden bg-[#f5f1e8]">
         <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-6 py-24 lg:px-8">
           <div className="grid items-center gap-20 lg:grid-cols-2">
@@ -13,7 +12,7 @@ export default function Home() {
                 NOVARA Habitat
               </p>
 
-              <h1 className="max-w-2xl text-6xl font-light leading-tight tracking-tight text-[#1a1a1a] md:text-7xl">
+              <h1 className="max-w-2xl text-6xl font-light leading-tight tracking-tight md:text-7xl">
                 L’habitat réinventé.
                 <br />
                 <span className="text-[#b99252]">Pour vous.</span>
@@ -25,13 +24,19 @@ export default function Home() {
               </p>
 
               <div className="mt-12 flex flex-wrap gap-5">
-                <button className="rounded-full bg-[#173328] px-8 py-4 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-[#214737]">
+                <a
+                  href="#portfolio"
+                  className="rounded-full bg-[#173328] px-8 py-4 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-[#214737]"
+                >
                   Portfolio
-                </button>
+                </a>
 
-                <button className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10">
+                <a
+                  href="#signature"
+                  className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10"
+                >
                   Les garanties NOVARA
-                </button>
+                </a>
               </div>
             </div>
 
@@ -50,7 +55,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white py-28">
+      {/* PORTFOLIO */}
+      <section id="portfolio" className="bg-white py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mb-20 text-center">
             <p className="mb-5 text-sm uppercase tracking-[0.4em] text-[#b99252]">
@@ -102,7 +108,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#f6f1e8] py-24 lg:py-32">
+      {/* SIGNATURE NOVARA */}
+      <section
+        id="signature"
+        className="relative overflow-hidden bg-[#f6f1e8] py-24 lg:py-32"
+      >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(185,146,82,0.14),transparent_36%),radial-gradient(circle_at_15%_10%,rgba(255,255,255,0.85),transparent_32%)]" />
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
@@ -153,12 +163,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="bg-black py-12 text-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 lg:flex-row lg:px-8">
           <img
             src="/images/novara-logo-transparent.png"
             alt="NOVARA Habitat"
-            className="h-14 w-auto"
+            className="h-14 w-auto object-contain"
           />
 
           <p className="text-sm tracking-[0.2em] text-white/60">
