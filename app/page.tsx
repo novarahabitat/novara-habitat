@@ -1,8 +1,13 @@
 "use client";
 
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
 export default function Home() {
   return (
     <main className="overflow-hidden bg-white text-[#1a1a1a]">
+      <Header />
+
       {/* HERO */}
       <section className="relative min-h-screen overflow-hidden bg-[#f5f1e8]">
         <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-6 py-24 lg:px-8">
@@ -13,14 +18,15 @@ export default function Home() {
               </p>
 
               <h1 className="max-w-2xl text-6xl font-light leading-tight tracking-tight md:text-7xl">
-                La Rénovation réinventé.
+                La rénovation réinventée.
                 <br />
                 <span className="text-[#b99252]">Pour vous.</span>
               </h1>
 
               <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#4b4b4b]">
-                Plus qu'une renovation, une expérience premium pensée autour de votre confort, de votre sérénité
-                et d’un accompagnement digital Unique.
+                Plus qu'une rénovation, une expérience premium pensée autour de
+                votre confort, de votre sérénité et d’un accompagnement digital
+                unique.
               </p>
 
               <div className="mt-12 flex flex-wrap gap-5">
@@ -163,20 +169,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-black py-12 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 lg:flex-row lg:px-8">
-          <img
-            src="/images/novara-logo-noir.jpg"
-            alt="NOVARA Habitat"
-            className="h-14 w-auto object-contain"
-          />
-
-          <p className="text-sm tracking-[0.2em] text-white/60">
-            NOVARA Dynamics
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
