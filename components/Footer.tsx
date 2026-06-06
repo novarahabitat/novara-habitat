@@ -29,7 +29,7 @@ export default function Footer() {
         </div>
 
         <p className="mt-8 text-sm tracking-[0.45em] text-[#c9a45c]">
-          NOVARA ECOSYSTEM
+          NOVARA DYNAMICS
         </p>
 
         <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
