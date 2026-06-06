@@ -142,9 +142,10 @@ export default function Home() {
             <div className="my-8 h-[2px] w-24 bg-[#c8a46b]" />
 
             <p className="text-lg leading-relaxed text-[#4d4d4d]">
-              Un accompagnement humain et sur mesure pour simplifier votre
-              quotidien, anticiper vos besoins et garder votre habitat sous
-              contrôle.
+              Un accompagnement digital sur mesure avec photos et rapport
+              quotidien, une comunication simple et rapide, un suivi hors paire 
+              pour suivre votre chantier en toute scerenite, que vous soyer proche ou éloigner
+              vous avez le contrôle.
             </p>
 
             <a
@@ -158,13 +159,15 @@ export default function Home() {
           <div className="relative">
             <div className="absolute -inset-8 rounded-[48px] bg-[#d6b06a]/20 blur-3xl" />
 
-            <div className="relative overflow-hidden rounded-[34px] border border-white/60 bg-white/35 p-3 shadow-[0_35px_100px_rgba(30,24,12,0.22)] backdrop-blur">
-              <img
-                src="/images/novara-signature.jpg"
-                alt="Signature NOVARA"
-                className="aspect-[16/10] w-full rounded-[26px] object-cover"
-              />
-            </div>
+           <div className="relative">
+  <div className="absolute -inset-10 rounded-[50px] bg-[#d6b06a]/20 blur-[80px]" />
+
+  <img
+    src="/images/novara-signature.jpg"
+    alt="Signature NOVARA"
+    className="relative w-full rounded-[34px] object-cover shadow-[0_40px_120px_rgba(0,0,0,0.25)]"
+  />
+</div>
           </div>
         </div>
       </section>
