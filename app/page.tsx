@@ -167,7 +167,7 @@ export default function Home() {
       <footer className="bg-black py-12 text-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 lg:flex-row lg:px-8">
           <img
-            src="/images/novara-logo-blanc.png"
+            src="/images/novara-logo-noir.jpg"
             alt="NOVARA Habitat"
             className="h-14 w-auto object-contain"
           />
