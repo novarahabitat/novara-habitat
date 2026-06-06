@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="flex items-center justify-center gap-6">
 
           <img
-            src="/logos/novara-habitat.jpg"
+            src="/logos/novara-noir.jpg"
             className="h-14 object-contain opacity-90 transition hover:opacity-100"
             alt="Habitat"
           />
