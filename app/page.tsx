@@ -13,14 +13,14 @@ export default function Home() {
               </p>
 
               <h1 className="max-w-2xl text-6xl font-light leading-tight tracking-tight md:text-7xl">
-                L’habitat réinventé.
+                La Rénovation réinventé.
                 <br />
                 <span className="text-[#b99252]">Pour vous.</span>
               </h1>
 
               <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#4b4b4b]">
-                Une expérience premium pensée autour du confort, de la sérénité
-                et d’un accompagnement haut de gamme.
+                Plus qu'une renovation, une expérience premium pensée autour de votre confort, de votre sérénité
+                et d’un accompagnement digital Unique.
               </p>
 
               <div className="mt-12 flex flex-wrap gap-5">
