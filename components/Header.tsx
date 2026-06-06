@@ -8,7 +8,7 @@ export default function Header() {
       <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-4">
           <img
-            src="/images/novara-logo-blanc.png"
+            src="/images/novara-logo-noir.jpg"
             alt="NOVARA Habitat"
             className="h-12 w-auto object-contain"
           />
