@@ -2,6 +2,7 @@
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 
 export default function Home() {
   return (
@@ -61,58 +62,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PORTFOLIO */}
-      <section id="portfolio" className="bg-white py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mb-20 text-center">
-            <p className="mb-5 text-sm uppercase tracking-[0.4em] text-[#b99252]">
-              Portfolio
-            </p>
+     {/* PORTFOLIO */}
+<section id="portfolio" className="bg-white py-28">
+  <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="mb-20 text-center">
+      <p className="mb-5 text-sm uppercase tracking-[0.4em] text-[#b99252]">
+        Portfolio
+      </p>
 
-            <h2 className="text-5xl font-light text-[#1f1f1f]">
-              Des espaces pensés
-              <br />
-              pour durer.
-            </h2>
-          </div>
+      <h2 className="text-5xl font-light text-[#1f1f1f]">
+        Des espaces pensés
+        <br />
+        pour durer.
+      </h2>
+    </div>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            {[
-              {
-                title: "Rénovation intérieure",
-                image: "/images/portfolio-1.jpg",
-              },
-              {
-                title: "Aménagement premium",
-                image: "/images/portfolio-2.jpg",
-              },
-              {
-                title: "Habitat valorisé",
-                image: "/images/portfolio-3.jpg",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="group overflow-hidden rounded-[30px] bg-white shadow-xl transition duration-500 hover:-translate-y-2"
-              >
-                <div className="overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="h-[500px] w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
+    <div className="grid gap-8 lg:grid-cols-3">
+      <BeforeAfterSlider
+        title="Rénovation intérieure"
+        beforeImage="/images/before-1.jpg"
+        afterImage="/images/after-1.jpg"
+      />
 
-                <div className="p-8">
-                  <h3 className="text-2xl font-light text-[#1f1f1f]">
-                    {item.title}
-                  </h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <BeforeAfterSlider
+        title="Aménagement premium"
+        beforeImage="/images/before-2.jpg"
+        afterImage="/images/after-2.jpg"
+      />
+
+      <BeforeAfterSlider
+        title="Habitat valorisé"
+        beforeImage="/images/before-3.jpg"
+        afterImage="/images/after-3.jpg"
+      />
+    </div>
+  </div>
+</section>
 
       {/* SIGNATURE NOVARA */}
       <section
