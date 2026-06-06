@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "@/components/Header";
+import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 
 export default function ExperiencePage() {
   return (
