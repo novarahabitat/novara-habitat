@@ -21,9 +21,7 @@ export default function CorePage() {
         </div>
 
         <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
-          <p className="text-sm font-medium text-[#8d7be8]">
-            Chantier actif
-          </p>
+          <p className="text-sm font-medium text-[#8d7be8]">Chantier actif</p>
 
           <h2 className="mt-3 text-xl font-bold">Client Martin</h2>
 
@@ -96,30 +94,28 @@ export default function CorePage() {
           <h3 className="mb-3 font-semibold">Actions rapides</h3>
 
           <div className="grid grid-cols-2 gap-3">
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📸 Photos
-            </button>
-
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              🎙 Rapport
-            </button>
-
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📦 Commande
-            </button>
-
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📄 Documents
-            </button>
-
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              🛠 SAV
-            </button>
-
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📨 Messages
-            </button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">📸 Photos</button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">🎙 Rapport</button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">📦 Commande</button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">📄 Documents</button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">🛠 SAV</button>
+            <button className="rounded-3xl bg-white p-4 shadow-lg">📨 Messages</button>
           </div>
+        </div>
+
+        <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
+          <p className="text-sm font-medium text-[#8d7be8]">Espace sécurisé</p>
+
+          <h3 className="mt-2 text-lg font-bold">RH / Personnel</h3>
+
+          <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
+            Accès aux informations personnelles et documents sensibles. Une
+            vérification supplémentaire sera demandée avant ouverture.
+          </p>
+
+          <button className="mt-4 w-full rounded-2xl bg-[#efe9ff] px-5 py-4 font-semibold text-[#6f5bd8]">
+            RH / Personnel
+          </button>
         </div>
       </section>
     </main>
