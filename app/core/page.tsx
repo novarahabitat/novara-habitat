@@ -7,7 +7,7 @@ export default function CorePage() {
             NOVARA Core
           </p>
           <h1 className="mt-3 text-3xl font-semibold">
-            Bonjour Vital
+            Bonjour Laurent
           </h1>
           <p className="mt-2 text-sm text-white/60">
             Application interne chantier — terrain d’abord.
@@ -23,9 +23,12 @@ export default function CorePage() {
             Le dashboard sera bientôt connecté aux projets Supabase.
           </p>
 
-          <button className="mt-5 w-full rounded-2xl bg-[#c8a45d] px-5 py-4 text-base font-semibold text-black">
-            Ouvrir les chantiers
-          </button>
+        <a
+  href="/core/chantier"
+  className="mt-5 block w-full rounded-2xl bg-[#c8a45d] px-5 py-4 text-center text-base font-semibold text-black"
+>
+  Ouvrir les chantiers
+</a>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
