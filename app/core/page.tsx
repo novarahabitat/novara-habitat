@@ -1,119 +1,121 @@
 import SafetyIncidentButton from "@/components/core/SafetyIncidentButton";
 
 export default function CorePage() {
-  return (
-    <main className="min-h-screen bg-[#fbf7ff] text-[#34275f]">
-      <SafetyIncidentButton />
-      
-      <section className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-28 pt-6 md:max-w-4xl">
-        <header className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.35em] text-[#8d7be8]">
-              NOVARA CORE
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold">
-              Bienvenue, Vital
-            </h1>
-            <p className="mt-1 text-sm text-[#8a7eaa]">
-              Prêt à piloter vos chantiers ?
-            </p>
-          </div>
+return ( <main className="min-h-screen bg-[#fbf7ff] text-[#34275f]"> <SafetyIncidentButton />
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-lg shadow-[#c9b8ff]/30">
-            N
-          </div>
-        </header>
+```
+  <section className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-28 pt-24">
 
-        <section className="mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#eee7ff] via-[#f8eefe] to-[#e7f0ff] p-6 shadow-xl shadow-[#c9b8ff]/30">
-          <p className="text-sm font-medium text-[#7d69d7]">
-            Aujourd’hui
-          </p>
+    <div className="flex items-center gap-4">
+      <div className="h-16 w-16 rounded-3xl bg-white shadow-lg shadow-[#d9ccff]/30" />
 
-          <h2 className="mt-3 text-3xl font-semibold leading-tight">
-            NOVARA Core,
-            <br />
-            plaisir à gérer.
-          </h2>
+      <div>
+        <p className="text-sm text-[#8a7eaa]">Bonjour</p>
+        <h1 className="text-2xl font-bold">
+          Julien
+        </h1>
 
-          <p className="mt-4 text-sm leading-6 text-[#786f9d]">
-            Chantiers, photos, planning et SAV réunis dans une application
-            simple, rapide et agréable à utiliser.
-          </p>
-
-          <a
-            href="/core/chantier"
-            className="mt-6 inline-flex rounded-2xl bg-[#8d7be8] px-5 py-3 font-semibold text-white shadow-lg shadow-[#8d7be8]/30"
-          >
-            Voir mes chantiers →
-          </a>
-        </section>
-
-        <section className="mt-6 grid grid-cols-2 gap-4">
-          {[
-            ["0", "Chantiers actifs"],
-            ["0", "SAV ouverts"],
-            ["0", "Photos reçues"],
-            ["0", "Rapports attente"],
-          ].map(([value, label]) => (
-            <div
-              key={label}
-              className="rounded-[1.5rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/25"
-            >
-              <p className="text-3xl font-semibold text-[#6f5bd8]">
-                {value}
-              </p>
-              <p className="mt-2 text-sm text-[#8a7eaa]">
-                {label}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        <section className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-[#5f528d]">
-            Actions rapides
-          </h3>
-
-          <div className="space-y-3">
-            {[
-              ["📸", "Photo chantier", "Avant, pendant, après"],
-              ["🎙️", "Rapport vocal", "Compte-rendu fin de journée"],
-              ["📄", "Documents", "Devis, plans, notices"],
-              ["🛠️", "SAV", "Tickets et interventions"],
-            ].map(([icon, title, subtitle]) => (
-              <button
-                key={title}
-                className="flex w-full items-center gap-4 rounded-[1.5rem] bg-white p-4 text-left shadow-lg shadow-[#d9ccff]/20"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f0eaff] text-xl">
-                  {icon}
-                </span>
-
-                <span>
-                  <span className="block font-semibold text-[#34275f]">
-                    {title}
-                  </span>
-                  <span className="mt-0.5 block text-sm text-[#9a8fb8]">
-                    {subtitle}
-                  </span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      </section>
-
-      <nav className="fixed bottom-0 left-0 right-0 border-t border-[#eadfff] bg-white/85 px-4 pb-5 pt-3 backdrop-blur-2xl">
-        <div className="mx-auto grid max-w-md grid-cols-5 text-center text-[11px] text-[#9a8fb8]">
-          <a href="/core" className="font-semibold text-[#6f5bd8]">
-            Accueil
-          </a>
-          <a href="/core/chantier">Chantiers</a>
-          <span>Photos</span>
-          <span>Planning</span>
-          <span>SAV</span>
+        <div className="mt-1 flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-orange-500" />
+          <span className="text-sm text-[#8a7eaa]">
+            Non pointé
+          </span>
         </div>
-      </nav>
-    </main>
-  );
+      </div>
+    </div>
+
+    <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
+      <p className="text-sm font-medium text-[#8d7be8]">
+        Chantier du jour
+      </p>
+
+      <h2 className="mt-3 text-xl font-bold">
+        Client Martin
+      </h2>
+
+      <p className="mt-2 text-[#8a7eaa]">
+        15 Rue de la République
+      </p>
+
+      <p className="text-[#8a7eaa]">
+        Saint-Malo
+      </p>
+
+      <div className="mt-5 flex gap-3">
+        <button className="flex-1 rounded-2xl bg-[#8d7be8] px-4 py-3 font-semibold text-white">
+          GPS
+        </button>
+
+        <button className="flex-1 rounded-2xl bg-[#efe9ff] px-4 py-3 font-semibold text-[#6f5bd8]">
+          Ouvrir
+        </button>
+      </div>
+    </div>
+
+    <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
+      <p className="text-sm font-medium text-[#8d7be8]">
+        Pointage
+      </p>
+
+      <p className="mt-2 text-sm text-[#8a7eaa]">
+        Arrivée prévue : 08:30
+      </p>
+
+      <button className="mt-4 w-full rounded-2xl bg-emerald-500 px-5 py-4 font-semibold text-white">
+        Pointer mon arrivée
+      </button>
+    </div>
+
+    <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
+      <div className="flex items-center justify-between">
+        <p className="font-semibold">
+          Messages internes
+        </p>
+
+        <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600">
+          2
+        </span>
+      </div>
+
+      <p className="mt-3 text-sm text-[#8a7eaa]">
+        Nouveau message du chef de chantier.
+      </p>
+    </div>
+
+    <div className="mt-6">
+      <h3 className="mb-3 font-semibold">
+        Actions rapides
+      </h3>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          📸 Photos
+        </button>
+
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          🎙 Rapport
+        </button>
+
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          📦 Commande
+        </button>
+
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          📄 Documents
+        </button>
+
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          🛠 SAV
+        </button>
+
+        <button className="rounded-3xl bg-white p-4 shadow-lg">
+          📨 Messages
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+```
+
+);
 }
