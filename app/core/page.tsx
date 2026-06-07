@@ -22,7 +22,7 @@ export default function CorePage() {
 
         <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
           <p className="text-sm font-medium text-[#8d7be8]">
-            Chantier du jour
+            Chantier actif
           </p>
 
           <h2 className="mt-3 text-xl font-bold">Client Martin</h2>
@@ -42,6 +42,28 @@ export default function CorePage() {
               Ouvrir
             </a>
           </div>
+
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <button className="rounded-2xl bg-[#f3edff] px-4 py-3 text-sm font-semibold text-[#6f5bd8]">
+              ← Précédent
+            </button>
+
+            <span className="text-sm text-[#8a7eaa]">1 / 5</span>
+
+            <button className="rounded-2xl bg-[#f3edff] px-4 py-3 text-sm font-semibold text-[#6f5bd8]">
+              Suivant →
+            </button>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button className="rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-white">
+              Chantier fini
+            </button>
+
+            <button className="rounded-2xl bg-orange-100 px-4 py-3 font-semibold text-orange-600">
+              Recaler
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
@@ -58,7 +80,7 @@ export default function CorePage() {
 
         <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
           <div className="flex items-center justify-between">
-            <p className="font-semibold">Messages internes</p>
+            <p className="font-semibold">Messages</p>
 
             <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600">
               2
@@ -66,7 +88,7 @@ export default function CorePage() {
           </div>
 
           <p className="mt-3 text-sm text-[#8a7eaa]">
-            Nouveau message du chef de chantier.
+            1 message interne NOVARA · 1 message client.
           </p>
         </div>
 
