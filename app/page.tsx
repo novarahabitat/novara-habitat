@@ -39,11 +39,11 @@ export default function Home() {
                 </a>
 
                 <a
-                  href="#signature"
-                  className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10"
-                >
-                  Les garanties NOVARA
-                </a>
+  href="/contact"
+  className="rounded-full border border-[#c8a46b] px-8 py-4 text-sm uppercase tracking-[0.2em] text-[#1a1a1a] transition hover:bg-[#c8a46b]/10"
+>
+  Prendre contact
+</a>
               </div>
             </div>
 
@@ -143,13 +143,15 @@ export default function Home() {
           <div className="relative">
             <div className="absolute -inset-8 rounded-[48px] bg-[#d6b06a]/20 blur-3xl" />
 
-            <div className="relative overflow-hidden rounded-[34px] border border-white/60 bg-white/35 p-3 shadow-[0_35px_100px_rgba(30,24,12,0.22)] backdrop-blur">
-              <img
-                src="/images/novara-signature.jpg"
-                alt="Signature NOVARA"
-                className="aspect-[16/10] w-full rounded-[26px] object-cover"
-              />
-            </div>
+          <div className="relative">
+  <div className="absolute -inset-10 rounded-[60px] bg-[#d6b06a]/25 blur-3xl" />
+
+  <img
+    src="/images/novara-signature.jpg"
+    alt="Signature NOVARA"
+    className="relative w-full rounded-[30px] shadow-[0_35px_100px_rgba(30,24,12,0.28)]"
+  />
+</div>
           </div>
         </div>
       </section>
