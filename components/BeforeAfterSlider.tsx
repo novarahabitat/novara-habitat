@@ -14,6 +14,7 @@ export default function BeforeAfterSlider({
   title,
 }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const updatePosition = (clientX: number) => {
@@ -21,57 +22,67 @@ export default function BeforeAfterSlider({
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
-    const percentage = Math.min(95, Math.max(5, (x / rect.width) * 100));
+    const nextPosition = Math.min(95, Math.max(5, (x / rect.width) * 100));
 
-    setPosition(percentage);
+    setPosition(nextPosition);
   };
 
   return (
     <div className="overflow-hidden rounded-[28px] bg-white shadow-xl">
       <div
         ref={containerRef}
-        className="relative h-[320px] touch-none overflow-hidden select-none md:h-[420px]"
-        onMouseDown={(e) => updatePosition(e.clientX)}
-        onMouseMove={(e) => {
-          if (e.buttons === 1) updatePosition(e.clientX);
+        className="relative h-[320px] touch-none select-none overflow-hidden bg-black md:h-[420px]"
+        onPointerDown={(e) => {
+          setIsDragging(true);
+          updatePosition(e.clientX);
+          e.currentTarget.setPointerCapture(e.pointerId);
         }}
-        onTouchStart={(e) => updatePosition(e.touches[0].clientX)}
-        onTouchMove={(e) => {
-          e.preventDefault();
-          updatePosition(e.touches[0].clientX);
+        onPointerMove={(e) => {
+          if (!isDragging) return;
+          updatePosition(e.clientX);
         }}
+        onPointerUp={(e) => {
+          setIsDragging(false);
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
+        onPointerCancel={() => setIsDragging(false)}
       >
+        {/* APRÈS */}
         <img
           src={afterImage}
           alt={`${title} après`}
-          className="absolute inset-0 h-full w-full object-cover"
           draggable={false}
+          className="absolute inset-0 h-full w-full object-cover"
         />
 
+        {/* AVANT */}
         <div
           className="absolute inset-0 overflow-hidden"
-          style={{ width: `${position}%` }}
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
         >
           <img
             src={beforeImage}
             alt={`${title} avant`}
-            className="h-full object-cover"
-            style={{
-              width: `${10000 / position}%`,
-              maxWidth: "none",
-            }}
             draggable={false}
+            className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
 
+        {/* LIGNE */}
         <div
-          className="absolute top-0 z-20 h-full w-[3px] bg-white shadow-[0_0_20px_rgba(0,0,0,0.3)]"
+          className="absolute top-0 z-20 h-full w-[3px] bg-white shadow-[0_0_20px_rgba(0,0,0,0.35)]"
           style={{ left: `${position}%` }}
         />
 
+        {/* POIGNÉE */}
         <div
-          className="pointer-events-none absolute top-1/2 z-30 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-black/75 text-white shadow-xl backdrop-blur"
-          style={{ left: `${position}%` }}
+          className="pointer-events-none absolute top-1/2 z-30 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-black/75 text-white shadow-xl backdrop-blur transition-transform duration-150"
+          style={{
+            left: `${position}%`,
+            transform: isDragging
+              ? "translate(-50%, -50%) scale(1.08)"
+              : "translate(-50%, -50%) scale(1)",
+          }}
         >
           ↔
         </div>
