@@ -80,7 +80,10 @@ export default function CorePage() {
           </button>
         </div>
 
-        <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
+        <a
+          href="/core/messages"
+          className="mt-5 block rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20"
+        >
           <div className="flex items-center justify-between">
             <p className="font-semibold">Messages</p>
 
@@ -92,7 +95,7 @@ export default function CorePage() {
           <p className="mt-3 text-sm text-[#8a7eaa]">
             1 message interne NOVARA · 1 message client.
           </p>
-        </div>
+        </a>
 
         <div className="mt-6">
           <h3 className="mb-3 font-semibold">Actions rapides</h3>
@@ -118,9 +121,12 @@ export default function CorePage() {
               🛠 SAV
             </button>
 
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
+            <a
+              href="/core/messages"
+              className="rounded-3xl bg-white p-4 text-center shadow-lg"
+            >
               📨 Messages
-            </button>
+            </a>
           </div>
         </div>
 
