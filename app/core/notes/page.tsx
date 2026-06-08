@@ -1,3 +1,5 @@
+import VoiceNoteRecorder from "@/components/core/VoiceNoteRecorder";
+
 export default function NotesPage() {
   return (
     <main className="min-h-screen bg-[#fbf7ff] px-5 py-8 text-[#34275f]">
@@ -10,19 +12,7 @@ export default function NotesPage() {
           Notes vocales
         </h1>
 
-        <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
-          <h2 className="font-semibold">
-            Nouvelle note
-          </h2>
-
-          <p className="mt-2 text-sm text-[#8a7eaa]">
-            Démarrer un enregistrement vocal.
-          </p>
-
-          <button className="mt-4 w-full rounded-2xl bg-[#8d7be8] px-5 py-4 font-semibold text-white">
-            🎙 Démarrer
-          </button>
-        </div>
+        <VoiceNoteRecorder />
 
         <div className="mt-6">
           <h2 className="mb-3 font-semibold">
