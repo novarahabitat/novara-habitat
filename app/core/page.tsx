@@ -1,3 +1,4 @@
+import CheckInGps from "@/components/core/CheckInGps";
 import SafetyIncidentButton from "@/components/core/SafetyIncidentButton";
 
 export default function CorePage() {
@@ -33,9 +34,13 @@ export default function CorePage() {
           <p className="text-[#8a7eaa]">Saint-Malo</p>
 
           <div className="mt-5 flex gap-3">
-            <button className="flex-1 rounded-2xl bg-[#8d7be8] px-4 py-3 font-semibold text-white">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=15%20Rue%20de%20la%20R%C3%A9publique%2C%20Saint-Malo"
+              target="_blank"
+              className="flex-1 rounded-2xl bg-[#8d7be8] px-4 py-3 text-center font-semibold text-white"
+            >
               GPS
-            </button>
+            </a>
 
             <a
               href="/core/chantier/1"
@@ -68,17 +73,7 @@ export default function CorePage() {
           </div>
         </div>
 
-        <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
-          <p className="text-sm font-medium text-[#8d7be8]">Pointage</p>
-
-          <p className="mt-2 text-sm text-[#8a7eaa]">
-            Arrivée prévue : 08:30
-          </p>
-
-          <button className="mt-4 w-full rounded-2xl bg-emerald-500 px-5 py-4 font-semibold text-white">
-            Pointer mon arrivée
-          </button>
-        </div>
+        <CheckInGps />
 
         <a
           href="/core/messages"
