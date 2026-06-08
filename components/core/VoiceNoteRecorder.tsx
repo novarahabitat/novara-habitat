@@ -2,7 +2,12 @@
 
 import { useRef, useState } from "react";
 
-type RecordingStatus = "idle" | "recording" | "recorded" | "error";
+type RecordingStatus =
+  | "idle"
+  | "recording"
+  | "review"
+  | "submitted"
+  | "error";
 
 export default function VoiceNoteRecorder() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -16,6 +21,7 @@ export default function VoiceNoteRecorder() {
     try {
       setStatus("recording");
       setAudioUrl(null);
+      setRecordedAt(null);
       audioChunksRef.current = [];
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -44,7 +50,7 @@ export default function VoiceNoteRecorder() {
           })
         );
 
-        setStatus("recorded");
+        setStatus("review");
 
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -59,16 +65,31 @@ export default function VoiceNoteRecorder() {
     mediaRecorderRef.current?.stop();
   }
 
+  function cancelRecording() {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+
+    setAudioUrl(null);
+    setRecordedAt(null);
+    audioChunksRef.current = [];
+    setStatus("idle");
+  }
+
+  function submitRecording() {
+    setStatus("submitted");
+  }
+
   return (
     <div className="rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
       <h2 className="font-semibold">Nouvelle note vocale</h2>
 
       <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
-        Dictez une note chantier ou une demande de commande. Plus tard, NOVARA
-        Core triera automatiquement la note avec l’IA.
+        Enregistrez une note. Après l’enregistrement, vous pourrez réécouter,
+        soumettre ou annuler avant envoi.
       </p>
 
-      {status !== "recording" && (
+      {status === "idle" && (
         <button
           onClick={startRecording}
           className="mt-4 w-full rounded-2xl bg-[#8d7be8] px-5 py-4 font-semibold text-white"
@@ -78,30 +99,65 @@ export default function VoiceNoteRecorder() {
       )}
 
       {status === "recording" && (
-        <button
-          onClick={stopRecording}
-          className="mt-4 w-full rounded-2xl bg-red-500 px-5 py-4 font-semibold text-white"
-        >
-          ⏹ Arrêter l’enregistrement
-        </button>
+        <>
+          <button
+            onClick={stopRecording}
+            className="mt-4 w-full rounded-2xl bg-red-500 px-5 py-4 font-semibold text-white"
+          >
+            ⏹ Arrêter l’enregistrement
+          </button>
+
+          <div className="mt-4 rounded-2xl bg-red-100 p-4 text-sm font-semibold text-red-700">
+            Enregistrement en cours...
+          </div>
+        </>
       )}
 
-      {status === "recording" && (
-        <div className="mt-4 rounded-2xl bg-red-100 p-4 text-sm font-semibold text-red-700">
-          Enregistrement en cours...
-        </div>
-      )}
-
-      {status === "recorded" && audioUrl && (
-        <div className="mt-4 rounded-2xl bg-emerald-100 p-4 text-sm text-emerald-700">
-          <p className="font-bold">✅ Note enregistrée</p>
-          <p className="mt-1">Heure : {recordedAt}</p>
+      {status === "review" && audioUrl && (
+        <div className="mt-4 rounded-2xl bg-[#f7f2ff] p-4 text-sm text-[#34275f]">
+          <p className="font-bold">Note prête à vérifier</p>
+          <p className="mt-1 text-[#8a7eaa]">Heure : {recordedAt}</p>
 
           <audio controls src={audioUrl} className="mt-3 w-full" />
 
-          <div className="mt-4 rounded-2xl bg-white/70 p-3 text-[#6f5bd8]">
-            Statut : en attente d’analyse IA
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <button
+              onClick={cancelRecording}
+              className="rounded-2xl bg-red-100 px-4 py-3 font-semibold text-red-600"
+            >
+              Annuler
+            </button>
+
+            <button
+              onClick={submitRecording}
+              className="rounded-2xl bg-emerald-500 px-4 py-3 font-semibold text-white"
+            >
+              Soumettre
+            </button>
           </div>
+
+          <button
+            onClick={startRecording}
+            className="mt-3 w-full rounded-2xl bg-[#efe9ff] px-4 py-3 font-semibold text-[#6f5bd8]"
+          >
+            Recommencer l’enregistrement
+          </button>
+        </div>
+      )}
+
+      {status === "submitted" && (
+        <div className="mt-4 rounded-2xl bg-emerald-100 p-4 text-sm text-emerald-700">
+          <p className="font-bold">✅ Note soumise</p>
+          <p className="mt-1">
+            La note est prête pour transcription, découpage IA et triage.
+          </p>
+
+          <button
+            onClick={startRecording}
+            className="mt-4 w-full rounded-2xl bg-[#8d7be8] px-5 py-4 font-semibold text-white"
+          >
+            🎙 Nouvelle note
+          </button>
         </div>
       )}
 
@@ -111,6 +167,13 @@ export default function VoiceNoteRecorder() {
           <p className="mt-1">
             Autorise l’accès au micro pour utiliser les notes vocales.
           </p>
+
+          <button
+            onClick={() => setStatus("idle")}
+            className="mt-4 w-full rounded-2xl bg-[#efe9ff] px-5 py-4 font-semibold text-[#6f5bd8]"
+          >
+            Réessayer
+          </button>
         </div>
       )}
     </div>
