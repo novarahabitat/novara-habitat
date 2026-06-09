@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -34,7 +35,6 @@ export default function EmployeesPage() {
     email: "",
     status: "active",
     hire_date: "",
-    avatar_url: "",
   });
 
   async function loadEmployees() {
@@ -46,11 +46,8 @@ export default function EmployeesPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setEmployees(data || []);
-    }
+    if (error) setError(error.message);
+    else setEmployees(data || []);
 
     setLoading(false);
   }
@@ -71,21 +68,18 @@ export default function EmployeesPage() {
       return;
     }
 
-    const payload = {
-      first_name: form.first_name,
-      last_name: form.last_name,
-      role: form.role,
-      job_title: form.job_title || null,
-      phone: form.phone || null,
-      email: form.email || null,
-      status: form.status,
-      hire_date: form.hire_date || null,
-      avatar_url: form.avatar_url || null,
-    };
-
     const { data, error } = await supabase
       .from("employees")
-      .insert(payload)
+      .insert({
+        first_name: form.first_name,
+        last_name: form.last_name,
+        role: form.role,
+        job_title: form.job_title || null,
+        phone: form.phone || null,
+        email: form.email || null,
+        status: form.status,
+        hire_date: form.hire_date || null,
+      })
       .select("*")
       .single();
 
@@ -106,7 +100,6 @@ export default function EmployeesPage() {
       email: "",
       status: "active",
       hire_date: "",
-      avatar_url: "",
     });
 
     await loadEmployees();
@@ -152,45 +145,15 @@ export default function EmployeesPage() {
         )}
 
         <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
-          <form
-            onSubmit={createEmployee}
-            className="rounded-3xl bg-white p-6 shadow-lg"
-          >
+          <form onSubmit={createEmployee} className="rounded-3xl bg-white p-6 shadow-lg">
             <h2 className="mb-5 text-2xl font-semibold">Nouvel employé</h2>
 
             <div className="space-y-4">
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Prénom"
-                value={form.first_name}
-                onChange={(e) =>
-                  setForm({ ...form, first_name: e.target.value })
-                }
-              />
+              <input className="w-full rounded-xl border p-3" placeholder="Prénom" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+              <input className="w-full rounded-xl border p-3" placeholder="Nom" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+              <input className="w-full rounded-xl border p-3" placeholder="Poste — ex: Électricien" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
 
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Nom"
-                value={form.last_name}
-                onChange={(e) =>
-                  setForm({ ...form, last_name: e.target.value })
-                }
-              />
-
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Poste — ex: Électricien"
-                value={form.job_title}
-                onChange={(e) =>
-                  setForm({ ...form, job_title: e.target.value })
-                }
-              />
-
-              <select
-                className="w-full rounded-xl border p-3"
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-              >
+              <select className="w-full rounded-xl border p-3" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                 <option value="employee">Employé</option>
                 <option value="manager">Manager</option>
                 <option value="hr">RH</option>
@@ -198,58 +161,22 @@ export default function EmployeesPage() {
                 <option value="admin">Admin</option>
               </select>
 
-              <select
-                className="w-full rounded-xl border p-3"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-              >
+              <select className="w-full rounded-xl border p-3" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                 <option value="active">Actif</option>
                 <option value="inactive">Inactif</option>
                 <option value="terminated">Terminé</option>
                 <option value="retired">Retraité</option>
               </select>
 
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Téléphone"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-
-              <input
-                className="w-full rounded-xl border p-3"
-                type="date"
-                value={form.hire_date}
-                onChange={(e) =>
-                  setForm({ ...form, hire_date: e.target.value })
-                }
-              />
-
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Avatar URL — optionnel"
-                value={form.avatar_url}
-                onChange={(e) =>
-                  setForm({ ...form, avatar_url: e.target.value })
-                }
-              />
+              <input className="w-full rounded-xl border p-3" placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input className="w-full rounded-xl border p-3" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <input className="w-full rounded-xl border p-3" type="date" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} />
 
               <div className="rounded-2xl bg-[#f4efe7] p-4 text-sm text-neutral-600">
                 Le PIN NOVARA est généré automatiquement par Supabase.
               </div>
 
-              <button
-                type="submit"
-                disabled={creating}
-                className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50"
-              >
+              <button type="submit" disabled={creating} className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50">
                 {creating ? "Création..." : "Créer l'employé"}
               </button>
             </div>
@@ -258,10 +185,7 @@ export default function EmployeesPage() {
           <div className="rounded-3xl bg-white p-6 shadow-lg">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-2xl font-semibold">Employés</h2>
-              <button
-                onClick={loadEmployees}
-                className="rounded-xl border px-4 py-2 text-sm"
-              >
+              <button onClick={loadEmployees} className="rounded-xl border px-4 py-2 text-sm">
                 Actualiser
               </button>
             </div>
@@ -285,11 +209,11 @@ export default function EmployeesPage() {
                   <tbody>
                     {employees.map((employee) => (
                       <tr key={employee.id} className="border-b">
-                        <td className="py-4 font-mono font-bold">
-                          {employee.employee_pin}
-                        </td>
+                        <td className="py-4 font-mono font-bold">{employee.employee_pin}</td>
                         <td>
-                          {employee.first_name} {employee.last_name}
+                          <Link href={`/admin/employees/${employee.id}`} className="font-semibold underline">
+                            {employee.first_name} {employee.last_name}
+                          </Link>
                         </td>
                         <td>{employee.job_title || "—"}</td>
                         <td>{employee.role}</td>
