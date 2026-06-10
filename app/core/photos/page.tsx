@@ -1,3 +1,5 @@
+import PhotoCapture from "@/components/core/PhotoCapture";
+
 export default function CorePhotosPage() {
   return (
     <main className="min-h-screen bg-[#fbf7ff] px-5 py-8 text-[#34275f]">
@@ -11,21 +13,7 @@ export default function CorePhotosPage() {
           à l’heure, au GPS et à l’analyse IA.
         </p>
 
-        <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
-          <h2 className="font-semibold">Nouvelle photo</h2>
-
-          <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
-            L’ouvrier prend la photo. NOVARA s’occupe du classement.
-          </p>
-
-          <button className="mt-4 w-full rounded-2xl bg-[#8d7be8] px-5 py-4 font-semibold text-white">
-            📸 Prendre une photo
-          </button>
-
-          <button className="mt-3 w-full rounded-2xl bg-[#efe9ff] px-5 py-4 font-semibold text-[#6f5bd8]">
-            📁 Choisir depuis le téléphone
-          </button>
-        </div>
+        <PhotoCapture />
 
         <div className="mt-6 rounded-[2rem] bg-white p-5 shadow-lg shadow-[#d9ccff]/20">
           <p className="text-sm font-medium text-[#8d7be8]">
@@ -78,14 +66,10 @@ export default function CorePhotosPage() {
                     Analyse IA en attente
                   </span>
 
-                  <span className="text-xs text-[#8a7eaa]">
-                    09:42
-                  </span>
+                  <span className="text-xs text-[#8a7eaa]">09:42</span>
                 </div>
 
-                <h3 className="mt-3 font-semibold">
-                  Photo chantier #001
-                </h3>
+                <h3 className="mt-3 font-semibold">Photo chantier #001</h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
                   Auteur : Julien · Chantier : Client Martin
@@ -104,14 +88,10 @@ export default function CorePhotosPage() {
                     Placo / Finition
                   </span>
 
-                  <span className="text-xs text-[#8a7eaa]">
-                    11:18
-                  </span>
+                  <span className="text-xs text-[#8a7eaa]">11:18</span>
                 </div>
 
-                <h3 className="mt-3 font-semibold">
-                  Photo chantier #002
-                </h3>
+                <h3 className="mt-3 font-semibold">Photo chantier #002</h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
                   Auteur : Julien · Classification IA proposée : 92 %
@@ -130,14 +110,10 @@ export default function CorePhotosPage() {
                     Sécurité à vérifier
                   </span>
 
-                  <span className="text-xs text-[#8a7eaa]">
-                    14:06
-                  </span>
+                  <span className="text-xs text-[#8a7eaa]">14:06</span>
                 </div>
 
-                <h3 className="mt-3 font-semibold">
-                  Photo chantier #003
-                </h3>
+                <h3 className="mt-3 font-semibold">Photo chantier #003</h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#8a7eaa]">
                   Possible near miss · Validation humaine requise.
