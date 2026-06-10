@@ -111,9 +111,12 @@ export default function CorePage() {
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
+            <a
+              href="/core/photos"
+              className="rounded-3xl bg-white p-4 text-center shadow-lg"
+            >
               📸 Photos
-            </button>
+            </a>
 
             <a
               href="/core/notes"
@@ -122,17 +125,26 @@ export default function CorePage() {
               🎙 Notes
             </a>
 
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📦 Commande
-            </button>
+            <a
+              href="/core/events"
+              className="rounded-3xl bg-white p-4 text-center shadow-lg"
+            >
+              🧩 Events
+            </a>
 
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
-              📄 Documents
-            </button>
+            <a
+              href="/core/daily-report"
+              className="rounded-3xl bg-white p-4 text-center shadow-lg"
+            >
+              📋 Rapport
+            </a>
 
-            <button className="rounded-3xl bg-white p-4 shadow-lg">
+            <a
+              href="/core/sav"
+              className="rounded-3xl bg-white p-4 text-center shadow-lg"
+            >
               🛠 SAV
-            </button>
+            </a>
 
             <a
               href="/core/messages"
