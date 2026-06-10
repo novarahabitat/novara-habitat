@@ -15,12 +15,26 @@ type Employee = {
   email: string | null;
   status: string;
   hire_date: string | null;
-  avatar_url: string | null;
   created_at: string;
+};
+
+type Skill = {
+  id: string;
+  name: string;
+  category: string | null;
+};
+
+type JobPosition = {
+  id: string;
+  name: string;
+  category: string | null;
 };
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [positions, setPositions] = useState<JobPosition[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -30,30 +44,58 @@ export default function EmployeesPage() {
     first_name: "",
     last_name: "",
     role: "employee",
-    job_title: "",
+    job_position_id: "",
     phone: "",
     email: "",
     status: "active",
     hire_date: "",
+    certified_skill_id: "",
+    knowledge_skill_id: "",
+    knowledge_level: "practical",
   });
 
-  async function loadEmployees() {
+  async function loadData() {
     setLoading(true);
     setError("");
 
-    const { data, error } = await supabase
+    const employeesRequest = supabase
       .from("employees")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) setError(error.message);
-    else setEmployees(data || []);
+    const skillsRequest = supabase
+      .from("skills")
+      .select("id,name,category")
+      .order("category", { ascending: true })
+      .order("name", { ascending: true });
+
+    const positionsRequest = supabase
+      .from("job_positions")
+      .select("id,name,category")
+      .eq("is_active", true)
+      .order("category", { ascending: true })
+      .order("name", { ascending: true });
+
+    const [employeesResult, skillsResult, positionsResult] = await Promise.all([
+      employeesRequest,
+      skillsRequest,
+      positionsRequest,
+    ]);
+
+    if (employeesResult.error) setError(employeesResult.error.message);
+    else setEmployees(employeesResult.data || []);
+
+    if (skillsResult.error) setError(skillsResult.error.message);
+    else setSkills(skillsResult.data || []);
+
+    if (positionsResult.error) setError(positionsResult.error.message);
+    else setPositions(positionsResult.data || []);
 
     setLoading(false);
   }
 
   useEffect(() => {
-    loadEmployees();
+    loadData();
   }, []);
 
   async function createEmployee(e: React.FormEvent) {
@@ -68,13 +110,40 @@ export default function EmployeesPage() {
       return;
     }
 
+    if (!form.job_position_id) {
+      setError("Merci de choisir un poste.");
+      setCreating(false);
+      return;
+    }
+
+    if (!form.certified_skill_id) {
+      setError("Merci de choisir une discipline qualifiée.");
+      setCreating(false);
+      return;
+    }
+
+    if (!form.knowledge_skill_id) {
+      setError("Merci de choisir une discipline en connaissance.");
+      setCreating(false);
+      return;
+    }
+
+    if (form.certified_skill_id === form.knowledge_skill_id) {
+      setError("La discipline qualifiée et la discipline en connaissance doivent être différentes.");
+      setCreating(false);
+      return;
+    }
+
+    const selectedPosition = positions.find((p) => p.id === form.job_position_id);
+
     const { data, error } = await supabase
       .from("employees")
       .insert({
         first_name: form.first_name,
         last_name: form.last_name,
         role: form.role,
-        job_title: form.job_title || null,
+        job_position_id: form.job_position_id,
+        job_title: selectedPosition?.name || null,
         phone: form.phone || null,
         email: form.email || null,
         status: form.status,
@@ -89,20 +158,48 @@ export default function EmployeesPage() {
       return;
     }
 
+    const employeeId = data.id;
+
+    const skillInsert = await supabase.from("employee_skills").insert([
+      {
+        employee_id: employeeId,
+        skill_id: form.certified_skill_id,
+        skill_level: "certified",
+        verified: false,
+        notes: "Ajout initial création employé",
+      },
+      {
+        employee_id: employeeId,
+        skill_id: form.knowledge_skill_id,
+        skill_level: form.knowledge_level,
+        verified: false,
+        notes: "Ajout initial création employé",
+      },
+    ]);
+
+    if (skillInsert.error) {
+      setError(`Employé créé, mais erreur compétences : ${skillInsert.error.message}`);
+      setCreating(false);
+      return;
+    }
+
     setSuccessPin(data.employee_pin);
 
     setForm({
       first_name: "",
       last_name: "",
       role: "employee",
-      job_title: "",
+      job_position_id: "",
       phone: "",
       email: "",
       status: "active",
       hire_date: "",
+      certified_skill_id: "",
+      knowledge_skill_id: "",
+      knowledge_level: "practical",
     });
 
-    await loadEmployees();
+    await loadData();
     setCreating(false);
   }
 
@@ -111,17 +208,25 @@ export default function EmployeesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f3ee] p-6 text-[#171717]">
+    <main className="min-h-screen bg-[#f7f3ee] p-4 text-[#171717] md:p-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 rounded-3xl bg-black p-8 text-white shadow-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-[#d6b46d]">
-            NOVARA RH
+        <div className="mb-8 rounded-3xl bg-black p-5 text-white shadow-xl md:p-8">
+          <img
+            src="/logos/novara-dynamics-logo.png"
+            alt="NOVARA Dynamics"
+            className="mb-4 h-10 w-auto md:h-16"
+          />
+
+          <p className="text-xs uppercase tracking-[0.22em] text-[#d6b46d] md:text-sm md:tracking-[0.3em]">
+            NOVARA Dynamics · Gestion RH
           </p>
-          <h1 className="mt-3 text-4xl font-semibold">
+
+          <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
             Employés & Employee Master ID
           </h1>
+
           <p className="mt-3 max-w-3xl text-white/70">
-            Création des employés officiels NOVARA. Le PIN 6 chiffres est généré automatiquement.
+            Création des employés officiels NOVARA. Le PIN est généré automatiquement.
           </p>
         </div>
 
@@ -133,7 +238,7 @@ export default function EmployeesPage() {
 
         {successPin && (
           <div className="mb-6 rounded-2xl border border-green-300 bg-green-50 p-4 text-green-800">
-            Employé créé avec succès. PIN NOVARA généré :
+            Employé créé avec succès. PIN NOVARA :
             <strong className="ml-2 text-xl">{successPin}</strong>
             <button
               onClick={() => copyPin(successPin)}
@@ -144,16 +249,43 @@ export default function EmployeesPage() {
           </div>
         )}
 
-        <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
-          <form onSubmit={createEmployee} className="rounded-3xl bg-white p-6 shadow-lg">
+        <section className="grid gap-6 lg:grid-cols-[430px_1fr]">
+          <form onSubmit={createEmployee} className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
             <h2 className="mb-5 text-2xl font-semibold">Nouvel employé</h2>
 
             <div className="space-y-4">
-              <input className="w-full rounded-xl border p-3" placeholder="Prénom" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-              <input className="w-full rounded-xl border p-3" placeholder="Nom" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-              <input className="w-full rounded-xl border p-3" placeholder="Poste — ex: Électricien" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
+              <input
+                className="w-full rounded-xl border p-3"
+                placeholder="Prénom"
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+              />
 
-              <select className="w-full rounded-xl border p-3" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+              <input
+                className="w-full rounded-xl border p-3"
+                placeholder="Nom"
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+              />
+
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.job_position_id}
+                onChange={(e) => setForm({ ...form, job_position_id: e.target.value })}
+              >
+                <option value="">Choisir poste</option>
+                {positions.map((position) => (
+                  <option key={position.id} value={position.id}>
+                    {position.name} {position.category ? `· ${position.category}` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+              >
                 <option value="employee">Employé</option>
                 <option value="manager">Manager</option>
                 <option value="hr">RH</option>
@@ -161,31 +293,98 @@ export default function EmployeesPage() {
                 <option value="admin">Admin</option>
               </select>
 
-              <select className="w-full rounded-xl border p-3" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+              >
                 <option value="active">Actif</option>
                 <option value="inactive">Inactif</option>
                 <option value="terminated">Terminé</option>
                 <option value="retired">Retraité</option>
               </select>
 
-              <input className="w-full rounded-xl border p-3" placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <input className="w-full rounded-xl border p-3" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <input className="w-full rounded-xl border p-3" type="date" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} />
+              <input
+                className="w-full rounded-xl border p-3"
+                placeholder="Téléphone"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+
+              <input
+                className="w-full rounded-xl border p-3"
+                placeholder="Email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+
+              <input
+                className="w-full rounded-xl border p-3"
+                type="date"
+                value={form.hire_date}
+                onChange={(e) => setForm({ ...form, hire_date: e.target.value })}
+              />
+
+              <div className="rounded-2xl bg-[#f4efe7] p-4 text-sm text-neutral-700">
+                <p className="font-semibold">Compétences obligatoires à la création</p>
+                <p className="mt-1">
+                  Minimum 1 discipline qualifiée + 1 discipline en connaissance différente.
+                </p>
+              </div>
+
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.certified_skill_id}
+                onChange={(e) => setForm({ ...form, certified_skill_id: e.target.value })}
+              >
+                <option value="">Choisir discipline qualifiée</option>
+                {skills.map((skill) => (
+                  <option key={skill.id} value={skill.id}>
+                    {skill.name} {skill.category ? `· ${skill.category}` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.knowledge_skill_id}
+                onChange={(e) => setForm({ ...form, knowledge_skill_id: e.target.value })}
+              >
+                <option value="">Choisir discipline en connaissance</option>
+                {skills.map((skill) => (
+                  <option key={skill.id} value={skill.id}>
+                    {skill.name} {skill.category ? `· ${skill.category}` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="w-full rounded-xl border p-3"
+                value={form.knowledge_level}
+                onChange={(e) => setForm({ ...form, knowledge_level: e.target.value })}
+              >
+                <option value="practical">Connaissance pratique</option>
+                <option value="assistant">Assistant supervisé</option>
+              </select>
 
               <div className="rounded-2xl bg-[#f4efe7] p-4 text-sm text-neutral-600">
                 Le PIN NOVARA est généré automatiquement par Supabase.
               </div>
 
-              <button type="submit" disabled={creating} className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={creating}
+                className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50"
+              >
                 {creating ? "Création..." : "Créer l'employé"}
               </button>
             </div>
           </form>
 
-          <div className="rounded-3xl bg-white p-6 shadow-lg">
+          <div className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-2xl font-semibold">Employés</h2>
-              <button onClick={loadEmployees} className="rounded-xl border px-4 py-2 text-sm">
+              <button onClick={loadData} className="rounded-xl border px-4 py-2 text-sm">
                 Actualiser
               </button>
             </div>
@@ -209,9 +408,14 @@ export default function EmployeesPage() {
                   <tbody>
                     {employees.map((employee) => (
                       <tr key={employee.id} className="border-b">
-                        <td className="py-4 font-mono font-bold">{employee.employee_pin}</td>
+                        <td className="py-4 font-mono font-bold">
+                          {employee.employee_pin}
+                        </td>
                         <td>
-                          <Link href={`/admin/employees/${employee.id}`} className="font-semibold underline">
+                          <Link
+                            href={`/admin/employees/${employee.id}`}
+                            className="font-semibold underline"
+                          >
                             {employee.first_name} {employee.last_name}
                           </Link>
                         </td>
