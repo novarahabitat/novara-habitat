@@ -32,6 +32,23 @@ type EmployeeDocument = {
   created_at: string;
 };
 
+type Skill = {
+  id: string;
+  code: string;
+  name: string;
+  category: string | null;
+};
+
+type EmployeeSkill = {
+  id: string;
+  employee_id: string;
+  skill_id: string;
+  skill_level: string;
+  verified: boolean;
+  notes: string | null;
+  skills: Skill | null;
+};
+
 export default function EmployeeDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -39,9 +56,14 @@ export default function EmployeeDetailPage() {
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [employeeSkills, setEmployeeSkills] = useState<EmployeeSkill[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [addingSkill, setAddingSkill] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -62,6 +84,12 @@ export default function EmployeeDetailPage() {
     document_name: "",
     expires_at: "",
     file: null as File | null,
+  });
+
+  const [skillForm, setSkillForm] = useState({
+    skill_id: "",
+    skill_level: "certified",
+    notes: "",
   });
 
   async function loadEmployee() {
@@ -111,10 +139,46 @@ export default function EmployeeDetailPage() {
     setDocuments(data || []);
   }
 
+  async function loadSkills() {
+    const { data, error } = await supabase
+      .from("skills")
+      .select("*")
+      .order("category", { ascending: true })
+      .order("name", { ascending: true });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setSkills(data || []);
+
+    if (data && data.length > 0 && !skillForm.skill_id) {
+      setSkillForm((prev) => ({ ...prev, skill_id: data[0].id }));
+    }
+  }
+
+  async function loadEmployeeSkills() {
+    const { data, error } = await supabase
+      .from("employee_skills")
+      .select("*, skills(*)")
+      .eq("employee_id", employeeId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setEmployeeSkills(data || []);
+  }
+
   useEffect(() => {
     if (employeeId) {
       loadEmployee();
       loadDocuments();
+      loadSkills();
+      loadEmployeeSkills();
     }
   }, [employeeId]);
 
@@ -220,6 +284,77 @@ export default function EmployeeDetailPage() {
     window.open(data.signedUrl, "_blank");
   }
 
+  async function addEmployeeSkill(e: React.FormEvent) {
+    e.preventDefault();
+    setAddingSkill(true);
+    setError("");
+    setSuccess("");
+
+    if (!skillForm.skill_id) {
+      setError("Merci de choisir une compétence.");
+      setAddingSkill(false);
+      return;
+    }
+
+    const { error } = await supabase.from("employee_skills").insert({
+      employee_id: employeeId,
+      skill_id: skillForm.skill_id,
+      skill_level: skillForm.skill_level,
+      notes: skillForm.notes || null,
+      verified: false,
+    });
+
+    if (error) {
+      setError(error.message);
+      setAddingSkill(false);
+      return;
+    }
+
+    setSuccess("Compétence ajoutée à la fiche employé.");
+    setSkillForm({
+      skill_id: skills[0]?.id || "",
+      skill_level: "certified",
+      notes: "",
+    });
+
+    await loadEmployeeSkills();
+    setAddingSkill(false);
+  }
+
+  async function removeEmployeeSkill(skillRecordId: string) {
+    setError("");
+    setSuccess("");
+
+    const { error } = await supabase
+      .from("employee_skills")
+      .delete()
+      .eq("id", skillRecordId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setSuccess("Compétence retirée.");
+    await loadEmployeeSkills();
+  }
+
+  const certifiedSkills = employeeSkills.filter(
+    (item) => item.skill_level === "certified"
+  );
+
+  const knowledgeSkills = employeeSkills.filter(
+    (item) => item.skill_level === "practical" || item.skill_level === "assistant"
+  );
+
+  const hasCertified = certifiedSkills.length > 0;
+  const hasKnowledge = knowledgeSkills.some(
+    (knowledge) =>
+      !certifiedSkills.some(
+        (certified) => certified.skill_id === knowledge.skill_id
+      )
+  );
+
   if (loading) {
     return <main className="min-h-screen bg-[#f7f3ee] p-6">Chargement...</main>;
   }
@@ -229,41 +364,41 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f3ee] p-6 text-[#171717]">
+    <main className="min-h-screen bg-[#f7f3ee] p-4 text-[#171717] md:p-6">
       <div className="mx-auto max-w-7xl">
         <button
           onClick={() => router.push("/admin/employees")}
-          className="mb-6 rounded-xl border bg-white px-4 py-2 text-sm"
+          className="mb-4 rounded-xl border bg-white px-4 py-2 text-sm"
         >
           ← Retour employés
         </button>
 
-        <section className="mb-6 rounded-3xl bg-black p-8 text-white shadow-xl">
+        <section className="mb-6 rounded-3xl bg-black p-5 text-white shadow-xl md:p-8">
           <img
             src="/logos/novara-dynamics-logo.png"
             alt="NOVARA Dynamics"
-            className="mb-6 h-16 w-auto"
+            className="mb-4 h-10 w-auto md:h-16"
           />
 
-          <p className="text-sm uppercase tracking-[0.3em] text-[#d6b46d]">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#d6b46d] md:text-sm md:tracking-[0.3em]">
             NOVARA Dynamics · Gestion RH
           </p>
 
-          <div className="mt-6 flex flex-col gap-6 md:flex-row md:items-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#d6b46d] text-3xl font-bold text-black">
+          <div className="mt-5 flex items-center gap-4 md:mt-6 md:gap-6">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#d6b46d] text-xl font-bold text-black md:h-24 md:w-24 md:text-3xl">
               {employee.first_name?.[0]}
               {employee.last_name?.[0]}
             </div>
 
             <div>
-              <h1 className="text-4xl font-semibold">
+              <h1 className="text-2xl font-semibold md:text-4xl">
                 {employee.first_name} {employee.last_name}
               </h1>
-              <p className="mt-2 text-white/70">
+              <p className="mt-1 text-sm text-white/70 md:text-base">
                 {employee.job_title || "Poste non renseigné"}
               </p>
-              <p className="mt-3 font-mono text-2xl text-[#d6b46d]">
-                PIN NOVARA : {employee.employee_pin}
+              <p className="mt-2 font-mono text-lg text-[#d6b46d] md:text-2xl">
+                PIN : {employee.employee_pin}
               </p>
             </div>
           </div>
@@ -283,13 +418,14 @@ export default function EmployeeDetailPage() {
 
         <section className="grid gap-6 lg:grid-cols-[1fr_420px]">
           <div className="space-y-6">
-            <form onSubmit={saveEmployee} className="rounded-3xl bg-white p-6 shadow-lg">
+            <form onSubmit={saveEmployee} className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
               <h2 className="mb-5 text-2xl font-semibold">Informations employé</h2>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <input className="rounded-xl border p-3" placeholder="Prénom" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
                 <input className="rounded-xl border p-3" placeholder="Nom" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
                 <input className="rounded-xl border p-3" placeholder="Poste" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
+
                 <select className="rounded-xl border p-3" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                   <option value="employee">Employé</option>
                   <option value="manager">Manager</option>
@@ -297,9 +433,11 @@ export default function EmployeeDetailPage() {
                   <option value="sales">Commercial</option>
                   <option value="admin">Admin</option>
                 </select>
+
                 <input className="rounded-xl border p-3" placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 <input className="rounded-xl border p-3" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input className="rounded-xl border p-3" type="date" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} />
+
                 <select className="rounded-xl border p-3" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                   <option value="active">Actif</option>
                   <option value="inactive">Inactif</option>
@@ -317,7 +455,91 @@ export default function EmployeeDetailPage() {
               </button>
             </form>
 
-            <div className="rounded-3xl bg-white p-6 shadow-lg">
+            <div className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
+              <h2 className="mb-3 text-2xl font-semibold">Compétences NOVARA</h2>
+
+              <div className="mb-5 rounded-2xl bg-[#f4efe7] p-4 text-sm text-neutral-700">
+                Règle cible : au minimum 1 discipline qualifiée + 1 discipline en connaissance différente.
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className={`rounded-full px-3 py-1 text-xs ${hasCertified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
+                    Qualification : {hasCertified ? "OK" : "manquante"}
+                  </span>
+                  <span className={`rounded-full px-3 py-1 text-xs ${hasKnowledge ? "bg-green-100 text-green-800" : "bg-red-100 text-red-700"}`}>
+                    Connaissance différente : {hasKnowledge ? "OK" : "manquante"}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={addEmployeeSkill} className="mb-5 grid gap-3 md:grid-cols-[1fr_170px]">
+                <select
+                  className="rounded-xl border p-3"
+                  value={skillForm.skill_id}
+                  onChange={(e) => setSkillForm({ ...skillForm, skill_id: e.target.value })}
+                >
+                  {skills.map((skill) => (
+                    <option key={skill.id} value={skill.id}>
+                      {skill.name} {skill.category ? `· ${skill.category}` : ""}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="rounded-xl border p-3"
+                  value={skillForm.skill_level}
+                  onChange={(e) => setSkillForm({ ...skillForm, skill_level: e.target.value })}
+                >
+                  <option value="certified">Qualifié / diplômé</option>
+                  <option value="practical">Connaissance pratique</option>
+                  <option value="assistant">Assistant supervisé</option>
+                </select>
+
+                <input
+                  className="rounded-xl border p-3 md:col-span-2"
+                  placeholder="Note optionnelle — ex : à l'aise sous supervision"
+                  value={skillForm.notes}
+                  onChange={(e) => setSkillForm({ ...skillForm, notes: e.target.value })}
+                />
+
+                <button
+                  type="submit"
+                  disabled={addingSkill}
+                  className="rounded-2xl bg-black px-5 py-3 font-semibold text-white disabled:opacity-50 md:col-span-2"
+                >
+                  {addingSkill ? "Ajout..." : "Ajouter compétence"}
+                </button>
+              </form>
+
+              {employeeSkills.length === 0 ? (
+                <p className="text-neutral-500">Aucune compétence ajoutée.</p>
+              ) : (
+                <div className="space-y-3">
+                  {employeeSkills.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between rounded-2xl border p-4">
+                      <div>
+                        <p className="font-semibold">{item.skills?.name || "Compétence"}</p>
+                        <p className="text-sm text-neutral-500">
+                          {item.skill_level === "certified"
+                            ? "Qualifié / diplômé"
+                            : item.skill_level === "practical"
+                            ? "Connaissance pratique"
+                            : "Assistant supervisé"}
+                          {item.notes ? ` · ${item.notes}` : ""}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => removeEmployeeSkill(item.id)}
+                        className="rounded-xl border px-3 py-2 text-xs text-red-700"
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
               <h2 className="mb-5 text-2xl font-semibold">Documents RH</h2>
 
               {documents.length === 0 ? (
@@ -333,10 +555,7 @@ export default function EmployeeDetailPage() {
                           {doc.expires_at ? ` · expire le ${doc.expires_at}` : ""}
                         </p>
                       </div>
-                      <button
-                        onClick={() => openDocument(doc.file_url)}
-                        className="rounded-xl bg-black px-4 py-2 text-sm text-white"
-                      >
+                      <button onClick={() => openDocument(doc.file_url)} className="rounded-xl bg-black px-4 py-2 text-sm text-white">
                         Voir
                       </button>
                     </div>
@@ -346,15 +565,11 @@ export default function EmployeeDetailPage() {
             </div>
           </div>
 
-          <aside className="rounded-3xl bg-white p-6 shadow-lg">
+          <aside className="rounded-3xl bg-white p-5 shadow-lg md:p-6">
             <h2 className="mb-5 text-2xl font-semibold">Ajouter document</h2>
 
             <form onSubmit={uploadDocument} className="space-y-4">
-              <select
-                className="w-full rounded-xl border p-3"
-                value={docForm.document_type}
-                onChange={(e) => setDocForm({ ...docForm, document_type: e.target.value })}
-              >
+              <select className="w-full rounded-xl border p-3" value={docForm.document_type} onChange={(e) => setDocForm({ ...docForm, document_type: e.target.value })}>
                 <option value="identity_card">Carte identité</option>
                 <option value="passport">Passeport</option>
                 <option value="residence_permit">Titre de séjour</option>
@@ -367,41 +582,19 @@ export default function EmployeeDetailPage() {
                 <option value="other">Autre</option>
               </select>
 
-              <input
-                className="w-full rounded-xl border p-3"
-                placeholder="Nom du document"
-                value={docForm.document_name}
-                onChange={(e) => setDocForm({ ...docForm, document_name: e.target.value })}
-              />
+              <input className="w-full rounded-xl border p-3" placeholder="Nom du document" value={docForm.document_name} onChange={(e) => setDocForm({ ...docForm, document_name: e.target.value })} />
 
-              <label className="block text-sm font-medium">
-                Date d'expiration si applicable
-              </label>
-              <input
-                className="w-full rounded-xl border p-3"
-                type="date"
-                value={docForm.expires_at}
-                onChange={(e) => setDocForm({ ...docForm, expires_at: e.target.value })}
-              />
+              <label className="block text-sm font-medium">Date d'expiration si applicable</label>
+              <input className="w-full rounded-xl border p-3" type="date" value={docForm.expires_at} onChange={(e) => setDocForm({ ...docForm, expires_at: e.target.value })} />
 
-              <input
-                className="w-full rounded-xl border p-3"
-                type="file"
-                onChange={(e) =>
-                  setDocForm({ ...docForm, file: e.target.files?.[0] || null })
-                }
-              />
+              <input className="w-full rounded-xl border p-3" type="file" onChange={(e) => setDocForm({ ...docForm, file: e.target.files?.[0] || null })} />
 
               <div className="rounded-2xl bg-[#f4efe7] p-4 text-sm text-neutral-600">
                 Le document sera stocké dans le bucket privé employee-documents.
                 Statut initial : pending_review.
               </div>
 
-              <button
-                type="submit"
-                disabled={uploading}
-                className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50"
-              >
+              <button type="submit" disabled={uploading} className="w-full rounded-2xl bg-black px-5 py-4 font-semibold text-white disabled:opacity-50">
                 {uploading ? "Upload..." : "Ajouter document"}
               </button>
             </form>
