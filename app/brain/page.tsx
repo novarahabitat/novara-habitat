@@ -1,136 +1,93 @@
 export default function BrainPage() {
-  const modules = [
-    { name: "Habitat", status: "En développement", progress: 75 },
-    { name: "Core", status: "En développement", progress: 40 },
-    { name: "RH", status: "En développement", progress: 30 },
-    { name: "Dynamics", status: "Conception", progress: 25 },
-    { name: "Concierge", status: "Conception", progress: 10 },
-    { name: "SMART", status: "Conception", progress: 10 },
-    { name: "Payroll", status: "Conception", progress: 5 },
-  ];
-
-  const truths = [
-    "employees",
-    "properties",
-    "projects",
-    "sav_tickets",
-  ];
-
-  const decisions = [
-    "1 Employee = 1 Employee Master ID = 1 employee_id UUID",
-    "employee_pin = identité visible uniquement",
-    "Toutes les relations utilisent employee_id",
-    "Property = source de vérité unique pour les biens",
-    "SAV Creation → Concierge",
-    "SAV Operations → Core",
-    "SAV Supervision → Dynamics",
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
       <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold">
+        <header>
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-600">
+            NOVARA Dynamics HQ
+          </p>
+          <h1 className="mt-3 text-4xl font-bold text-slate-950">
             NOVARA Project Brain
           </h1>
-          <p className="mt-2 text-slate-600">
-            Référentiel central de connaissance de l'écosystème NOVARA.
+          <p className="mt-3 max-w-3xl text-slate-700">
+            Référentiel central de connaissance, d’architecture et de gouvernance de l’écosystème NOVARA.
           </p>
-        </div>
+        </header>
 
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">
-            Foundation
-          </h2>
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-950">Foundation 1.0</h2>
+          <p className="mt-3 text-slate-700">
+            Statut : <strong className="text-green-700">FROZEN / VALIDÉE</strong>
+          </p>
 
-          <div className="mt-4">
-            <p>
-              Version : <strong>Foundation 1.0</strong>
-            </p>
-            <p>
-              Statut : <strong>FROZEN</strong>
-            </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {["PROPERTY — Où ?", "EMPLOYEE — Qui ?", "WORK — Quoi ?"].map((item) => (
+              <div key={item} className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-medium">
+                {item}
+              </div>
+            ))}
           </div>
 
-          <div className="mt-4">
-            <ul className="list-disc pl-5">
-              <li>Employee Domain</li>
-              <li>Property Domain</li>
-              <li>Work Domain</li>
-              <li>Party (Under Investigation)</li>
-            </ul>
-          </div>
+          <p className="mt-4 text-sm text-slate-600">
+            PARTY reste sous observation : observer → documenter → tester → modéliser → geler.
+          </p>
         </section>
 
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">
-            Sources de vérité
-          </h2>
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-950">Sources de vérité</h2>
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            {truths.map((item) => (
-              <span
-                key={item}
-                className="rounded-full bg-slate-100 px-4 py-2"
-              >
+          <div className="mt-5 flex flex-wrap gap-3">
+            {["employees", "properties", "projects", "sav_tickets"].map((item) => (
+              <span key={item} className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
                 {item}
               </span>
             ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">
-            Décisions validées
-          </h2>
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-950">Décisions validées</h2>
 
-          <ul className="mt-4 space-y-2">
-            {decisions.map((decision) => (
-              <li key={decision}>
-                • {decision}
-              </li>
-            ))}
+          <ul className="mt-5 space-y-3 text-slate-700">
+            <li>• 1 employé = 1 Employee Master ID = 1 employee_id UUID.</li>
+            <li>• employee_pin = identité visible uniquement.</li>
+            <li>• Toutes les relations utilisent employee_id, jamais employee_pin.</li>
+            <li>• properties est la source de vérité unique pour les biens.</li>
+            <li>• SAV création → Concierge.</li>
+            <li>• SAV opération terrain → Core.</li>
+            <li>• SAV supervision → Dynamics HQ.</li>
           </ul>
         </section>
 
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">
-            Modules NOVARA
-          </h2>
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-950">Modules NOVARA</h2>
 
-          <div className="mt-4 overflow-hidden rounded-xl border">
-            <table className="w-full">
-              <thead className="bg-slate-100">
-                <tr>
-                  <th className="p-3 text-left">Module</th>
-                  <th className="p-3 text-left">Statut</th>
-                  <th className="p-3 text-left">Progression</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {modules.map((module) => (
-                  <tr key={module.name} className="border-t">
-                    <td className="p-3">{module.name}</td>
-                    <td className="p-3">{module.status}</td>
-                    <td className="p-3">{module.progress}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Habitat", "En développement"],
+              ["Core", "En développement"],
+              ["RH", "En développement"],
+              ["Dynamics HQ", "Construction"],
+              ["Concierge", "Conception"],
+              ["SMART", "Conception"],
+              ["Payroll", "Conception"],
+              ["Property", "Base active"],
+            ].map(([name, status]) => (
+              <div key={name} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <h3 className="font-semibold text-slate-950">{name}</h3>
+                <p className="mt-1 text-sm text-slate-600">{status}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold">
-            Prochaine priorité
-          </h2>
-
-          <p className="mt-4">
-            Construire le Data Model Master et le Module Registry.
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-950">Prochaine priorité</h2>
+          <p className="mt-3 text-slate-700">
+            Créer le Data Model Master, le Module Registry et le Decision Registry pour éviter la perte de connaissance entre les modules.
           </p>
         </section>
       </div>
-    </div>
+    </main>
   );
 }
