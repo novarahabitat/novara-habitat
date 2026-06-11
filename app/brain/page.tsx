@@ -1,163 +1,75 @@
+import BrainLayout from "@/components/brain/BrainLayout";
+
 export default function BrainPage() {
-  return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <header>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-600">
-            NOVARA HQ DYNAMICS
+return ( <BrainLayout> <div className="space-y-8"> <header> <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#c9a45c]">
+NOVARA HQ DYNAMICS </p>
+
+```
+      <h1 className="mt-3 text-5xl font-bold text-white">
+        NOVARA BRAIN
+      </h1>
+
+      <p className="mt-4 max-w-3xl text-white/60">
+        Centre de coordination, de connaissance et de pilotage de
+        l’écosystème NOVARA.
+      </p>
+    </header>
+
+    <section className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
+      <h2 className="text-2xl font-semibold text-white">
+        FOUNDATION 1.0
+      </h2>
+
+      <p className="mt-3 text-green-400">
+        ARCHITECTURE VALIDÉE
+      </p>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-white/10 p-6">
+          <h3 className="font-semibold text-white">
+            PROPERTY
+          </h3>
+
+          <p className="mt-2 text-white/50">
+            Où ?
           </p>
+        </div>
 
-          <h1 className="mt-3 text-4xl font-bold text-slate-950">
-            NOVARA BRAIN
-          </h1>
+        <div className="rounded-2xl border border-white/10 p-6">
+          <h3 className="font-semibold text-white">
+            EMPLOYEE
+          </h3>
 
-          <p className="mt-3 max-w-3xl text-slate-700">
-            Centre de coordination, de connaissance et de pilotage de
-            l’écosystème NOVARA.
+          <p className="mt-2 text-white/50">
+            Qui ?
           </p>
-        </header>
+        </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            FOUNDATION 1.0
-          </h2>
+        <div className="rounded-2xl border border-white/10 p-6">
+          <h3 className="font-semibold text-white">
+            WORK
+          </h3>
 
-          <p className="mt-3 text-slate-700">
-            Statut :{" "}
-            <strong className="text-green-700">
-              ARCHITECTURE VALIDÉE
-            </strong>
+          <p className="mt-2 text-white/50">
+            Quoi ?
           </p>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-medium">
-              PROPERTY — Où ?
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-medium">
-              EMPLOYEE — Qui ?
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-medium">
-              WORK — Quoi ?
-            </div>
-          </div>
-
-          <p className="mt-4 text-sm text-slate-600">
-            PARTY reste sous observation.
-            <br />
-            Méthode NOVARA :
-            <br />
-            Observer → Documenter → Tester → Modéliser → Valider
-          </p>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            SOURCES DE VÉRITÉ
-          </h2>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            {[
-              "employees",
-              "properties",
-              "projects",
-              "sav_tickets",
-            ].map((item) => (
-              <span
-                key={item}
-                className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            DÉCISIONS VALIDÉES
-          </h2>
-
-          <ul className="mt-5 space-y-3 text-slate-700">
-            <li>
-              • 1 employé = 1 Employee Master ID = 1 employee_id UUID.
-            </li>
-
-            <li>
-              • employee_pin = identité visible uniquement.
-            </li>
-
-            <li>
-              • Toutes les relations utilisent employee_id.
-            </li>
-
-            <li>
-              • employee_pin n'est jamais utilisé comme clé relationnelle.
-            </li>
-
-            <li>
-              • properties est la source de vérité unique pour les biens.
-            </li>
-
-            <li>
-              • SAV création → Concierge.
-            </li>
-
-            <li>
-              • SAV opération terrain → Core.
-            </li>
-
-            <li>
-              • SAV supervision → Dynamics HQ.
-            </li>
-          </ul>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            MODULES NOVARA
-          </h2>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["Habitat", "En développement"],
-              ["Core", "En développement"],
-              ["RH", "En développement"],
-              ["Dynamics HQ", "Construction"],
-              ["Concierge", "Conception"],
-              ["SMART", "Conception"],
-              ["Payroll", "Conception"],
-              ["Property", "Base active"],
-            ].map(([name, status]) => (
-              <div
-                key={name}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <h3 className="font-semibold text-slate-950">
-                  {name}
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-600">
-                  {status}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            PROCHAINE PRIORITÉ
-          </h2>
-
-          <p className="mt-3 text-slate-700">
-            Construire le Data Model Master, le Module Registry et le
-            Decision Registry afin d’éviter toute perte de connaissance
-            entre les modules NOVARA.
-          </p>
-        </section>
+        </div>
       </div>
-    </main>
-  );
+    </section>
+
+    <section className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
+      <h2 className="text-2xl font-semibold text-white">
+        Mission
+      </h2>
+
+      <p className="mt-4 text-white/60">
+        NOVARA Brain centralise la connaissance, les décisions,
+        les rapports et l’architecture globale du projet.
+      </p>
+    </section>
+  </div>
+</BrainLayout>
+```
+
+);
 }
