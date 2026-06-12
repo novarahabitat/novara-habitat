@@ -32,6 +32,10 @@ const links = [
     href: "/brain/reports",
     label: "Reports",
   },
+  {
+    href: "/brain/changes",
+    label: "Changes",
+  },
 ];
 
 export default function BrainSidebar() {
