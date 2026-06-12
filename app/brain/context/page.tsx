@@ -1,149 +1,85 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import BrainLayout from "@/components/brain/BrainLayout";
+import { supabase } from "@/lib/supabaseClient";
+
+type ContextItem = {
+  id: string;
+  category: string;
+  title: string;
+  content: string;
+  status: string;
+};
+
 export default function BrainContextPage() {
+  const [items, setItems] = useState<ContextItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadContext() {
+      const { data } = await supabase
+        .from("brain_context")
+        .select("*")
+        .order("category");
+
+      setItems((data || []) as ContextItem[]);
+      setLoading(false);
+    }
+
+    loadContext();
+  }, []);
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
-      <div className="mx-auto max-w-5xl space-y-8">
+    <BrainLayout>
+      <div className="space-y-8">
         <header>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-400">
-            NOVARA AI CONTEXT
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#c9a45c]">
+            NOVARA HQ DYNAMICS
           </p>
 
-          <h1 className="mt-3 text-4xl font-bold text-white">
-            NOVARA BRAIN CONTEXT
+          <h1 className="mt-3 text-5xl font-bold text-white">
+            CONTEXT
           </h1>
 
-          <p className="mt-3 max-w-3xl text-slate-300">
-            Page de référence rapide pour tout module, chat ou IA travaillant sur l’écosystème NOVARA.
+          <p className="mt-4 text-white/60">
+            Référence officielle des fondations NOVARA.
           </p>
         </header>
 
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold text-amber-400">
-            FOUNDATION 1.0
-          </h2>
+        {loading ? (
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-white/60">
+            Chargement...
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8"
+              >
+                <div className="flex gap-3">
+                  <span className="rounded-full bg-[#c9a45c]/20 px-3 py-1 text-xs text-[#c9a45c]">
+                    {item.category}
+                  </span>
 
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-{`STATUS:
-ARCHITECTURE VALIDÉE
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/60">
+                    {item.status}
+                  </span>
+                </div>
 
-FOUNDATION DOMAINS:
-- PROPERTY = Où ?
-- EMPLOYEE = Qui ?
-- WORK = Quoi ?
+                <h2 className="mt-4 text-2xl font-semibold text-white">
+                  {item.title}
+                </h2>
 
-UNDER INVESTIGATION:
-- PARTY
-
-NOVARA METHOD:
-Observer → Documenter → Tester → Modéliser → Valider`}
-          </pre>
-        </section>
-
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold text-amber-400">
-            SOURCES OF TRUTH
-          </h2>
-
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-{`EMPLOYEE:
-- Official table: employees
-- Do not create: workers, staff, crew, employees_core
-
-PROPERTY:
-- Official table: properties
-- Modules must use properties, not recreate property records
-
-WORK:
-- Main work-related tables:
-  - projects
-  - project_tasks
-  - voice_notes
-  - daily_reports
-  - incidents
-  - material_orders
-  - sav_tickets
-  - checkins
-  - project_photos`}
-          </pre>
-        </section>
-
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold text-amber-400">
-            EMPLOYEE RULES
-          </h2>
-
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-{`1 employee =
-1 Employee Master ID =
-1 PIN 6 chiffres =
-1 employee_id UUID
-
-RULES:
-- employee_pin = visible identity only
-- employee_id UUID = relational key
-- all relations must use employee_id
-- never use employee_pin as relational key`}
-          </pre>
-        </section>
-
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold text-amber-400">
-            SAV ARCHITECTURE
-          </h2>
-
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-{`SAV source of truth:
-- sav_tickets
-
-Validated decision:
-- SAV creation mainly belongs to NOVARA Concierge
-- SAV operational treatment belongs to NOVARA Core
-- SAV supervision belongs to NOVARA Dynamics HQ
-
-All modules must use sav_tickets as the shared source of truth.`}
-          </pre>
-        </section>
-
-        <section className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-          <h2 className="text-xl font-semibold text-amber-400">
-            CURRENT MODULES
-          </h2>
-
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-{`ACTIVE / PLANNED MODULES:
-- Habitat
-- Core
-- RH
-- Dynamics HQ
-- Property
-- Concierge
-- SMART
-- Payroll
-
-RULE:
-Dynamics HQ is not a business module.
-Dynamics HQ is the coordination center, knowledge hub and project command center.`}
-          </pre>
-        </section>
-
-        <section className="rounded-2xl border border-amber-500 bg-amber-500/10 p-6">
-          <h2 className="text-xl font-semibold text-amber-300">
-            INSTRUCTION FOR FUTURE AI / MODULES
-          </h2>
-
-          <pre className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-100">
-{`Before creating SQL, Supabase tables, GitHub files or new modules:
-
-1. Read this NOVARA BRAIN CONTEXT.
-2. Respect existing sources of truth.
-3. Do not duplicate validated entities.
-4. Use employee_id UUID for all employee relations.
-5. Use properties for property data.
-6. Use sav_tickets for SAV.
-7. If a new concept is unclear, treat it as UNDER INVESTIGATION before modeling.
-8. When changes are made, report what was changed so Dynamics HQ can update the NOVARA Brain.`}
-          </pre>
-        </section>
+                <p className="mt-4 text-white/60">
+                  {item.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </main>
+    </BrainLayout>
   );
 }
