@@ -1,6 +1,44 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import BrainLayout from "@/components/brain/BrainLayout";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function BrainPage() {
+  const [reports, setReports] = useState(0);
+  const [decisions, setDecisions] = useState(0);
+  const [modules, setModules] = useState(0);
+  const [activities, setActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      const reportsResult = await supabase
+        .from("brain_reports")
+        .select("*", { count: "exact", head: true });
+
+      const decisionsResult = await supabase
+        .from("brain_decisions")
+        .select("*", { count: "exact", head: true });
+
+      const modulesResult = await supabase
+        .from("brain_modules")
+        .select("*", { count: "exact", head: true });
+
+      const activityResult = await supabase
+        .from("brain_activity")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      setReports(reportsResult.count || 0);
+      setDecisions(decisionsResult.count || 0);
+      setModules(modulesResult.count || 0);
+      setActivities(activityResult.data || []);
+    }
+
+    loadData();
+  }, []);
+
   return (
     <BrainLayout>
       <div className="space-y-8">
@@ -13,63 +51,63 @@ export default function BrainPage() {
             NOVARA BRAIN
           </h1>
 
-          <p className="mt-4 max-w-3xl text-white/60">
-            Centre de coordination, de connaissance et de pilotage de
-            l’écosystème NOVARA.
+          <p className="mt-4 text-white/60">
+            Centre de coordination et de connaissance NOVARA.
           </p>
         </header>
 
-        <section className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
-          <h2 className="text-2xl font-semibold text-white">
-            FOUNDATION 1.0
-          </h2>
-
-          <p className="mt-3 text-green-400">
-            ARCHITECTURE VALIDÉE
-          </p>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 p-6">
-              <h3 className="font-semibold text-white">
-                PROPERTY
-              </h3>
-
-              <p className="mt-2 text-white/50">
-                Où ?
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 p-6">
-              <h3 className="font-semibold text-white">
-                EMPLOYEE
-              </h3>
-
-              <p className="mt-2 text-white/50">
-                Qui ?
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 p-6">
-              <h3 className="font-semibold text-white">
-                WORK
-              </h3>
-
-              <p className="mt-2 text-white/50">
-                Quoi ?
-              </p>
-            </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
+            <p className="text-white/50">Décisions</p>
+            <p className="mt-3 text-4xl font-bold text-white">
+              {decisions}
+            </p>
           </div>
-        </section>
+
+          <div className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
+            <p className="text-white/50">Rapports</p>
+            <p className="mt-3 text-4xl font-bold text-white">
+              {reports}
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
+            <p className="text-white/50">Modules</p>
+            <p className="mt-3 text-4xl font-bold text-white">
+              {modules}
+            </p>
+          </div>
+        </div>
 
         <section className="rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03] p-8">
           <h2 className="text-2xl font-semibold text-white">
-            Mission
+            Activité récente
           </h2>
 
-          <p className="mt-4 text-white/60">
-            NOVARA Brain centralise la connaissance, les décisions,
-            les rapports et l’architecture globale du projet.
-          </p>
+          <div className="mt-6 space-y-4">
+            {activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="rounded-2xl border border-white/10 p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="rounded-full bg-[#c9a45c]/20 px-3 py-1 text-xs text-[#c9a45c]">
+                    {activity.module}
+                  </span>
+
+                  <span className="text-white font-medium">
+                    {activity.action}
+                  </span>
+                </div>
+
+                {activity.details && (
+                  <p className="mt-2 text-white/60">
+                    {activity.details}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     </BrainLayout>
