@@ -16,6 +16,7 @@ const links = [
   { href: "/brain/sync", label: "Sync" },
   { href: "/brain/consciousness", label: "Consciousness" },
   { href: "/brain/analysis", label: "Analysis" },
+  { href: "/brain/auto", label: "Auto" },
 ];
 
 export default function BrainSidebar() {
@@ -33,7 +34,7 @@ export default function BrainSidebar() {
         </h2>
 
         <p className="mt-2 text-sm text-white/50">
-          Knowledge Hub
+          Operational Consciousness
         </p>
       </div>
 
