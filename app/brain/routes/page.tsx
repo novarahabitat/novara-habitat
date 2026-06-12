@@ -1,82 +1,102 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import BrainLayout from "@/components/brain/BrainLayout";
+import { supabase } from "@/lib/supabaseClient";
+
+type RouteItem = {
+  id: string;
+  route: string;
+  module: string;
+  access_level: string | null;
+  status: string | null;
+  description: string | null;
+};
+
 export default function BrainRoutesPage() {
-  const routes = [
-    ["/", "Habitat", "Public", "Site principal NOVARA Habitat"],
-    ["/connexion", "Auth", "Public", "Connexion utilisateurs"],
-    ["/admin", "Dynamics HQ", "Admin", "Direction et supervision"],
-    ["/core", "Core", "Employé", "Application terrain"],
-    ["/sales", "Commercial", "Commercial", "CRM et ventes"],
-    ["/espace-client", "Client", "Client", "Portail client"],
-    ["/property", "Property", "Client", "Property Passport"],
-    ["/brain", "NOVARA Brain", "Admin", "Centre de connaissance"],
-    ["/brain/context", "NOVARA Brain", "IA", "Contexte IA partagé"],
-    ["/brain/decisions", "NOVARA Brain", "Admin / IA", "Registre des décisions"],
-    ["/brain/modules", "NOVARA Brain", "Admin / IA", "Registre des modules"],
-    ["/brain/data-model", "NOVARA Brain", "Admin / IA", "Data Model Master"],
-    ["/brain/routes", "NOVARA Brain", "Admin / IA", "Registre des routes"],
-  ];
+  const [routes, setRoutes] = useState<RouteItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadRoutes() {
+      const { data } = await supabase
+        .from("brain_routes")
+        .select("*")
+        .order("route");
+
+      setRoutes((data || []) as RouteItem[]);
+      setLoading(false);
+    }
+
+    loadRoutes();
+  }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-8">
-
+    <BrainLayout>
+      <div className="space-y-8">
         <header>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#c9a45c]">
             NOVARA HQ DYNAMICS
           </p>
 
-          <h1 className="mt-3 text-4xl font-bold text-slate-950">
-            ROUTE REGISTRY
+          <h1 className="mt-3 text-5xl font-bold text-white">
+            ROUTES
           </h1>
 
-          <p className="mt-3 text-slate-700">
-            Registre officiel des routes et accès de l’écosystème NOVARA.
+          <p className="mt-4 text-white/60">
+            Registre central des routes NOVARA.
           </p>
         </header>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full">
-            <thead className="bg-slate-100">
-              <tr>
-                <th className="p-4 text-left font-semibold text-slate-900">
-                  Route
-                </th>
-                <th className="p-4 text-left font-semibold text-slate-900">
-                  Module
-                </th>
-                <th className="p-4 text-left font-semibold text-slate-900">
-                  Accès
-                </th>
-                <th className="p-4 text-left font-semibold text-slate-900">
-                  Description
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {routes.map((route) => (
-                <tr key={route[0]} className="border-t border-slate-200">
-                  <td className="p-4 font-mono text-slate-950">
-                    {route[0]}
-                  </td>
-
-                  <td className="p-4 text-slate-800">
-                    {route[1]}
-                  </td>
-
-                  <td className="p-4 text-slate-800">
-                    {route[2]}
-                  </td>
-
-                  <td className="p-4 text-slate-700">
-                    {route[3]}
-                  </td>
+        {loading ? (
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-white/60">
+            Chargement...
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-3xl border border-[#c9a45c]/20 bg-white/[0.03]">
+            <table className="w-full">
+              <thead className="border-b border-white/10">
+                <tr>
+                  <th className="p-4 text-left text-[#c9a45c]">Route</th>
+                  <th className="p-4 text-left text-[#c9a45c]">Module</th>
+                  <th className="p-4 text-left text-[#c9a45c]">Accès</th>
+                  <th className="p-4 text-left text-[#c9a45c]">Statut</th>
+                  <th className="p-4 text-left text-[#c9a45c]">Description</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
 
+              <tbody>
+                {routes.map((route) => (
+                  <tr
+                    key={route.id}
+                    className="border-b border-white/5"
+                  >
+                    <td className="p-4 font-mono text-white">
+                      {route.route}
+                    </td>
+
+                    <td className="p-4 text-white/70">
+                      {route.module}
+                    </td>
+
+                    <td className="p-4 text-white/70">
+                      {route.access_level}
+                    </td>
+
+                    <td className="p-4 text-white/70">
+                      {route.status}
+                    </td>
+
+                    <td className="p-4 text-white/60">
+                      {route.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-    </main>
+    </BrainLayout>
   );
 }
