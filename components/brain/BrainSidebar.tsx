@@ -4,42 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  {
-    href: "/brain",
-    label: "Dashboard",
-  },
-  {
-    href: "/brain/context",
-    label: "Context",
-  },
-  {
-    href: "/brain/decisions",
-    label: "Decisions",
-  },
-  {
-    href: "/brain/modules",
-    label: "Modules",
-  },
-  {
-    href: "/brain/data-model",
-    label: "Data Model",
-  },
-  {
-    href: "/brain/routes",
-    label: "Routes",
-  },
-  {
-    href: "/brain/reports",
-    label: "Reports",
-  },
-  {
-    href: "/brain/changes",
-    label: "Changes",
-  },
-  {
-    href: "/brain/todos",
-    label: "Todos",
-  },
+  { href: "/brain", label: "Dashboard" },
+  { href: "/brain/context", label: "Context" },
+  { href: "/brain/decisions", label: "Decisions" },
+  { href: "/brain/modules", label: "Modules" },
+  { href: "/brain/data-model", label: "Data Model" },
+  { href: "/brain/routes", label: "Routes" },
+  { href: "/brain/reports", label: "Reports" },
+  { href: "/brain/changes", label: "Changes" },
+  { href: "/brain/todos", label: "Todos" },
+  { href: "/brain/sync", label: "Sync" },
+  { href: "/brain/consciousness", label: "Consciousness" },
 ];
 
 export default function BrainSidebar() {
@@ -51,11 +26,9 @@ export default function BrainSidebar() {
         <p className="text-xs uppercase tracking-[0.35em] text-[#c9a45c]">
           NOVARA HQ
         </p>
-
         <h2 className="mt-3 text-2xl font-semibold text-white">
           Brain
         </h2>
-
         <p className="mt-2 text-sm text-white/50">
           Knowledge Hub
         </p>
