@@ -9,19 +9,21 @@ export function evaluateImpact(
 ) {
   const impacts: string[] = [];
 
-  if (question.sourceModule === "RH") {
+  const module = question.sourceModule.toLowerCase();
+
+  if (module === "rh") {
     impacts.push("Payroll");
     impacts.push("Core");
     impacts.push("Permissions");
   }
 
-  if (question.sourceModule === "Core") {
+  if (module === "core") {
     impacts.push("RH");
     impacts.push("Property");
     impacts.push("SAV");
   }
 
-  if (question.sourceModule === "Property") {
+  if (module === "property") {
     impacts.push("Core");
     impacts.push("Concierge");
     impacts.push("Smart");
