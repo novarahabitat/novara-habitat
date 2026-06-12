@@ -15,6 +15,7 @@ const links = [
   { href: "/brain/todos", label: "Todos" },
   { href: "/brain/sync", label: "Sync" },
   { href: "/brain/consciousness", label: "Consciousness" },
+  { href: "/brain/analysis", label: "Analysis" },
 ];
 
 export default function BrainSidebar() {
@@ -26,9 +27,11 @@ export default function BrainSidebar() {
         <p className="text-xs uppercase tracking-[0.35em] text-[#c9a45c]">
           NOVARA HQ
         </p>
+
         <h2 className="mt-3 text-2xl font-semibold text-white">
           Brain
         </h2>
+
         <p className="mt-2 text-sm text-white/50">
           Knowledge Hub
         </p>
