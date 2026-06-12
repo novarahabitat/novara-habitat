@@ -22,8 +22,7 @@ export default function BrainTodosPage() {
     async function loadTodos() {
       const { data } = await supabase
         .from("brain_todos")
-        .select("*")
-        .order("priority");
+        .select("*");
 
       setTodos((data || []) as TodoItem[]);
       setLoading(false);
@@ -45,7 +44,7 @@ export default function BrainTodosPage() {
           </h1>
 
           <p className="mt-4 text-white/60">
-            Priorités et actions restantes de l'écosystème NOVARA.
+            Priorités opérationnelles NOVARA.
           </p>
         </header>
 
