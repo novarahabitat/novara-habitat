@@ -29,6 +29,7 @@ const links = [
   { href: "/brain/automation", label: "Automation" },
   { href: "/brain/todo-engine", label: "Todo Engine" },
   { href: "/brain/change-engine", label: "Change Engine" },
+  { href: "/brain/health", label: "Health" },
 ];
 
 export default function BrainSidebar() {
