@@ -23,6 +23,7 @@ const links = [
   { href: "/brain/execution", label: "Execution" },
   { href: "/brain/decision-engine", label: "Decision Engine" },
   { href: "/brain/priority", label: "Priority" },
+  { href: "/brain/impact", label: "Impact" },
 ];
 
 export default function BrainSidebar() {
