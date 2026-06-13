@@ -32,6 +32,7 @@ const links = [
   { href: "/brain/health", label: "Health" },
   { href: "/brain/audit", label: "Audit" },
   { href: "/brain/registry", label: "Registry" },
+  { href: "/brain/systems", label: "Systems" },
 ];
 
 export default function BrainSidebar() {
