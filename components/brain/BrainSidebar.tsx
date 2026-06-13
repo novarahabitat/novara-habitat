@@ -33,6 +33,7 @@ const links = [
   { href: "/brain/audit", label: "Audit" },
   { href: "/brain/registry", label: "Registry" },
   { href: "/brain/systems", label: "Systems" },
+  { href: "/brain/api-registry", label: "API Registry" },
 ];
 
 export default function BrainSidebar() {
