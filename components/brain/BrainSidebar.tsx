@@ -18,6 +18,9 @@ const links = [
   { href: "/brain/analysis", label: "Analysis" },
   { href: "/brain/auto", label: "Auto" },
   { href: "/brain/insights", label: "Insights" },
+  { href: "/brain/recommendations", label: "Recommendations" },
+  { href: "/brain/memory", label: "Memory" },
+  { href: "/brain/execution", label: "Execution" },
 ];
 
 export default function BrainSidebar() {
