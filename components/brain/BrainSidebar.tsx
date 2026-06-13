@@ -25,6 +25,7 @@ const links = [
   { href: "/brain/priority", label: "Priority" },
   { href: "/brain/impact", label: "Impact" },
   { href: "/brain/report-engine", label: "Report Engine" },
+  { href: "/brain/action-engine", label: "Action Engine" },
 ];
 
 export default function BrainSidebar() {
