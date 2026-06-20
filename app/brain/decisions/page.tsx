@@ -170,6 +170,97 @@ const decisions = [
     module: "Brain UI / Brain Routes",
     foundationReference: "01 — Source de vérité absolue / 40 — Development Rule",
   },
+  {
+    id: "DEC-014",
+    title: "ATHENA Personal HDN",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics",
+    phase: "2026-06-20 11:30 CET",
+    reason:
+      "ATHENA is officially defined as a Personal Human-Digital Nexus rather than an AI assistant, chatbot, dashboard or classic app.",
+    impact:
+      "All future ATHENA development, communication, product architecture and investor storytelling must align with the Personal HDN category.",
+    module: "ATHENA HDN",
+    foundationReference: "ATHENA HDN Foundation — 2026-06-20",
+  },
+  {
+    id: "DEC-015",
+    title: "ATHENA Mission",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics",
+    phase: "2026-06-20 11:35 CET",
+    reason:
+      "ATHENA requires a simple mission framework to unify all future modules and prevent product fragmentation.",
+    impact:
+      "ATHENA mission is now defined as: Connect, Protect, Remember, Organize, Grow. Higher mission: reduce the loss of human experience.",
+    module: "ATHENA HDN",
+    foundationReference: "ATHENA HDN Mission — 2026-06-20",
+  },
+  {
+    id: "DEC-016",
+    title: "ATHENA Independent Positioning",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics / NOVARA Habitat",
+    phase: "2026-06-20 11:40 CET",
+    reason:
+      "ATHENA must not be perceived as a renovation-company side product. It requires independent positioning as a technology developed by NOVARA Dynamics.",
+    impact:
+      "Public communication must separate NOVARA Habitat from ATHENA. NOVARA Habitat transforms physical habitat. NOVARA Dynamics develops ATHENA.",
+    module: "ATHENA / Brand Strategy",
+    foundationReference: "ATHENA Positioning — 2026-06-20",
+  },
+  {
+    id: "DEC-017",
+    title: "ATHENA Official Slogans",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics",
+    phase: "2026-06-20 11:45 CET",
+    reason:
+      "ATHENA needs a clear and emotionally understandable public message for early communication, presentations and future pitch documents.",
+    impact:
+      "Institutional signature: 'L’intelligence et la mémoire de votre habitat.' Emotional hook: 'Enfin, votre maison a une mémoire.'",
+    module: "ATHENA / Communication",
+    foundationReference: "ATHENA Brand Language — 2026-06-20",
+  },
+  {
+    id: "DEC-018",
+    title: "ATHENA / HARPOCRATE Architecture",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics",
+    phase: "2026-06-20 11:50 CET",
+    reason:
+      "ATHENA and HARPOCRATE must be separated conceptually to distinguish living memory from long-term preservation.",
+    impact:
+      "ATHENA creates and organizes memory. HARPOCRATE protects its survival. ATHENA HDN enables transmission across time and generations.",
+    module: "ATHENA / HARPOCRATE / Legacy",
+    foundationReference: "ATHENA Legacy Architecture — 2026-06-20",
+  },
+  {
+    id: "DEC-019",
+    title: "Founder Security Strategy",
+    status: "Validated",
+    owner: "Founder / NOVARA Dynamics",
+    phase: "2026-06-20 11:55 CET",
+    reason:
+      "Critical founder accounts must be protected because GitHub, Supabase, Vercel, OVH and Google are strategic infrastructure for NOVARA and ATHENA.",
+    impact:
+      "Security roadmap includes YubiKey, password manager, 2FA and stronger protection for GitHub, Google, OVH, Supabase and Vercel.",
+    module: "Security / Founder Infrastructure",
+    foundationReference: "Founder Security — 2026-06-20",
+  },
+  {
+    id: "DEC-020",
+    title: "ATHENA Eurêka Naming",
+    status: "LOCKED",
+    owner: "NOVARA Dynamics",
+    phase: "2026-06-20 12:00 CET",
+    reason:
+      "ATHENA Education sounds too institutional and cold. ATHENA Eurêka better represents discovery, understanding and the emotional moment of learning.",
+    impact:
+      "ATHENA Education is officially renamed ATHENA Eurêka. The module covers learning, revision, exercises, Apple Pencil, Learning HDN and guided explanation without cheating.",
+    module: "ATHENA Eurêka / Learning HDN",
+    foundationReference: "ATHENA Eurêka — 2026-06-20",
+  },
 ];
 
 const stats = [
@@ -177,7 +268,7 @@ const stats = [
   { label: "Registry", value: "Validated V2" },
   { label: "Modules", value: "Validated V2" },
   { label: "Routes", value: "Validated V2" },
-  { label: "Decisions", value: "Validated V2" },
+  { label: "Decisions", value: "Validated V3" },
 ];
 
 export default function BrainDecisionsPage() {
@@ -190,7 +281,7 @@ export default function BrainDecisionsPage() {
           </p>
 
           <h1 className="max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
-            DECISIONS V2
+            DECISIONS V3
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70">
@@ -315,9 +406,10 @@ export default function BrainDecisionsPage() {
             <h2 className="text-xl font-semibold">NEXT PRIORITIES</h2>
 
             <ol className="mt-5 space-y-3 text-sm text-white/70">
-              <li>1. Context V2</li>
-              <li>2. Reports V2</li>
-              <li>3. ATHENA Landing V2 execution after Brain phase validation</li>
+              <li>1. Context V3 — ATHENA HDN Vision</li>
+              <li>2. Modules V3 — ATHENA HDN Modules</li>
+              <li>3. Routes V3 — ATHENA / Inventions Brain Routes</li>
+              <li>4. ATHENA Core V1 execution after Brain synchronization</li>
             </ol>
           </div>
         </div>
