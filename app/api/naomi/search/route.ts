@@ -28,35 +28,36 @@ export async function POST(request: Request) {
     const facts = {
       name: profile.name || "Naomi",
       location: "Portsmouth, UK",
+      radius: "approximately 15 miles",
       search: "student jobs, part-time jobs, weekend jobs and flexible casual jobs",
       skills: Array.isArray(cv.skills) ? cv.skills.slice(0, 30) : [],
       experience: Array.isArray(cv.experience) ? cv.experience.slice(0, 10) : [],
       education: Array.isArray(cv.education) ? cv.education.slice(0, 10) : [],
-      notes: profile.notes || "",
-      savedAnswers: profile.answers || {},
+      savedFacts: profile.answers || {},
     };
 
     const { output } = await generateText({
       model: "openai/gpt-5.6-luna",
       reasoning: "low",
       output: Output.object({ schema: jobSchema }),
-      tools: {
-        web_search: openai.tools.webSearch({}),
-      },
+      tools: { web_search: openai.tools.webSearch({}) },
       prompt: `Find current live job vacancies suitable for a student living in Portsmouth, England.
 
-Search broadly across the live web, including direct employer career pages and current listings from Indeed UK, Reed, Totaljobs, CV-Library, LinkedIn Jobs, Adzuna, jobs.ac.uk, university/student-union vacancies, hospitality, retail, supermarkets, cinemas, leisure, reception/admin, customer service, warehouses and flexible casual work.
+Search broadly across the live web. Use job boards such as Indeed UK, Reed, Totaljobs, CV-Library, LinkedIn Jobs, Adzuna and jobs.ac.uk for discovery, but whenever possible follow the vacancy to the employer's own careers page or its ATS and return that direct application URL instead of the job-board page.
 
-Priorities:
-- Portsmouth first, then Southsea, Port Solent, Cosham, Fareham, Havant and locations reasonably commutable from Portsmouth.
-- Part-time, weekend, evening, flexible, casual, zero-hours or student-friendly work.
-- Also include relevant entry-level work that matches the CV.
-- Prefer listings posted recently and direct application URLs.
-- Do not return generic search-result pages if an actual vacancy URL is available.
-- Do not invent vacancies or URLs. Only return jobs you can verify are live from search results.
-- Avoid clearly full-time professional roles that are unsuitable alongside university.
-- Remove duplicates.
-- Score each role from 0-100 for student suitability + CV fit, not employer likelihood of hiring.
+Also search direct careers pages for employers around Portsmouth/Southsea/Port Solent/Cosham/Fareham/Havant: hospitality, pubs/restaurants/cafes, retail, supermarkets, cinemas, leisure, events, reception/admin, customer service, warehouses, university/student-union work and other flexible employers.
+
+Priorities, in order:
+1. Live vacancies with a direct employer/ATS application URL.
+2. Applications that do not require an existing job-board account.
+3. Portsmouth first, then places within roughly 15 miles and realistically commutable from Portsmouth.
+4. Part-time, weekend, evening, flexible, casual, zero-hours or explicitly student-friendly work.
+5. Relevant entry-level jobs matching the CV.
+6. Recently posted vacancies.
+
+Do not return generic search-result pages when a vacancy/application URL exists. Do not invent vacancies, employers or URLs. Only return jobs that appear live in current search results. Remove duplicates and expired roles. Avoid clearly full-time professional roles unsuitable alongside university. If the same vacancy appears on a board and on an employer site, keep the employer/ATS version only.
+
+Score 0-100 based on student suitability + CV fit + ease of direct application, not on speculative likelihood of hiring.
 
 Applicant facts:
 ${JSON.stringify(facts)}
