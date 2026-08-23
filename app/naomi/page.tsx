@@ -49,7 +49,6 @@ type Job = {
 
 type PendingQuestion = { job: Job; key: string; question: string; message: string };
 type StoredCv = { id: "cv"; name: string; type: string; blob: Blob };
-
 type QueueState = { jobs: Job[]; nextIndex: number };
 
 const PROFILE_KEY = "naomi-job-hunt-profile-v3";
@@ -125,7 +124,7 @@ function normaliseJobs(payload: unknown): Job[] {
   const raw = payload && typeof payload === "object" && Array.isArray((payload as { jobs?: unknown }).jobs)
     ? (payload as { jobs: unknown[] }).jobs
     : [];
-  return raw.map((item, index) => {
+  return raw.map<Job>((item, index) => {
     const job = item && typeof item === "object" ? item as Record<string, unknown> : {};
     const url = typeof job.url === "string" ? job.url : undefined;
     return {
