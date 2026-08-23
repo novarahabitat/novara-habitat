@@ -25,14 +25,14 @@ type Profile = {
   location: string;
   targetRoles: string;
   radius: number;
-  mode: "auto";
+  mode: "review";
   notes: string;
   answers: Record<string, string>;
   cvText: string;
   cvDetails: CvDetails;
 };
 
-type JobStatus = "found" | "applying" | "applied" | "question" | "skipped" | "blocked";
+type JobStatus = "found" | "applying" | "review" | "applied" | "question" | "skipped" | "blocked";
 
 type Job = {
   id: string;
@@ -48,6 +48,7 @@ type Job = {
 };
 
 type PendingQuestion = { job: Job; key: string; question: string; message: string };
+type PendingReview = { job: Job; submitSelector: string; message: string; coverLetter: string };
 type StoredCv = { id: "cv"; name: string; type: string; blob: Blob };
 type QueueState = { jobs: Job[]; nextIndex: number };
 
@@ -67,8 +68,8 @@ const defaultProfile: Profile = {
   phone: "",
   location: "Portsmouth, UK",
   targetRoles: "Student jobs, part-time jobs, weekend jobs, flexible casual work",
-  radius: 15,
-  mode: "auto",
+  radius: 3,
+  mode: "review",
   notes: "",
   answers: {},
   cvText: "",
@@ -148,8 +149,9 @@ export default function NaomiJobHuntPage() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [agentOnline, setAgentOnline] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("Add your CV. Everything else is automatic.");
+  const [message, setMessage] = useState("Add your CV. Applications are prepared automatically, but nothing is submitted without your confirmation.");
   const [pending, setPending] = useState<PendingQuestion | null>(null);
+  const [pendingReview, setPendingReview] = useState<PendingReview | null>(null);
   const [answer, setAnswer] = useState("");
   const [ready, setReady] = useState(false);
   const queueRef = useRef<QueueState | null>(null);
@@ -165,7 +167,8 @@ export default function NaomiJobHuntPage() {
           ...parsed,
           location: "Portsmouth, UK",
           targetRoles: defaultProfile.targetRoles,
-          mode: "auto",
+          radius: 3,
+          mode: "review",
           answers: parsed.answers || {},
           cvDetails: { ...emptyCvDetails, ...(parsed.cvDetails || {}) },
         });
@@ -189,6 +192,7 @@ export default function NaomiJobHuntPage() {
 
   const stats = useMemo(() => ({
     found: jobs.length,
+    ready: jobs.filter((job) => job.status === "review").length,
     applied: jobs.filter((job) => job.status === "applied").length,
     questions: jobs.filter((job) => job.status === "question").length,
     skipped: jobs.filter((job) => job.status === "blocked" || job.status === "skipped").length,
@@ -202,6 +206,7 @@ export default function NaomiJobHuntPage() {
     setBusy(true);
     setMessage("Reading your CV…");
     setPending(null);
+    setPendingReview(null);
     try {
       const form = new FormData();
       form.append("cv", file);
@@ -238,8 +243,9 @@ export default function NaomiJobHuntPage() {
   }
 
   async function processJob(job: Job, effectiveProfile: Profile, file: File) {
-    patchJob(job.id, { status: "applying", note: "Completing application…" });
+    patchJob(job.id, { status: "applying", note: "Preparing application…" });
     const form = new FormData();
+    form.append("phase", "prepare");
     form.append("job", JSON.stringify(job));
     form.append("profile", JSON.stringify(effectiveProfile));
     form.append("cv", file);
@@ -256,7 +262,22 @@ export default function NaomiJobHuntPage() {
       };
       patchJob(job.id, { status: "question", note: question.question });
       setPending(question);
+      setPendingReview(null);
       setMessage("One answer is needed. The job hunt is paused here.");
+      return "pause" as const;
+    }
+
+    if (payload.status === "ready_for_review") {
+      const review: PendingReview = {
+        job,
+        submitSelector: String(payload.submitSelector || ""),
+        message: String(payload.message || "Application ready for your confirmation."),
+        coverLetter: String(payload.coverLetter || ""),
+      };
+      patchJob(job.id, { status: "review", note: "Ready for manual confirmation" });
+      setPending(null);
+      setPendingReview(review);
+      setMessage("Application complete. Nothing has been sent yet — confirm it below.");
       return "pause" as const;
     }
 
@@ -265,7 +286,7 @@ export default function NaomiJobHuntPage() {
       return "continue" as const;
     }
 
-    patchJob(job.id, { status: "blocked", note: payload.message || "Could not submit automatically" });
+    patchJob(job.id, { status: "blocked", note: payload.message || "Could not prepare automatically" });
     return "continue" as const;
   }
 
@@ -276,7 +297,10 @@ export default function NaomiJobHuntPage() {
       const job = list[i];
       try {
         const result = await processJob(job, effectiveProfile, file);
-        if (result === "pause") return;
+        if (result === "pause") {
+          setBusy(false);
+          return;
+        }
       } catch (error) {
         patchJob(job.id, { status: "blocked", note: error instanceof Error ? error.message : "Could not complete" });
       }
@@ -300,7 +324,8 @@ export default function NaomiJobHuntPage() {
 
     setBusy(true);
     setPending(null);
-    setMessage("Searching current student jobs around Portsmouth…");
+    setPendingReview(null);
+    setMessage("Searching current student jobs within 3 miles of Portsmouth…");
     try {
       const response = await fetch("/api/naomi/search", {
         method: "POST",
@@ -316,7 +341,7 @@ export default function NaomiJobHuntPage() {
         setMessage("No suitable live vacancies found in this run.");
         return;
       }
-      setMessage(`${found.length} jobs found. Applying automatically…`);
+      setMessage(`${found.length} jobs found. Preparing the first application…`);
       await continueQueue(found, 0, profile, file);
     } catch (error) {
       setBusy(false);
@@ -352,6 +377,67 @@ export default function NaomiJobHuntPage() {
     else setBusy(false);
   }
 
+  async function confirmSubmission() {
+    if (!pendingReview) return;
+    const file = cvFile || await loadCvFile();
+    if (!file) return;
+
+    const review = pendingReview;
+    setBusy(true);
+    setMessage(`Submitting ${review.job.title}…`);
+
+    try {
+      const form = new FormData();
+      form.append("phase", "submit");
+      form.append("job", JSON.stringify(review.job));
+      form.append("submitSelector", review.submitSelector);
+      const response = await fetch("/api/naomi/agent", { method: "POST", body: form });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Submission failed.");
+
+      if (payload.status === "applied") {
+        patchJob(review.job.id, { status: "applied", note: payload.message || "Application submitted" });
+        setPendingReview(null);
+        setMessage("Application submitted. Preparing the next job…");
+      } else {
+        patchJob(review.job.id, { status: "blocked", note: payload.message || "Submission could not be confirmed" });
+        setPendingReview(null);
+        setMessage(payload.message || "Submission could not be confirmed. Moving to the next job.");
+      }
+    } catch (error) {
+      patchJob(review.job.id, { status: "blocked", note: error instanceof Error ? error.message : "Submission failed" });
+      setPendingReview(null);
+      setMessage(error instanceof Error ? error.message : "Submission failed.");
+    }
+
+    const queue = queueRef.current;
+    if (queue) await continueQueue(queue.jobs, queue.nextIndex + 1, profile, file);
+    else setBusy(false);
+  }
+
+  async function skipSubmission() {
+    if (!pendingReview) return;
+    const file = cvFile || await loadCvFile();
+    if (!file) return;
+
+    const review = pendingReview;
+    setBusy(true);
+    try {
+      const form = new FormData();
+      form.append("phase", "cancel");
+      form.append("job", JSON.stringify(review.job));
+      await fetch("/api/naomi/agent", { method: "POST", body: form });
+    } catch {}
+
+    patchJob(review.job.id, { status: "skipped", note: "Skipped before submission" });
+    setPendingReview(null);
+    setMessage("Application skipped. Preparing the next job…");
+
+    const queue = queueRef.current;
+    if (queue) await continueQueue(queue.jobs, queue.nextIndex + 1, profile, file);
+    else setBusy(false);
+  }
+
   async function clearEverything() {
     await deleteCvFile().catch(() => undefined);
     localStorage.removeItem(PROFILE_KEY);
@@ -360,6 +446,7 @@ export default function NaomiJobHuntPage() {
     setCvFile(null);
     setJobs([]);
     setPending(null);
+    setPendingReview(null);
     setAnswer("");
     setMessage("Cleared. Add a CV to start again.");
   }
@@ -371,7 +458,7 @@ export default function NaomiJobHuntPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-emerald-200/55">Private · Naomi</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Find me a student job</h1>
-            <p className="mt-2 text-sm text-white/45">Portsmouth · student / part-time work · automatic applications</p>
+            <p className="mt-2 text-sm text-white/45">Portsmouth · within 3 miles · manual confirmation before submit</p>
           </div>
           <span className={`mt-1 rounded-full border px-3 py-1.5 text-xs ${agentOnline ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100" : "border-white/10 bg-white/5 text-white/40"}`}>
             {agentOnline ? "Cloud agent online" : "Agent unavailable"}
@@ -413,23 +500,46 @@ export default function NaomiJobHuntPage() {
             <h2 className="mt-2 text-xl font-semibold">{pending.question}</h2>
             <p className="mt-2 text-sm text-white/45">For {pending.job.title} · {pending.job.company}</p>
             <textarea autoFocus rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Type the answer here…" className="mt-5 w-full resize-none rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm placeholder:text-white/25" />
-            <button type="button" disabled={!answer.trim() || busy} onClick={() => void saveAnswerAndContinue()} className="mt-3 w-full rounded-2xl bg-amber-200 px-5 py-3 text-sm font-semibold text-[#1a1607] disabled:opacity-40">Save answer & continue automatically</button>
+            <button type="button" disabled={!answer.trim() || busy} onClick={() => void saveAnswerAndContinue()} className="mt-3 w-full rounded-2xl bg-amber-200 px-5 py-3 text-sm font-semibold text-[#1a1607] disabled:opacity-40">Save answer & continue</button>
+          </section>
+        )}
+
+        {pendingReview && (
+          <section className="mt-6 rounded-3xl border border-violet-200/20 bg-violet-200/[0.06] p-5 sm:p-7">
+            <p className="text-xs uppercase tracking-[0.18em] text-violet-100/55">Ready to submit</p>
+            <h2 className="mt-2 text-xl font-semibold">{pendingReview.job.title}</h2>
+            <p className="mt-1 text-sm text-white/45">{pendingReview.job.company} · {pendingReview.job.location}</p>
+            <p className="mt-4 text-sm leading-6 text-white/60">The form is filled and the cover letter is prepared. Nothing has been sent yet.</p>
+
+            {pendingReview.coverLetter && (
+              <details className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <summary className="cursor-pointer text-sm font-medium text-white/70">View tailored cover letter</summary>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/50">{pendingReview.coverLetter}</p>
+              </details>
+            )}
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+              <button type="button" disabled={busy} onClick={() => void confirmSubmission()} className="rounded-2xl bg-violet-200 px-5 py-3 text-sm font-semibold text-[#130d1e] disabled:opacity-40">Submit application</button>
+              <button type="button" disabled={busy} onClick={() => void skipSubmission()} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm text-white/60 disabled:opacity-40">Skip</button>
+            </div>
+
+            {pendingReview.job.url && <a href={pendingReview.job.url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-xs text-white/35 underline underline-offset-4 hover:text-white/60">View job listing</a>}
           </section>
         )}
 
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/[0.035] p-5 sm:p-7">
           <div className="flex items-center justify-between gap-4">
-            <div><p className="text-xs uppercase tracking-[0.18em] text-white/35">Step 2</p><h2 className="mt-1 text-xl font-semibold">Automatic job hunt</h2></div>
-            <div className="text-right text-xs text-white/35"><p>Portsmouth + 15 miles</p><p>{Object.keys(profile.answers).length} extra answers saved</p></div>
+            <div><p className="text-xs uppercase tracking-[0.18em] text-white/35">Step 2</p><h2 className="mt-1 text-xl font-semibold">Automatic job preparation</h2></div>
+            <div className="text-right text-xs text-white/35"><p>Portsmouth + 3 miles</p><p>{Object.keys(profile.answers).length} extra answers saved</p></div>
           </div>
-          <p className="mt-4 text-sm leading-6 text-white/50">The agent searches current student-friendly jobs, reads each vacancy, writes a tailored truthful cover letter, fills the application from the CV and saved answers, and submits it. If a required fact is missing, it asks one clear question above.</p>
-          <button type="button" disabled={!cvFile || busy || !agentOnline || Boolean(pending)} onClick={() => void startJobHunt()} className="mt-5 w-full rounded-2xl bg-emerald-300 px-5 py-4 text-base font-semibold text-[#07100d] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-35">
+          <p className="mt-4 text-sm leading-6 text-white/50">The agent searches current student-friendly jobs, reads each vacancy, writes a tailored truthful cover letter and fills the application from the CV and saved answers. It always stops before the final submission and waits for your confirmation.</p>
+          <button type="button" disabled={!cvFile || busy || !agentOnline || Boolean(pending) || Boolean(pendingReview)} onClick={() => void startJobHunt()} className="mt-5 w-full rounded-2xl bg-emerald-300 px-5 py-4 text-base font-semibold text-[#07100d] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-35">
             {busy ? "Working…" : "Start job hunt"}
           </button>
         </section>
 
-        <section className="mt-6 grid grid-cols-4 gap-2">
-          {[["Found", stats.found], ["Applied", stats.applied], ["Question", stats.questions], ["Skipped", stats.skipped]].map(([label, value]) => (
+        <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {[["Found", stats.found], ["Ready", stats.ready], ["Applied", stats.applied], ["Question", stats.questions], ["Skipped", stats.skipped]].map(([label, value]) => (
             <div key={String(label)} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-center"><p className="text-2xl font-semibold">{value}</p><p className="mt-1 text-[11px] text-white/35">{label}</p></div>
           ))}
         </section>
@@ -438,7 +548,7 @@ export default function NaomiJobHuntPage() {
           <section className="mt-6 space-y-2">
             {jobs.map((job) => (
               <div key={job.id} className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3">
-                <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${job.status === "applied" ? "bg-emerald-300" : job.status === "question" ? "bg-amber-200" : job.status === "blocked" || job.status === "skipped" ? "bg-white/20" : job.status === "applying" ? "bg-sky-300" : "bg-white/35"}`} />
+                <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${job.status === "applied" ? "bg-emerald-300" : job.status === "review" ? "bg-violet-300" : job.status === "question" ? "bg-amber-200" : job.status === "blocked" || job.status === "skipped" ? "bg-white/20" : job.status === "applying" ? "bg-sky-300" : "bg-white/35"}`} />
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{job.title}</p><p className="truncate text-xs text-white/35">{job.company} · {job.location}{job.salary ? ` · ${job.salary}` : ""}</p></div>
                 <span className="text-xs text-white/35">{job.status}</span>
               </div>
