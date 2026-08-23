@@ -7,12 +7,17 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const actionSchema = z.object({
-  state: z.enum(["act", "need_info", "done", "blocked"]),
+  state: z.enum(["act", "need_info", "ready_review", "done", "blocked"]),
   action: z.enum(["click", "fill", "select", "check", "upload_cv", "upload_cover_letter", "none"]),
   selector: z.string(),
   value: z.string(),
   questionKey: z.string(),
   question: z.string(),
+  message: z.string(),
+});
+
+const verificationSchema = z.object({
+  submitted: z.boolean(),
   message: z.string(),
 });
 
@@ -81,6 +86,24 @@ ${JSON.stringify(profile).slice(0, 30000)}`,
   return output;
 }
 
+async function verifySubmission(job: any, pageText: string) {
+  const { output } = await generateText({
+    model: "openai/gpt-5.6-luna",
+    reasoning: "low",
+    output: Output.object({ schema: verificationSchema }),
+    prompt: `Decide whether this UK job application has definitely been submitted successfully.
+Return submitted=true ONLY if the page contains a credible explicit confirmation such as application submitted, application received, thank you for applying, or an equivalent success message.
+If the form is still present, there is a validation error, the state is ambiguous, or the page only says the application is ready, return submitted=false.
+
+JOB:
+${JSON.stringify(job)}
+
+PAGE TEXT:
+${pageText.slice(0, 18000)}`,
+  });
+  return output;
+}
+
 async function nextAction(input: {
   profile: any;
   job: any;
@@ -96,7 +119,7 @@ async function nextAction(input: {
     output: Output.object({ schema: actionSchema }),
     prompt: `You control a browser completing a UK job application for the applicant herself. Choose exactly ONE next action.
 
-Goal: navigate from the vacancy to its application form, fill it truthfully, attach the CV, use the tailored cover letter when requested, and submit automatically when all mandatory factual questions can be answered.
+Goal: navigate from the vacancy to its application form, fill it truthfully, attach the CV, use the tailored cover letter when requested, and prepare everything for submission. NEVER submit the application without explicit manual confirmation from the applicant.
 
 STRICT RULES:
 - Use only facts in APPLICANT and SAVED ANSWERS. Never invent anything.
@@ -104,17 +127,18 @@ STRICT RULES:
 - If a mandatory factual question cannot be answered from the data, return state=need_info with one short, precise question and a stable questionKey. Do not guess.
 - Examples of valid missing questions: availability, desired hours, postcode/address, notice period, date of birth if genuinely mandatory, specific licence/certification, work-authorisation answer.
 - Optional equality/diversity questions: choose 'Prefer not to say' when available; otherwise leave optional fields blank. Never infer protected characteristics.
-- Do not request or store account passwords. If a site requires a login, CAPTCHA, MFA or email verification that cannot be bypassed legitimately, return state=blocked and explain it.
-- For ordinary terms/privacy declarations required to submit a truthful application, you may check them.
+- Do not request or store account passwords. If a site requires a login, CAPTCHA, MFA or email verification that cannot be handled legitimately, return state=blocked and explain it.
+- For ordinary terms/privacy declarations required to prepare a truthful application, you may check them.
 - Do not click adverts or unrelated navigation.
-- If there is an Apply/Apply now/Continue/Next button and the application form is not yet visible, click it.
+- If there is an Apply/Apply now/Continue/Next button and it only navigates to another application step, click it.
+- If any button would actually send, submit or finalize the application, DO NOT CLICK IT.
 - If a required field is visible, fill/select/check it before moving on.
 - For the CV upload use action=upload_cv and selector MUST be one of the CSS selectors in FILE INPUTS.
 - For a cover-letter file upload use action=upload_cover_letter and a CSS selector from FILE INPUTS.
 - For a cover-letter textarea use action=fill and value exactly COVER LETTER.
 - For input/select/button refs from ACCESSIBILITY SNAPSHOT use selectors like @e12 exactly as shown.
-- When a final Submit application / Send application control is available and all mandatory data is complete, click it. Do not stop for review.
-- Return state=done only after the page shows a credible submission confirmation.
+- When the final Submit application / Send application / Apply control is available and every mandatory field is complete, return state=ready_review, action=none, and put the exact final submit control ref in selector. Do not click it.
+- Return state=done only if the page already shows a credible prior submission confirmation.
 - If the vacancy is closed, unavailable, clearly unsuitable, or the application cannot be automated, return state=blocked.
 
 STEP: ${input.step}
@@ -132,21 +156,70 @@ ${input.pageText.slice(0, 18000)}`,
 
 export async function POST(request: Request) {
   const form = await request.formData();
-  const cv = form.get("cv");
+  const phase = String(form.get("phase") || "prepare");
   const jobRaw = form.get("job");
-  const profileRaw = form.get("profile");
 
-  if (!(cv instanceof File) || typeof jobRaw !== "string" || typeof profileRaw !== "string") {
-    return Response.json({ error: "CV, job and profile are required." }, { status: 400 });
+  if (typeof jobRaw !== "string") {
+    return Response.json({ error: "Job data is required." }, { status: 400 });
   }
 
   const job = JSON.parse(jobRaw);
+
+  if (phase === "cancel") {
+    const sandbox = await getNaomiSandbox();
+    try {
+      await safeBrowserCommand(sandbox, ["close"]);
+      return Response.json({ status: "cancelled" });
+    } finally {
+      await sandbox.stop().catch(() => undefined);
+    }
+  }
+
+  if (phase === "submit") {
+    const submitSelector = form.get("submitSelector");
+    if (typeof submitSelector !== "string" || !submitSelector) {
+      return Response.json({ error: "Submit control is missing." }, { status: 400 });
+    }
+
+    const sandbox = await getNaomiSandbox();
+    try {
+      await browserCommand(sandbox, ["click", submitSelector]);
+      await safeBrowserCommand(sandbox, ["wait", "900"]);
+      await safeBrowserCommand(sandbox, ["wait", "--load", "networkidle"]);
+      const pageText = await safeBrowserCommand(sandbox, ["get", "text", "body"]);
+      const verification = await verifySubmission(job, pageText);
+
+      if (verification.submitted) {
+        await safeBrowserCommand(sandbox, ["state", "save", "/vercel/sandbox/naomi/browser-state.json"]);
+        return Response.json({ status: "applied", message: verification.message || "Application submitted." });
+      }
+
+      return Response.json({
+        status: "blocked",
+        message: verification.message || "The submit control was clicked but a successful submission could not be confirmed.",
+      });
+    } catch (error) {
+      return Response.json({ error: error instanceof Error ? error.message : "Submission failed." }, { status: 500 });
+    } finally {
+      await safeBrowserCommand(sandbox, ["close"]);
+      await sandbox.stop().catch(() => undefined);
+    }
+  }
+
+  const cv = form.get("cv");
+  const profileRaw = form.get("profile");
+
+  if (!(cv instanceof File) || typeof profileRaw !== "string") {
+    return Response.json({ error: "CV and profile are required." }, { status: 400 });
+  }
+
   const profile = JSON.parse(profileRaw);
   if (!job?.url) return Response.json({ error: "Job URL is missing." }, { status: 400 });
 
   const sandbox = await getNaomiSandbox();
   const cvPath = `/vercel/sandbox/naomi/${safeFileName(cv.name)}`;
   const coverPath = "/vercel/sandbox/naomi/cover-letter.pdf";
+  let preserveForReview = false;
 
   try {
     await sandbox.writeFiles([{ path: cvPath, content: Buffer.from(await cv.arrayBuffer()) }]);
@@ -187,9 +260,22 @@ export async function POST(request: Request) {
         });
       }
 
+      if (action.state === "ready_review") {
+        if (!action.selector) {
+          return Response.json({ status: "blocked", message: "The final submit control could not be identified safely." });
+        }
+        preserveForReview = true;
+        return Response.json({
+          status: "ready_for_review",
+          submitSelector: action.selector,
+          message: action.message || "Application completed and ready for your confirmation.",
+          coverLetter: cover.letter,
+        });
+      }
+
       if (action.state === "done") {
         await safeBrowserCommand(sandbox, ["state", "save", "/vercel/sandbox/naomi/browser-state.json"]);
-        return Response.json({ status: "applied", message: action.message || "Application submitted.", coverLetter: cover.letter });
+        return Response.json({ status: "applied", message: action.message || "Application was already submitted.", coverLetter: cover.letter });
       }
 
       if (action.state === "blocked") {
@@ -222,7 +308,9 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Application agent failed." }, { status: 500 });
   } finally {
-    await safeBrowserCommand(sandbox, ["close"]);
-    await sandbox.stop().catch(() => undefined);
+    if (!preserveForReview) {
+      await safeBrowserCommand(sandbox, ["close"]);
+      await sandbox.stop().catch(() => undefined);
+    }
   }
 }
