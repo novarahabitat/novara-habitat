@@ -2,6 +2,22 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
+type CvDetails = {
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
+  postcode: string;
+  country: string;
+  linkedin: string;
+  portfolio: string;
+  skills: string[];
+  education: Array<{ institution: string; qualification: string; field: string; start: string; end: string }>;
+  experience: Array<{ employer: string; title: string; location: string; start: string; end: string; details: string[] }>;
+  summary: string;
+  additionalFacts: string[];
+};
+
 type Profile = {
   name: string;
   email: string;
@@ -17,9 +33,11 @@ type Profile = {
   maxApplications: number;
   mode: "review" | "auto";
   notes: string;
+  cvText: string;
+  cvDetails: CvDetails;
 };
 
-type JobStatus = "new" | "applying" | "applied" | "skipped" | "blocked";
+type JobStatus = "new" | "applying" | "prepared" | "applied" | "skipped" | "blocked";
 
 type Job = {
   id: string;
@@ -34,11 +52,30 @@ type Job = {
   note?: string;
 };
 
-type AgentState = "checking" | "connected" | "disconnected";
+type AgentState = "checking" | "online" | "offline";
 
-const PROFILE_KEY = "naomi-job-hunt-profile-v1";
-const JOBS_KEY = "naomi-job-hunt-jobs-v1";
-const AGENT_KEY = "naomi-job-hunt-agent-v1";
+type StoredCv = { id: "cv"; name: string; type: string; blob: Blob };
+
+const PROFILE_KEY = "naomi-job-hunt-profile-v2";
+const JOBS_KEY = "naomi-job-hunt-jobs-v2";
+const DB_NAME = "naomi-job-hunt";
+const DB_STORE = "files";
+
+const emptyCvDetails: CvDetails = {
+  firstName: "",
+  lastName: "",
+  address: "",
+  city: "",
+  postcode: "",
+  country: "",
+  linkedin: "",
+  portfolio: "",
+  skills: [],
+  education: [],
+  experience: [],
+  summary: "",
+  additionalFacts: [],
+};
 
 const defaultProfile: Profile = {
   name: "Naomi",
@@ -55,6 +92,8 @@ const defaultProfile: Profile = {
   maxApplications: 15,
   mode: "review",
   notes: "",
+  cvText: "",
+  cvDetails: emptyCvDetails,
 };
 
 const sourceLinks = [
@@ -68,112 +107,140 @@ const sourceLinks = [
   { name: "Civil Service", build: () => "https://www.civilservicejobs.service.gov.uk/csr/index.cgi" },
 ];
 
-function makeId(value: unknown, index: number) {
-  if (typeof value === "string" && value.trim()) return value;
-  return `job-${Date.now()}-${index}`;
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(DB_STORE)) request.result.createObjectStore(DB_STORE, { keyPath: "id" });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveCvFile(file: File) {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).put({ id: "cv", name: file.name, type: file.type, blob: file } satisfies StoredCv);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+async function loadCvFile(): Promise<File | null> {
+  const db = await openDb();
+  const stored = await new Promise<StoredCv | undefined>((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readonly");
+    const request = tx.objectStore(DB_STORE).get("cv");
+    request.onsuccess = () => resolve(request.result as StoredCv | undefined);
+    request.onerror = () => reject(request.error);
+  });
+  db.close();
+  return stored ? new File([stored.blob], stored.name, { type: stored.type }) : null;
+}
+
+async function deleteCvFile() {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).delete("cv");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
 }
 
 function normaliseJobs(payload: unknown): Job[] {
-  const candidate = Array.isArray(payload)
+  const list = Array.isArray(payload)
     ? payload
-    : payload && typeof payload === "object" && "jobs" in payload && Array.isArray((payload as { jobs?: unknown }).jobs)
+    : payload && typeof payload === "object" && Array.isArray((payload as { jobs?: unknown }).jobs)
       ? (payload as { jobs: unknown[] }).jobs
       : [];
 
-  return candidate.map((raw, index) => {
+  return list.map((raw, index) => {
     const job = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    const url = typeof job.url === "string" ? job.url : undefined;
     return {
-      id: makeId(job.id ?? job.url, index),
-      title: String(job.title ?? "Untitled role"),
-      company: String(job.company ?? job.employer ?? "Unknown employer"),
-      location: String(job.location ?? "Location not specified"),
+      id: typeof job.id === "string" ? job.id : url || `job-${Date.now()}-${index}`,
+      title: String(job.title || "Untitled role"),
+      company: String(job.company || job.employer || "Employer not identified"),
+      location: String(job.location || "Location not specified"),
       salary: job.salary ? String(job.salary) : undefined,
       source: job.source ? String(job.source) : undefined,
-      url: job.url ? String(job.url) : undefined,
+      url,
       score: typeof job.score === "number" ? job.score : undefined,
-      status: "new" as const,
+      status: "new",
     };
   });
 }
 
 function StatusPill({ state }: { state: AgentState }) {
-  const styles = {
-    checking: "border-amber-300/20 bg-amber-300/10 text-amber-100",
-    connected: "border-emerald-300/20 bg-emerald-300/10 text-emerald-100",
-    disconnected: "border-rose-300/20 bg-rose-300/10 text-rose-100",
-  }[state];
-
-  const labels = {
-    checking: "Checking agent",
-    connected: "Agent connected",
-    disconnected: "Agent offline",
-  }[state];
-
-  return <span className={`rounded-full border px-3 py-1 text-xs font-medium ${styles}`}>{labels}</span>;
+  const style = state === "online"
+    ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+    : state === "offline"
+      ? "border-rose-300/20 bg-rose-300/10 text-rose-100"
+      : "border-amber-300/20 bg-amber-300/10 text-amber-100";
+  const label = state === "online" ? "Cloud agent online" : state === "offline" ? "Cloud agent unavailable" : "Checking cloud agent";
+  return <span className={`rounded-full border px-3 py-1 text-xs font-medium ${style}`}>{label}</span>;
 }
 
 export default function NaomiJobHuntPage() {
   const [profile, setProfile] = useState<Profile>(defaultProfile);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [agentUrl, setAgentUrl] = useState("http://127.0.0.1:9378");
   const [agentState, setAgentState] = useState<AgentState>("checking");
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("Profile and application data stay on this device.");
+  const [message, setMessage] = useState("Upload your CV once. The system will extract the details and use them for applications.");
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [manualUrl, setManualUrl] = useState("");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
       const savedProfile = localStorage.getItem(PROFILE_KEY);
       const savedJobs = localStorage.getItem(JOBS_KEY);
-      const savedAgent = localStorage.getItem(AGENT_KEY);
-      if (savedProfile) setProfile({ ...defaultProfile, ...JSON.parse(savedProfile) });
+      if (savedProfile) {
+        const parsed = JSON.parse(savedProfile) as Partial<Profile>;
+        setProfile({ ...defaultProfile, ...parsed, cvDetails: { ...emptyCvDetails, ...(parsed.cvDetails || {}) } });
+      }
       if (savedJobs) setJobs(JSON.parse(savedJobs));
-      if (savedAgent) setAgentUrl(savedAgent);
     } catch {
-      // Ignore malformed local data and keep safe defaults.
-    } finally {
-      setReady(true);
+      // Keep safe defaults if local data is malformed.
     }
+
+    void loadCvFile().then(setCvFile).catch(() => undefined);
+    setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    if (ready) localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   }, [profile, ready]);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
+    if (ready) localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
   }, [jobs, ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(AGENT_KEY, agentUrl);
-  }, [agentUrl, ready]);
 
   async function checkAgent() {
     setAgentState("checking");
     try {
-      const response = await fetch(`${agentUrl.replace(/\/$/, "")}/health`, {
-        method: "GET",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Agent unavailable");
-      setAgentState("connected");
-      setMessage("Local automation agent connected.");
+      const response = await fetch("/api/naomi/health", { cache: "no-store" });
+      if (!response.ok) throw new Error();
+      const payload = await response.json();
+      if (!payload?.ok || payload?.agent !== "cloud") throw new Error();
+      setAgentState("online");
     } catch {
-      setAgentState("disconnected");
-      setMessage("Local automation agent is not connected yet. The UK search links below still work.");
+      setAgentState("offline");
     }
   }
 
   useEffect(() => {
-    if (!ready) return;
-    void checkAgent();
-    // Intentionally only re-check when the saved agent URL changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, agentUrl]);
+    if (ready) void checkAgent();
+  }, [ready]);
+
+  function updateProfile<K extends keyof Profile>(key: K, value: Profile[K]) {
+    setProfile((current) => ({ ...current, [key]: value }));
+  }
 
   const searchLinks = useMemo(() => {
     const q = encodeURIComponent(profile.targetRoles || "jobs");
@@ -181,17 +248,68 @@ export default function NaomiJobHuntPage() {
     return sourceLinks.map((source) => ({ name: source.name, url: source.build(q, l) }));
   }, [profile.targetRoles, profile.location]);
 
-  const stats = useMemo(() => {
-    return {
-      found: jobs.length,
-      ready: jobs.filter((job) => job.status === "new").length,
-      applied: jobs.filter((job) => job.status === "applied").length,
-      blocked: jobs.filter((job) => job.status === "blocked").length,
-    };
-  }, [jobs]);
+  const stats = useMemo(() => ({
+    found: jobs.length,
+    ready: jobs.filter((job) => job.status === "new" || job.status === "prepared").length,
+    applied: jobs.filter((job) => job.status === "applied").length,
+    blocked: jobs.filter((job) => job.status === "blocked").length,
+  }), [jobs]);
 
-  function updateProfile<K extends keyof Profile>(key: K, value: Profile[K]) {
-    setProfile((current) => ({ ...current, [key]: value }));
+  async function analyseCv(file?: File | null) {
+    const selected = file || cvFile;
+    if (!selected) {
+      setMessage("Choose a PDF or DOCX CV first.");
+      return;
+    }
+
+    setBusy(true);
+    setMessage("Reading CV and extracting application details…");
+    try {
+      const form = new FormData();
+      form.append("cv", selected);
+      const response = await fetch("/api/naomi/cv", { method: "POST", body: form });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || `CV analysis failed (${response.status})`);
+
+      const extracted = payload.profile || {};
+      const nextDetails: CvDetails = {
+        firstName: extracted.firstName || "",
+        lastName: extracted.lastName || "",
+        address: extracted.address || "",
+        city: extracted.city || "",
+        postcode: extracted.postcode || "",
+        country: extracted.country || "",
+        linkedin: extracted.linkedin || "",
+        portfolio: extracted.portfolio || "",
+        skills: Array.isArray(extracted.skills) ? extracted.skills : [],
+        education: Array.isArray(extracted.education) ? extracted.education : [],
+        experience: Array.isArray(extracted.experience) ? extracted.experience : [],
+        summary: extracted.summary || "",
+        additionalFacts: Array.isArray(extracted.additionalFacts) ? extracted.additionalFacts : [],
+      };
+
+      setProfile((current) => ({
+        ...current,
+        name: extracted.name || current.name,
+        email: extracted.email || current.email,
+        phone: extracted.phone || current.phone,
+        targetRoles: current.targetRoles || (Array.isArray(extracted.targetRoles) ? extracted.targetRoles.join(", ") : ""),
+        location: current.location || [extracted.city, extracted.postcode].filter(Boolean).join(" "),
+        rightToWork: extracted.rightToWork || current.rightToWork,
+        sponsorship: extracted.sponsorship || current.sponsorship,
+        drivingLicence: extracted.drivingLicence || current.drivingLicence,
+        cvText: payload.cvText || "",
+        cvDetails: nextDetails,
+      }));
+
+      await saveCvFile(selected);
+      setCvFile(selected);
+      setMessage(`CV analysed and saved on this device: ${selected.name}${payload.extraction === "fallback" ? " (basic extraction)" : ""}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "CV analysis failed.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function searchJobs(event?: FormEvent) {
@@ -200,24 +318,24 @@ export default function NaomiJobHuntPage() {
       setMessage("Add at least one target role before searching.");
       return;
     }
-    if (agentState !== "connected") {
-      setMessage("Connect the local automation agent to search and collect jobs automatically.");
+    if (agentState !== "online") {
+      setMessage("Cloud agent is not available.");
       return;
     }
 
     setBusy(true);
-    setMessage("Searching UK job sources and screening matches…");
+    setMessage("Cloud agent is searching UK job sources…");
     try {
-      const response = await fetch(`${agentUrl.replace(/\/$/, "")}/search`, {
+      const response = await fetch("/api/naomi/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile }),
       });
-      if (!response.ok) throw new Error(`Search failed (${response.status})`);
       const payload = await response.json();
-      const nextJobs = normaliseJobs(payload);
-      setJobs(nextJobs);
-      setMessage(nextJobs.length ? `${nextJobs.length} matching jobs found.` : "Search completed. No matching jobs returned.");
+      if (!response.ok) throw new Error(payload?.error || `Search failed (${response.status})`);
+      const found = normaliseJobs(payload);
+      setJobs(found);
+      setMessage(found.length ? `${found.length} matching jobs found.` : "Search completed. No suitable jobs were collected automatically; the direct sources remain available below.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Search failed.");
     } finally {
@@ -225,77 +343,66 @@ export default function NaomiJobHuntPage() {
     }
   }
 
-  async function uploadCv() {
-    if (!cvFile) {
-      setMessage("Choose a CV file first.");
-      return;
-    }
-    if (agentState !== "connected") {
-      setMessage("Connect the local agent before sending the CV. The file is not uploaded to novarahabitat.fr.");
-      return;
-    }
-
-    setBusy(true);
+  function addManualJob() {
     try {
-      const form = new FormData();
-      form.append("cv", cvFile);
-      const response = await fetch(`${agentUrl.replace(/\/$/, "")}/profile/cv`, {
-        method: "POST",
-        body: form,
-      });
-      if (!response.ok) throw new Error(`CV upload failed (${response.status})`);
-      setMessage(`CV sent to the local agent: ${cvFile.name}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "CV upload failed.");
-    } finally {
-      setBusy(false);
+      const url = new URL(manualUrl);
+      setJobs((current) => [{
+        id: url.toString(),
+        title: "Job from link",
+        company: url.hostname.replace(/^www\./, ""),
+        location: "To be read by cloud agent",
+        source: "Manual link",
+        url: url.toString(),
+        status: "new",
+      }, ...current.filter((job) => job.url !== url.toString())]);
+      setManualUrl("");
+      setMessage("Job added. The cloud agent can read and process it.");
+    } catch {
+      setMessage("Enter a valid job URL.");
     }
   }
 
   function updateJob(id: string, patch: Partial<Job>) {
-    setJobs((current) => current.map((job) => (job.id === id ? { ...job, ...patch } : job)));
+    setJobs((current) => current.map((job) => job.id === id ? { ...job, ...patch } : job));
   }
 
   async function applyToJob(job: Job) {
-    if (agentState !== "connected") {
-      setMessage("Connect the local automation agent before applying.");
+    if (!job.url) return;
+    const storedCv = cvFile || await loadCvFile();
+    if (!storedCv) {
+      setMessage("Upload and analyse the CV before applying.");
       return;
     }
 
-    updateJob(job.id, { status: "applying", note: "Application in progress" });
-    setMessage(`Preparing application for ${job.title}…`);
-
+    updateJob(job.id, { status: "applying", note: "Cloud agent working" });
+    setMessage(`Cloud agent is processing ${job.title}…`);
     try {
-      const response = await fetch(`${agentUrl.replace(/\/$/, "")}/apply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job, profile }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof payload?.error === "string" ? payload.error : `Application blocked (${response.status})`);
+      const form = new FormData();
+      form.append("job", JSON.stringify(job));
+      form.append("profile", JSON.stringify(profile));
+      form.append("cv", storedCv);
+      const response = await fetch("/api/naomi/agent", { method: "POST", body: form });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || `Application failed (${response.status})`);
 
-      const status: JobStatus = payload?.status === "blocked" ? "blocked" : "applied";
-      updateJob(job.id, {
-        status,
-        note: typeof payload?.message === "string" ? payload.message : status === "applied" ? "Submission confirmed" : "Application blocked",
-      });
-      setMessage(status === "applied" ? `Applied to ${job.title}.` : `Application to ${job.title} needs attention.`);
+      const status: JobStatus = payload.status === "applied" ? "applied" : payload.status === "prepared" ? "prepared" : "blocked";
+      updateJob(job.id, { status, note: payload.message || status });
+      setMessage(payload.message || (status === "applied" ? "Application submitted." : "Application needs attention."));
     } catch (error) {
-      updateJob(job.id, {
-        status: "blocked",
-        note: error instanceof Error ? error.message : "Application failed",
-      });
-      setMessage(error instanceof Error ? error.message : "Application failed.");
+      const msg = error instanceof Error ? error.message : "Application failed.";
+      updateJob(job.id, { status: "blocked", note: msg });
+      setMessage(msg);
     }
   }
 
-  function resetLocalData() {
+  async function resetLocalData() {
     localStorage.removeItem(PROFILE_KEY);
     localStorage.removeItem(JOBS_KEY);
+    await deleteCvFile().catch(() => undefined);
     setProfile(defaultProfile);
     setJobs([]);
     setCvFile(null);
-    setMessage("Local profile and application history cleared.");
+    setMessage("Local profile, CV and application history cleared.");
   }
 
   return (
@@ -304,341 +411,114 @@ export default function NaomiJobHuntPage() {
         <header className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-emerald-200/60">
-              <span className="h-2 w-2 rounded-full bg-emerald-300" />
-              Private workspace
+              <span className="h-2 w-2 rounded-full bg-emerald-300" /> Private workspace
             </div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Naomi · Job Hunt</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-              Find relevant UK jobs, prepare truthful applications, review them if wanted, submit and track the result from one place.
-            </p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">CV → profile → UK job search → application preparation → form filling → submission tracking.</p>
           </div>
           <div className="flex items-center gap-3">
             <StatusPill state={agentState} />
-            <button
-              type="button"
-              onClick={() => void checkAgent()}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/70 transition hover:bg-white/[0.08]"
-            >
-              Recheck
-            </button>
+            <button type="button" onClick={() => void checkAgent()} className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/70 hover:bg-white/[0.08]">Recheck</button>
           </div>
         </header>
 
-        <div className="mb-6 rounded-2xl border border-emerald-200/10 bg-emerald-300/[0.05] px-4 py-3 text-sm text-emerald-50/80">
-          {message}
-        </div>
+        <div className="mb-6 rounded-2xl border border-emerald-200/10 bg-emerald-300/[0.05] px-4 py-3 text-sm text-emerald-50/80">{message}</div>
 
         <section className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["Jobs found", stats.found],
-            ["Ready to review", stats.ready],
-            ["Applied", stats.applied],
-            ["Needs attention", stats.blocked],
-          ].map(([label, value]) => (
+          {[["Jobs found", stats.found], ["Ready", stats.ready], ["Applied", stats.applied], ["Needs attention", stats.blocked]].map(([label, value]) => (
             <div key={String(label)} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-white/35">{label}</p>
-              <p className="mt-2 text-3xl font-semibold">{value}</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-white/35">{label}</p><p className="mt-2 text-3xl font-semibold">{value}</p>
             </div>
           ))}
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[410px_minmax(0,1fr)]">
           <aside className="space-y-6">
-            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-2xl shadow-black/10">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">Search profile</h2>
-                  <p className="mt-1 text-xs text-white/40">Saved only in this browser.</p>
-                </div>
-                <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[11px] text-white/45">UK</span>
-              </div>
-
-              <form onSubmit={searchJobs} className="space-y-4">
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium text-white/55">Target roles</span>
-                  <input
-                    value={profile.targetRoles}
-                    onChange={(event) => updateProfile("targetRoles", event.target.value)}
-                    placeholder="e.g. retail assistant, receptionist"
-                    className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                  />
-                </label>
-
-                <div className="grid grid-cols-[1fr_92px] gap-3">
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs font-medium text-white/55">Location</span>
-                    <input
-                      value={profile.location}
-                      onChange={(event) => updateProfile("location", event.target.value)}
-                      placeholder="City or postcode"
-                      className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs font-medium text-white/55">Radius</span>
-                    <select
-                      value={profile.radius}
-                      onChange={(event) => updateProfile("radius", Number(event.target.value))}
-                      className="w-full rounded-xl border border-white/10 bg-[#0b1512] px-3 py-2.5 text-sm text-white"
-                    >
-                      {[5, 10, 15, 25, 40, 60].map((radius) => (
-                        <option key={radius} value={radius}>{radius} mi</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium text-white/55">Minimum salary</span>
-                  <input
-                    value={profile.minSalary}
-                    onChange={(event) => updateProfile("minSalary", event.target.value)}
-                    placeholder="Optional, e.g. £24,000"
-                    className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between rounded-xl border border-white/10 bg-black/15 px-3 py-2.5">
-                  <span className="text-sm text-white/65">Include remote jobs</span>
-                  <input
-                    type="checkbox"
-                    checked={profile.remote}
-                    onChange={(event) => updateProfile("remote", event.target.checked)}
-                    className="h-4 w-4 accent-emerald-300"
-                  />
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs font-medium text-white/55">Daily cap</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={profile.maxApplications}
-                      onChange={(event) => updateProfile("maxApplications", Number(event.target.value))}
-                      className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs font-medium text-white/55">Submit mode</span>
-                    <select
-                      value={profile.mode}
-                      onChange={(event) => updateProfile("mode", event.target.value as Profile["mode"])}
-                      className="w-full rounded-xl border border-white/10 bg-[#0b1512] px-3 py-2.5 text-sm text-white"
-                    >
-                      <option value="review">Review first</option>
-                      <option value="auto">Automatic</option>
-                    </select>
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className="w-full rounded-xl bg-emerald-300 px-4 py-3 text-sm font-semibold text-[#07100d] transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {busy ? "Working…" : "Search & screen jobs"}
-                </button>
-              </form>
-            </section>
-
             <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
-              <h2 className="font-semibold">Application facts</h2>
-              <p className="mt-1 text-xs leading-5 text-white/40">The agent should answer from these facts only and never invent experience or qualifications.</p>
-              <div className="mt-4 space-y-3">
-                <input
-                  value={profile.email}
-                  onChange={(event) => updateProfile("email", event.target.value)}
-                  placeholder="Email"
-                  type="email"
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                />
-                <input
-                  value={profile.phone}
-                  onChange={(event) => updateProfile("phone", event.target.value)}
-                  placeholder="Phone"
-                  type="tel"
-                  autoComplete="tel"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                />
-                <input
-                  value={profile.rightToWork}
-                  onChange={(event) => updateProfile("rightToWork", event.target.value)}
-                  placeholder="Right to work answer"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                />
-                <input
-                  value={profile.sponsorship}
-                  onChange={(event) => updateProfile("sponsorship", event.target.value)}
-                  placeholder="Sponsorship requirement"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                />
-                <input
-                  value={profile.drivingLicence}
-                  onChange={(event) => updateProfile("drivingLicence", event.target.value)}
-                  placeholder="Driving licence / transport"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white placeholder:text-white/25"
-                />
-                <textarea
-                  value={profile.notes}
-                  onChange={(event) => updateProfile("notes", event.target.value)}
-                  placeholder="Education, availability, skills, preferred hours, exclusions…"
-                  rows={5}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm leading-6 text-white placeholder:text-white/25"
-                />
-              </div>
-            </section>
+              <h2 className="font-semibold">1 · CV</h2>
+              <p className="mt-1 text-xs leading-5 text-white/45">PDF or DOCX. The file is analysed by the server, then retained in this browser for future applications.</p>
+              <label className="mt-4 block rounded-2xl border border-dashed border-white/15 bg-black/20 p-4">
+                <input type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="block w-full text-xs text-white/60 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-300 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#07100d]" onChange={(event) => {
+                  const file = event.target.files?.[0] || null;
+                  setCvFile(file);
+                  if (file) void analyseCv(file);
+                }} />
+                <p className="mt-3 text-xs text-white/45">{cvFile ? `Loaded: ${cvFile.name}` : "No CV loaded yet"}</p>
+              </label>
+              {cvFile && <button type="button" disabled={busy} onClick={() => void analyseCv()} className="mt-3 w-full rounded-xl bg-emerald-300 px-4 py-2.5 text-sm font-semibold text-[#07100d] disabled:opacity-50">Re-analyse CV</button>}
 
-            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
-              <h2 className="font-semibold">CV</h2>
-              <p className="mt-1 text-xs leading-5 text-white/40">The CV is sent directly from this browser to the local agent, not stored on this website.</p>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.md"
-                onChange={(event) => setCvFile(event.target.files?.[0] ?? null)}
-                className="mt-4 block w-full text-xs text-white/55 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:text-white"
-              />
-              <button
-                type="button"
-                onClick={() => void uploadCv()}
-                disabled={busy || !cvFile}
-                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-sm text-white/70 hover:bg-white/[0.08] disabled:opacity-35"
-              >
-                Send CV to local agent
-              </button>
-            </section>
-          </aside>
-
-          <div className="space-y-6">
-            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 sm:p-6">
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">Application queue</h2>
-                  <p className="mt-1 text-sm text-white/40">Only jobs returned by the local search agent appear here.</p>
-                </div>
-                {jobs.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setJobs((current) => current.filter((job) => job.status !== "skipped"))}
-                    className="rounded-xl border border-white/10 px-3 py-2 text-xs text-white/55 hover:bg-white/[0.05]"
-                  >
-                    Clear skipped
-                  </button>
-                )}
-              </div>
-
-              {jobs.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 px-5 py-14 text-center">
-                  <p className="text-base font-medium text-white/70">No jobs in the queue yet.</p>
-                  <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-white/35">
-                    When the local automation engine is connected, “Search & screen jobs” can collect matching vacancies and place them here for review or automatic application.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {jobs.map((job) => (
-                    <article key={job.id} className="rounded-2xl border border-white/10 bg-black/15 p-4 sm:p-5">
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-semibold">{job.title}</h3>
-                            {typeof job.score === "number" && (
-                              <span className="rounded-full bg-emerald-300/10 px-2 py-1 text-[11px] font-medium text-emerald-100">{job.score}% match</span>
-                            )}
-                            <span className="rounded-full bg-white/[0.06] px-2 py-1 text-[11px] text-white/45">{job.status}</span>
-                          </div>
-                          <p className="mt-1 text-sm text-white/55">{job.company} · {job.location}</p>
-                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/35">
-                            {job.salary && <span>{job.salary}</span>}
-                            {job.source && <span>{job.source}</span>}
-                            {job.note && <span>{job.note}</span>}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap gap-2">
-                          {job.url && (
-                            <a
-                              href={job.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65 hover:bg-white/[0.08]"
-                            >
-                              View job
-                            </a>
-                          )}
-                          {job.status === "new" && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => updateJob(job.id, { status: "skipped", note: "Skipped by Naomi" })}
-                                className="rounded-xl border border-white/10 px-3 py-2 text-xs text-white/55 hover:bg-white/[0.05]"
-                              >
-                                Skip
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void applyToJob(job)}
-                                className="rounded-xl bg-emerald-300 px-3 py-2 text-xs font-semibold text-[#07100d] hover:bg-emerald-200"
-                              >
-                                Fill & apply
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+              {(profile.cvDetails.skills.length > 0 || profile.cvDetails.experience.length > 0) && (
+                <div className="mt-4 rounded-2xl border border-white/8 bg-black/20 p-3 text-xs text-white/55">
+                  <p>{profile.cvDetails.experience.length} experience entries · {profile.cvDetails.education.length} education entries</p>
+                  {profile.cvDetails.skills.length > 0 && <p className="mt-2 leading-5">Skills: {profile.cvDetails.skills.slice(0, 12).join(", ")}</p>}
                 </div>
               )}
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 sm:p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold">UK search pack</h2>
-                <p className="mt-1 text-sm text-white/40">Immediate fallback links using the role and location above, even while the automation agent is offline.</p>
+            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
+              <h2 className="font-semibold">2 · Search profile</h2>
+              <form onSubmit={searchJobs} className="mt-4 space-y-3">
+                {[
+                  ["Name", "name", profile.name],
+                  ["Email", "email", profile.email],
+                  ["Phone", "phone", profile.phone],
+                  ["Target roles", "targetRoles", profile.targetRoles],
+                  ["Location", "location", profile.location],
+                  ["Minimum salary", "minSalary", profile.minSalary],
+                  ["Right to work", "rightToWork", profile.rightToWork],
+                  ["Sponsorship", "sponsorship", profile.sponsorship],
+                  ["Driving licence", "drivingLicence", profile.drivingLicence],
+                ].map(([label, key, value]) => (
+                  <label key={key} className="block"><span className="mb-1 block text-xs text-white/50">{label}</span><input value={String(value)} onChange={(e) => updateProfile(key as keyof Profile, e.target.value as never)} className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm" /></label>
+                ))}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label><span className="mb-1 block text-xs text-white/50">Radius (miles)</span><input type="number" min={1} max={100} value={profile.radius} onChange={(e) => updateProfile("radius", Number(e.target.value))} className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm" /></label>
+                  <label><span className="mb-1 block text-xs text-white/50">Daily limit</span><input type="number" min={1} max={50} value={profile.maxApplications} onChange={(e) => updateProfile("maxApplications", Number(e.target.value))} className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm" /></label>
+                </div>
+
+                <label className="flex items-center gap-2 text-xs text-white/60"><input type="checkbox" checked={profile.remote} onChange={(e) => updateProfile("remote", e.target.checked)} /> Include remote/hybrid</label>
+                <label className="block"><span className="mb-1 block text-xs text-white/50">Submission mode</span><select value={profile.mode} onChange={(e) => updateProfile("mode", e.target.value as Profile["mode"])} className="w-full rounded-xl border border-white/10 bg-[#0b1512] px-3 py-2.5 text-sm"><option value="review">Review before final submission</option><option value="auto">Submit automatically when all answers are factual and complete</option></select></label>
+                <label className="block"><span className="mb-1 block text-xs text-white/50">Additional factual notes</span><textarea rows={3} value={profile.notes} onChange={(e) => updateProfile("notes", e.target.value)} className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm" /></label>
+                <button type="submit" disabled={busy || agentState !== "online"} className="w-full rounded-xl bg-emerald-300 px-4 py-3 text-sm font-semibold text-[#07100d] disabled:opacity-40">Search UK jobs with cloud agent</button>
+              </form>
+            </section>
+          </aside>
+
+          <section className="space-y-6">
+            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div><h2 className="font-semibold">Direct UK sources</h2><p className="mt-1 text-xs text-white/40">Useful even when a board blocks automation.</p></div>
+                <div className="flex flex-wrap gap-2">{searchLinks.map((source) => <a key={source.name} href={source.url} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65 hover:bg-white/[0.08]">{source.name}</a>)}</div>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                {searchLinks.map((source) => (
-                  <a
-                    key={source.name}
-                    href={source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl border border-white/10 bg-black/15 px-3 py-3 text-sm text-white/65 transition hover:border-emerald-200/20 hover:bg-emerald-300/[0.06] hover:text-white"
-                  >
-                    {source.name}
-                  </a>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">Application queue</h2><p className="mt-1 text-xs text-white/40">The cloud browser fills forms using the CV and saved facts. Unknown mandatory answers are blocked rather than invented.</p></div><button type="button" onClick={() => void resetLocalData()} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/45 hover:text-white/70">Clear local data</button></div>
+
+              <div className="mt-4 flex gap-2"><input value={manualUrl} onChange={(e) => setManualUrl(e.target.value)} placeholder="Paste any job advert URL" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm" /><button type="button" onClick={addManualJob} className="rounded-xl border border-white/10 bg-white/[0.06] px-4 text-sm">Add</button></div>
+
+              <div className="mt-5 space-y-3">
+                {jobs.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/35">No jobs collected yet.</div>}
+                {jobs.map((job) => (
+                  <article key={job.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">{job.title}</h3>{typeof job.score === "number" && <span className="rounded-full bg-emerald-300/10 px-2 py-0.5 text-[11px] text-emerald-100">{job.score}% match</span>}<span className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] text-white/45">{job.status}</span></div>
+                        <p className="mt-1 text-sm text-white/50">{job.company} · {job.location}{job.salary ? ` · ${job.salary}` : ""}</p>
+                        {job.note && <p className="mt-2 text-xs text-white/40">{job.note}</p>}
+                      </div>
+                      <div className="flex shrink-0 gap-2">
+                        {job.url && <a href={job.url} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/60">Open</a>}
+                        <button type="button" onClick={() => updateJob(job.id, { status: "skipped", note: "Skipped" })} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50">Skip</button>
+                        <button type="button" disabled={!job.url || busy || job.status === "applied"} onClick={() => void applyToJob(job)} className="rounded-lg bg-emerald-300 px-3 py-2 text-xs font-semibold text-[#07100d] disabled:opacity-40">{profile.mode === "review" ? "Prepare / apply" : "Fill & submit"}</button>
+                      </div>
+                    </div>
+                  </article>
                 ))}
               </div>
-            </section>
-
-            <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-5 sm:p-6">
-              <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div>
-                  <h2 className="text-lg font-semibold">Local automation engine</h2>
-                  <p className="mt-1 max-w-3xl text-sm leading-6 text-white/40">
-                    Browser automation must run on Naomi’s computer so her job-board sessions, credentials, CV and application answers are not exposed through the public website. This page is the control panel; the local helper performs the actual browser work.
-                  </p>
-                  <label className="mt-4 block max-w-xl">
-                    <span className="mb-1.5 block text-xs font-medium text-white/55">Local agent address</span>
-                    <input
-                      value={agentUrl}
-                      onChange={(event) => setAgentUrl(event.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 font-mono text-xs text-white"
-                    />
-                  </label>
-                </div>
-                <button
-                  type="button"
-                  onClick={resetLocalData}
-                  className="rounded-xl border border-rose-300/15 bg-rose-300/[0.05] px-4 py-2.5 text-xs text-rose-100/70 hover:bg-rose-300/[0.08]"
-                >
-                  Clear local data
-                </button>
-              </div>
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
