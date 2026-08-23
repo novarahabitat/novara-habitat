@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.41",
     "@supabase/supabase-js": "^2.45.4",
     "@vercel/sandbox": "^3.1.0",
     "ai": "^7.0.74",
