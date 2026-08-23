@@ -29,7 +29,8 @@ export async function getNaomiSandbox() {
       const browser = await sandbox.runCommand("agent-browser", ["install"]);
       if (browser.exitCode !== 0) throw new Error(`Chromium install failed: ${await browser.stderr()}`);
 
-      await sandbox.mkDir("/vercel/sandbox/naomi");
+      const directory = await sandbox.runCommand("mkdir", ["-p", "/vercel/sandbox/naomi"]);
+      if (directory.exitCode !== 0) throw new Error(`Naomi workspace setup failed: ${await directory.stderr()}`);
     },
   });
 }
