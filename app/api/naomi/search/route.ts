@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const facts = {
       name: profile.name || "Naomi",
       location: "Portsmouth, UK",
-      radius: "approximately 15 miles",
+      radius: "maximum 3 miles from central Portsmouth",
       search: "student jobs, part-time jobs, weekend jobs and flexible casual jobs",
       skills: Array.isArray(cv.skills) ? cv.skills.slice(0, 30) : [],
       experience: Array.isArray(cv.experience) ? cv.experience.slice(0, 10) : [],
@@ -45,12 +45,17 @@ export async function POST(request: Request) {
 
 Search broadly across the live web. Use job boards such as Indeed UK, Reed, Totaljobs, CV-Library, LinkedIn Jobs, Adzuna and jobs.ac.uk for discovery, but whenever possible follow the vacancy to the employer's own careers page or its ATS and return that direct application URL instead of the job-board page.
 
-Also search direct careers pages for employers around Portsmouth/Southsea/Port Solent/Cosham/Fareham/Havant: hospitality, pubs/restaurants/cafes, retail, supermarkets, cinemas, leisure, events, reception/admin, customer service, warehouses, university/student-union work and other flexible employers.
+Also search direct careers pages for employers within the Portsmouth search area: hospitality, pubs/restaurants/cafes, retail, supermarkets, cinemas, leisure, events, reception/admin, customer service, university/student-union work and other flexible employers.
+
+STRICT GEOGRAPHIC RULE:
+- The workplace must be within approximately 3 miles of central Portsmouth.
+- Prioritise Portsmouth city centre, Gunwharf Quays, Old Portsmouth, Southsea, Fratton, North End, Milton and nearby locations that genuinely fall inside that radius.
+- Exclude roles outside the 3-mile radius even if they are otherwise attractive. Do not broaden the search to Fareham, Havant, Port Solent or other farther locations.
 
 Priorities, in order:
 1. Live vacancies with a direct employer/ATS application URL.
 2. Applications that do not require an existing job-board account.
-3. Portsmouth first, then places within roughly 15 miles and realistically commutable from Portsmouth.
+3. Workplace within the strict 3-mile Portsmouth radius.
 4. Part-time, weekend, evening, flexible, casual, zero-hours or explicitly student-friendly work.
 5. Relevant entry-level jobs matching the CV.
 6. Recently posted vacancies.
