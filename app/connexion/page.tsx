@@ -1,2 +1,39 @@
-"use client";import Header from "@/components/Header";import Footer from "@/components/Footer";import {supabase} from "@/lib/supabaseClient";import {useState} from "react";import {useRouter} from "next/navigation";
-export default function ConnexionPage(){const router=useRouter();const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[msg,setMsg]=useState("");async function login(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setMsg("Connexion...");const{error}=await supabase.auth.signInWithPassword({email,password});if(error){setMsg("Erreur : "+error.message);return}const{data:u}=await supabase.auth.getUser();const id=u.user?.id;if(!id)return;const{data:p}=await supabase.from("profiles").select("role").eq("id",id).single();if(p?.role==="admin")router.push("/admin");else if(p?.role==="employee")router.push("/core");else if(p?.role==="sales")router.push("/sales");else router.push("/espace-client")}return <main className="min-h-screen bg-[#070707] text-white"><Header/><section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 pt-24"><p className="text-sm uppercase tracking-[.35em] text-[#c9a45c]">NOVARA Platform</p><h1 className="mt-5 text-5xl font-semibold">Connexion</h1><form onSubmit={login} className="mt-10 max-w-xl rounded-3xl border border-[#c9a45c]/25 bg-white/5 p-8"><input className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white" placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/><input className="mt-5 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white" placeholder="Mot de passe" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/><button className="mt-8 rounded-full bg-[#c9a45c] px-7 py-4 font-medium text-black">Se connecter</button>{msg&&<p className="mt-5 text-sm text-white/70">{msg}</p>}</form></section><Footer/></main>}
+import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import FormulaireConnexion from "./FormulaireConnexion";
+
+export const metadata: Metadata = {
+  title: "Espace pro",
+  robots: { index: false, follow: false },
+};
+
+export default async function ConnexionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ refus?: string }>;
+}) {
+  const { refus } = await searchParams;
+
+  if (!refus) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) redirect("/espace");
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-creme px-4 py-16 text-encre">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="mb-10 flex flex-col items-center text-center">
+          <p className="text-sm tracking-[0.42em] text-or">NOVARA</p>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-gris">Habitat</p>
+        </Link>
+        <h1 className="mb-6 text-center text-2xl font-light">Espace pro</h1>
+        <FormulaireConnexion refus={Boolean(refus)} />
+      </div>
+    </main>
+  );
+}

@@ -1,7 +1,5 @@
-"use client";
-
 import Header from "@/components/Header";
-import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import Link from "next/link";
 
 export default function ExperiencePage() {
   return (
@@ -162,12 +160,12 @@ export default function ExperiencePage() {
             confort et de votre tranquillité.
           </p>
 
-          <a
+          <Link
             href="/"
             className="mt-12 inline-flex rounded-full bg-[#173328] px-10 py-5 text-sm uppercase tracking-[0.25em] text-white transition hover:bg-[#214737]"
           >
             Retour à l’accueil
-          </a>
+          </Link>
         </div>
       </section>
     </main>
