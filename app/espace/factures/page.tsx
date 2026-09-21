@@ -33,8 +33,8 @@ export default async function FacturesPage({
   if (statut) requete = requete.eq("statut", statut);
   const { data: factures } = await requete.returns<Ligne[]>();
 
-  const { data: aPayer } = await supabase.from("factures").select("total_ttc").eq("statut", "emise");
-  const totalDu = (aPayer ?? []).reduce((s, f) => s + Number(f.total_ttc), 0);
+  const { data: aPayer } = await supabase.from("factures").select("total_ttc, net_a_payer").eq("statut", "emise");
+  const totalDu = (aPayer ?? []).reduce((s, f) => s + Number(f.net_a_payer ?? f.total_ttc), 0);
   const jour = aujourdhui();
 
   return (
@@ -73,6 +73,7 @@ export default async function FacturesPage({
                 <div className="min-w-0">
                   <p className="truncate font-medium">
                     {f.type === "avoir" && <span className="text-alerte">Avoir </span>}
+                    {f.type === "acompte" && <span className="text-or">Acompte </span>}
                     {f.numero ?? "Brouillon"} <span className="font-normal text-gris">· {f.clients?.nom}</span>
                   </p>
                   <p className="truncate text-sm text-gris">

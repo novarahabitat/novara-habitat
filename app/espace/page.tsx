@@ -19,10 +19,10 @@ export default async function AccueilPage() {
       .returns<(Chantier & { clients: { nom: string } | null })[]>(),
     supabase
       .from("factures")
-      .select("id, numero, total_ttc, date_echeance, clients(nom)")
+      .select("id, numero, total_ttc, net_a_payer, date_echeance, clients(nom)")
       .eq("statut", "emise")
       .order("date_echeance")
-      .returns<(Pick<Facture, "id" | "numero" | "total_ttc" | "date_echeance"> & { clients: { nom: string } | null })[]>(),
+      .returns<(Pick<Facture, "id" | "numero" | "total_ttc" | "net_a_payer" | "date_echeance"> & { clients: { nom: string } | null })[]>(),
     supabase
       .from("demandes_contact")
       .select("*")
@@ -34,7 +34,7 @@ export default async function AccueilPage() {
 
   const enCours = chantiers?.filter((c) => c.statut === "en_cours") ?? [];
   const prevus = chantiers?.filter((c) => c.statut === "prevu") ?? [];
-  const totalDu = (aPayer ?? []).reduce((s, f) => s + Number(f.total_ttc), 0);
+  const totalDu = (aPayer ?? []).reduce((s, f) => s + Number(f.net_a_payer ?? f.total_ttc), 0);
   const enRetard = (aPayer ?? []).filter((f) => f.date_echeance && f.date_echeance < jour);
 
   return (
@@ -125,7 +125,7 @@ export default async function AccueilPage() {
                         </span>
                         <span className="block text-xs text-alerte">Échéance {formatDate(f.date_echeance)}</span>
                       </span>
-                      <span className="shrink-0 tabular-nums">{formatEuros(f.total_ttc)}</span>
+                      <span className="shrink-0 tabular-nums">{formatEuros(f.net_a_payer ?? f.total_ttc)}</span>
                     </Link>
                   </li>
                 ))}

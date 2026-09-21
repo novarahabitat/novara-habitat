@@ -1,6 +1,6 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Client, Entreprise, Facture, LigneFacture } from "@/lib/types";
-import { adresseComplete, formatDate, formatEuros, formatNombre, libelleNature } from "@/lib/format";
+import { adresseComplete, formatDate, formatEuros, formatNombre, libelleNature, libelleTypeFacture } from "@/lib/format";
 import { mentionsTva, nomEmetteur, estEI } from "@/lib/facture";
 import { LOGO_PDF } from "./logo";
 import { base, couleurs } from "./styles";
@@ -10,7 +10,7 @@ const s = StyleSheet.create({
   logo: { width: 130 },
   emetteur: { width: 220, textAlign: "right" },
   blocs: { flexDirection: "row", justifyContent: "space-between", marginBottom: 22 },
-  titre: { fontSize: 20, lineHeight: 1.2, fontFamily: "Helvetica-Bold", color: couleurs.foret, marginBottom: 8 },
+  titre: { fontSize: 19, lineHeight: 1.2, fontFamily: "Helvetica-Bold", color: couleurs.foret, marginBottom: 8 },
   destinataire: {
     width: 230,
     padding: 12,
@@ -54,6 +54,17 @@ const s = StyleSheet.create({
     fontSize: 11,
   },
   mentions: { marginTop: 22, gap: 6 },
+  acquittee: {
+    marginTop: 8,
+    padding: 6,
+    borderWidth: 1.2,
+    borderColor: couleurs.foret,
+    borderRadius: 3,
+    color: couleurs.foret,
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    textAlign: "center",
+  },
   cadre: { borderWidth: 0.5, borderColor: couleurs.filet, borderRadius: 4, padding: 10 },
   filigrane: {
     position: "absolute",
@@ -74,11 +85,14 @@ type Props = {
   entreprise: Partial<Entreprise>;
   client: Partial<Client>;
   origine?: { numero: string | null; date_emission: string | null } | null;
+  /** Acomptes déduits (figés sur une facture émise, prévisionnels sur un brouillon). */
+  acomptes?: { numero: string; date: string | null; ttc: string | number }[];
 };
 
-export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine }: Props) {
+export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine, acomptes = [] }: Props) {
   const brouillon = facture.statut === "brouillon";
-  const libelle = facture.type === "avoir" ? "Avoir" : "Facture";
+  const libelle = libelleTypeFacture[facture.type];
+  const totalAcomptes = acomptes.reduce((t, a) => t + Number(a.ttc), 0);
 
   const parTaux = new Map<number, number>();
   for (const l of lignes) {
@@ -117,13 +131,17 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
         </View>
 
         <View style={s.blocs}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 18 }}>
             <Text style={s.titre}>
               {libelle} {facture.numero ?? ""}
             </Text>
             <Text>Date : {brouillon ? "à l'émission" : formatDate(facture.date_emission)}</Text>
             {facture.date_echeance && <Text>Échéance : {formatDate(facture.date_echeance)}</Text>}
-            {facture.periode_travaux && <Text>Travaux réalisés : {facture.periode_travaux}</Text>}
+            {facture.periode_travaux && (
+              <Text>
+                {facture.type === "acompte" ? "Travaux" : "Travaux réalisés"} : {facture.periode_travaux}
+              </Text>
+            )}
             <Text>Nature : {libelleNature[facture.nature_operation ?? "prestation_services"]}</Text>
             {facture.lieu_travaux && <Text>Lieu des travaux : {facture.lieu_travaux}</Text>}
             {origine?.numero && (
@@ -196,11 +214,40 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
             ))}
           <View style={s.totalFinal}>
             <Text>
-              {facture.type === "avoir" ? "Total avoir" : "Net à payer"}
+              {facture.type === "avoir"
+                ? "Total avoir"
+                : facture.type === "acompte"
+                  ? "Montant de l'acompte"
+                  : acomptes.length
+                    ? "Total des travaux"
+                    : "Net à payer"}
               {franchise ? "" : " TTC"}
             </Text>
             <Text>{formatEuros(facture.total_ttc)}</Text>
           </View>
+          {acomptes.map((a) => (
+            <View key={a.numero} style={s.totalLigne}>
+              <Text>
+                Acompte {a.numero}
+                {a.date ? ` du ${formatDate(a.date)}` : ""}
+              </Text>
+              <Text>- {formatEuros(a.ttc)}</Text>
+            </View>
+          ))}
+          {acomptes.length > 0 && (
+            <View style={s.totalFinal}>
+              <Text>Reste à payer{franchise ? "" : " TTC"}</Text>
+              <Text>{formatEuros(Number(facture.total_ttc) - totalAcomptes)}</Text>
+            </View>
+          )}
+          {facture.statut === "payee" && (
+            <View style={s.acquittee}>
+              <Text>
+                ACQUITTÉE — payée le {formatDate(facture.date_paiement)}
+                {facture.mode_paiement ? ` par ${facture.mode_paiement.toLowerCase()}` : ""}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={s.mentions} wrap={false}>
@@ -210,7 +257,7 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
             </Text>
           ))}
           {e.tva_sur_debits && <Text style={base.gras}>Option pour le paiement de la taxe d&apos;après les débits.</Text>}
-          {facture.type === "facture" && (
+          {facture.type !== "avoir" && (
             <View style={s.cadre}>
               <Text>{e.conditions_paiement}</Text>
               {e.iban && (

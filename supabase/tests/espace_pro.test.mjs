@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 const migrations = [
   "20260921000001_espace_pro.sql",
   "20260921000004_mentions_septembre_2026.sql",
+  "20260921000005_acomptes.sql",
 ].map((f) => readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
 const db = new PGlite();
 
@@ -143,6 +144,30 @@ await expectError("SIREN du client pro obligatoire", ADMIN, `select emettre_fact
 await q1(ADMIN, `update clients set siret = '98765432100019' where id = $1`, [pro.id]);
 const [em4] = await q1(ADMIN, `select * from emettre_facture($1)`, [f4.id]);
 ok("facture pro émise avec SIRET client", em4.destinataire?.siret === "98765432100019" && em4.lieu_travaux === null);
+
+// Acomptes : 30 % encaissé, puis facture finale qui le déduit
+const [chA] = await q1(ADMIN, `insert into chantiers (titre, client_id, date_debut, date_fin) values ('Cuisine', $1, '2026-10-01', '2026-10-20') returning id`, [client.id]);
+const [ac] = await q1(ADMIN, `insert into factures (type, client_id, chantier_id, periode_travaux) values ('acompte', $1, $2, 'à venir') returning id`, [client.id, chA.id]);
+await q1(ADMIN, `insert into facture_lignes (facture_id, designation, prix_unitaire_ht, taux_tva) values ($1, 'Acompte de 30 %', 3000, 20)`, [ac.id]);
+const [emAc] = await q1(ADMIN, `select * from emettre_facture($1)`, [ac.id]);
+ok("facture d'acompte numérotée dans la série", /^F-\d{4}-\d{4}$/.test(emAc.numero) && emAc.total_ttc === "3600.00", emAc.numero + " " + emAc.total_ttc);
+await q1(ADMIN, `update factures set statut = 'payee', date_paiement = current_date, mode_paiement = 'Virement' where id = $1`, [ac.id]);
+const [fin] = await q1(ADMIN, `insert into factures (client_id, chantier_id) values ($1, $2) returning id`, [client.id, chA.id]);
+await q1(ADMIN, `insert into facture_lignes (facture_id, designation, prix_unitaire_ht, taux_tva) values ($1, 'Cuisine complète', 10000, 20)`, [fin.id]);
+const [emFin] = await q1(ADMIN, `select * from emettre_facture($1)`, [fin.id]);
+ok("facture finale : total complet", emFin.total_ttc === "12000.00", emFin.total_ttc);
+ok("facture finale : acompte déduit", emFin.net_a_payer === "8400.00" && emFin.acomptes?.length === 1 && emFin.acomptes[0].numero === emAc.numero, emFin.net_a_payer);
+[t] = await q1(ADMIN, `select deduit_sur from factures where id = $1`, [ac.id]);
+ok("acompte marqué déduit", t.deduit_sur === fin.id);
+const [fin2] = await q1(ADMIN, `insert into factures (client_id, chantier_id) values ($1, $2) returning id`, [client.id, chA.id]);
+await q1(ADMIN, `insert into facture_lignes (facture_id, designation, prix_unitaire_ht, taux_tva) values ($1, 'Supplément', 100, 20)`, [fin2.id]);
+const [emFin2] = await q1(ADMIN, `select * from emettre_facture($1)`, [fin2.id]);
+ok("un acompte n'est déduit qu'une fois", emFin2.net_a_payer === "120.00" && emFin2.acomptes === null, emFin2.net_a_payer);
+await expectError("déduction non annulable", ADMIN, `update factures set deduit_sur = null where id = '${ac.id}'`, /déjà déduit/);
+await expectError("net à payer figé", ADMIN, `update factures set net_a_payer = 1 where id = '${fin.id}'`, /avoir/);
+const [avAc] = await q1(ADMIN, `select creer_avoir($1) as id`, [ac.id]);
+ok("avoir possible sur un acompte", Boolean(avAc.id));
+await expectError("avoir sans facture d'origine refusé", ADMIN, `insert into factures (type, client_id) values ('avoir', '${client.id}')`, /check constraint/);
 
 // Reprise de numérotation
 await expectError("numérotation figée une fois utilisée", ADMIN, `select fixer_dernier_numero(${annee}, 57)`, /déjà été émises/);

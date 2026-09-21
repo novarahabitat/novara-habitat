@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { seConnecter } from "./actions";
 
@@ -32,6 +33,11 @@ export default function FormulaireConnexion({ refus }: { refus: boolean }) {
       <button disabled={envoi} className="bouton w-full">
         {envoi ? "Connexion…" : "Se connecter"}
       </button>
+      <p className="text-center text-sm">
+        <Link href="/connexion/oubli" className="text-gris hover:text-encre hover:underline">
+          Mot de passe oublié ?
+        </Link>
+      </p>
     </form>
   );
 }

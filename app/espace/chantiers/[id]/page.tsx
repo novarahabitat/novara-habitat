@@ -163,9 +163,14 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
             titre="Factures"
             actions={
               client ? (
-                <form action={nouvelleFacture.bind(null, client.id, id)}>
-                  <button className="text-sm text-or hover:underline">+ Nouvelle</button>
-                </form>
+                <div className="flex gap-3">
+                  <Link href={`/espace/factures/acompte?chantier=${id}`} className="text-sm text-or hover:underline">
+                    + Acompte
+                  </Link>
+                  <form action={nouvelleFacture.bind(null, client.id, id)}>
+                    <button className="text-sm text-or hover:underline">+ Facture</button>
+                  </form>
+                </div>
               ) : null
             }
           >
@@ -183,7 +188,7 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-sm">
-                          {f.type === "avoir" ? "Avoir " : ""}
+                          {f.type === "avoir" ? "Avoir " : f.type === "acompte" ? "Acompte " : ""}
                           {f.numero ?? "Brouillon"}
                         </span>
                         <span className="block text-xs text-gris">{formatEuros(f.total_ttc)} TTC</span>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { BadgeFacture, EnTete, Section } from "@/components/espace/ui";
 import { BoutonEnvoi, Formulaire } from "@/components/espace/Formulaire";
-import { adresseComplete, aujourdhui, formatDate, formatEuros, libelleNature } from "@/lib/format";
+import { adresseComplete, aujourdhui, formatDate, formatEuros, libelleNature, libelleTypeFacture } from "@/lib/format";
 import type { Client, Entreprise, Facture, LigneFacture } from "@/lib/types";
 import {
   annulerPaiement,
@@ -35,7 +35,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     .maybeSingle<Facture & { clients: Client }>();
   if (!facture) notFound();
 
-  const [{ data: lignes }, { data: entreprise }, { data: chantiers }, { data: origine }] = await Promise.all([
+  const [{ data: lignes }, { data: entreprise }, { data: chantiers }, { data: origine }, { data: acomptesADeduire }] = await Promise.all([
     supabase.from("facture_lignes").select("*").eq("facture_id", id).order("position").returns<LigneFacture[]>(),
     supabase.from("entreprise").select("*").eq("owner_id", user.id).maybeSingle<Entreprise>(),
     supabase
@@ -46,14 +46,30 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     facture.facture_origine_id
       ? supabase.from("factures").select("id, numero").eq("id", facture.facture_origine_id).maybeSingle()
       : Promise.resolve({ data: null }),
+    // Brouillon de facture finale : acomptes qui seront déduits à l'émission.
+    facture.statut === "brouillon" && facture.type === "facture" && facture.chantier_id
+      ? supabase
+          .from("factures")
+          .select("id, numero, date_emission, total_ttc")
+          .eq("type", "acompte")
+          .neq("statut", "brouillon")
+          .is("deduit_sur", null)
+          .eq("chantier_id", facture.chantier_id)
+          .eq("client_id", facture.client_id)
+          .order("date_emission")
+      : Promise.resolve({ data: null }),
   ]);
+  const acomptes = (facture.statut === "brouillon"
+    ? (acomptesADeduire ?? []).map((a) => ({ id: a.id, numero: a.numero as string, date: a.date_emission as string, ttc: a.total_ttc }))
+    : (facture.acomptes ?? []));
+  const totalAcomptes = acomptes.reduce((s, a) => s + Number(a.ttc), 0);
 
   const brouillon = facture.statut === "brouillon";
   // Émise : les réglages figés à l'émission ; brouillon : les réglages actuels.
   const reglages: Partial<Entreprise> = (brouillon ? entreprise : facture.emetteur) ?? {};
   const franchise = Boolean(reglages.franchise_tva);
   const client = brouillon ? facture.clients : { ...facture.clients, ...facture.destinataire };
-  const libelle = facture.type === "avoir" ? "Avoir" : "Facture";
+  const libelle = libelleTypeFacture[facture.type];
   const enRetard = facture.statut === "emise" && Boolean(facture.date_echeance && facture.date_echeance < aujourdhui());
 
   // Totaux TVA par taux, pour l'affichage.
@@ -298,6 +314,25 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                 <dt>{franchise ? "Total" : "Total TTC"}</dt>
                 <dd className="tabular-nums">{formatEuros(facture.total_ttc)}</dd>
               </div>
+              {acomptes.map((a) => (
+                <div key={a.id} className="flex justify-between text-gris">
+                  <dt>
+                    <Link href={`/espace/factures/${a.id}`} className="hover:underline">
+                      Acompte {a.numero}
+                    </Link>
+                  </dt>
+                  <dd className="tabular-nums">− {formatEuros(a.ttc)}</dd>
+                </div>
+              ))}
+              {acomptes.length > 0 && (
+                <div className="flex justify-between border-t border-black/10 pt-2 text-base font-medium">
+                  <dt>Reste à payer</dt>
+                  <dd className="tabular-nums">{formatEuros(Number(facture.total_ttc) - totalAcomptes)}</dd>
+                </div>
+              )}
+              {brouillon && acomptes.length > 0 && (
+                <p className="pt-1 text-xs text-gris">Ces acomptes seront déduits à l&apos;émission.</p>
+              )}
             </dl>
           </Section>
         </div>
@@ -329,7 +364,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
               )}
               <Formulaire
                 action={emettre.bind(null, id)}
-                confirmation={`Émettre définitivement cette ${libelle.toLowerCase()} de ${formatEuros(facture.total_ttc)} TTC ? Elle ne pourra plus être modifiée.`}
+                confirmation={`Émettre définitivement cette ${libelle.toLowerCase()} de ${formatEuros(facture.total_ttc)}${franchise ? "" : " TTC"} ? Elle ne pourra plus être modifiée.`}
                 className="mt-4"
               >
                 <BoutonEnvoi enCours="Émission…" className="w-full">
@@ -387,7 +422,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                 )}
               </Section>
 
-              {facture.type === "facture" && (
+              {facture.type !== "avoir" && (
                 <Section titre="Corriger">
                   <p className="text-sm text-gris">
                     Une facture émise ne se modifie pas. Pour l&apos;annuler ou la corriger, faites un avoir, puis une

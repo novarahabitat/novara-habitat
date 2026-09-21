@@ -173,3 +173,55 @@ export async function supprimerBrouillon(id: string, _: EtatAction): Promise<Eta
   rafraichir();
   redirect("/espace/factures");
 }
+
+/** Facture d'acompte : un pourcentage d'un montant de travaux, en une ligne. */
+export async function creerAcompte(chantierId: string, _: EtatAction, fd: FormData): Promise<EtatAction> {
+  const { supabase, user } = await requireAdmin();
+  const base = champNombre(fd, "montant_travaux");
+  const pourcentage = champNombre(fd, "pourcentage");
+  if (base === null || Number.isNaN(base) || base <= 0) return { erreur: "Indiquez le montant total des travaux." };
+  if (pourcentage === null || Number.isNaN(pourcentage) || pourcentage <= 0 || pourcentage > 100)
+    return { erreur: "Le pourcentage doit être entre 1 et 100." };
+
+  const [{ data: chantier }, { data: entreprise }] = await Promise.all([
+    supabase.from("chantiers").select("id, titre, client_id").eq("id", chantierId).maybeSingle(),
+    supabase.from("entreprise").select("franchise_tva").eq("owner_id", user.id).maybeSingle(),
+  ]);
+  if (!chantier?.client_id) return { erreur: "Associez d'abord un client à ce chantier." };
+
+  const franchise = Boolean(entreprise?.franchise_tva);
+  const taux = franchise ? 0 : champNombre(fd, "taux_tva");
+  if (taux === null || !TAUX.includes(taux)) return { erreur: "Taux de TVA invalide." };
+
+  const montant = Math.round(base * pourcentage) / 100;
+  const pct = String(pourcentage).replace(".", ",");
+  const baseTexte = base.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/[  ]/g, " ");
+
+  const { data: facture, error } = await supabase
+    .from("factures")
+    .insert({
+      type: "acompte",
+      client_id: chantier.client_id,
+      chantier_id: chantier.id,
+      objet: `Acompte de ${pct} % — ${chantier.titre}`,
+      periode_travaux: champ(fd, "periode_travaux"),
+    })
+    .select("id")
+    .single();
+  if (error) return { erreur: messageErreur(error, "L'acompte n'a pas pu être créé.") };
+
+  const { error: erreurLigne } = await supabase.from("facture_lignes").insert({
+    facture_id: facture.id,
+    position: 1,
+    designation: `Acompte de ${pct} % sur les travaux « ${chantier.titre} » (montant total des travaux : ${baseTexte} €${
+      franchise ? "" : " HT"
+    })`,
+    quantite: 1,
+    prix_unitaire_ht: montant,
+    taux_tva: taux,
+  });
+  if (erreurLigne) return { erreur: messageErreur(erreurLigne, "La ligne d'acompte n'a pas été ajoutée.") };
+
+  rafraichir();
+  redirect(`/espace/factures/${facture.id}`);
+}

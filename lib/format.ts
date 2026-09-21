@@ -1,4 +1,4 @@
-import type { NatureOperation, PhasePhoto, StatutChantier, StatutFacture } from "@/lib/types";
+import type { NatureOperation, PhasePhoto, StatutChantier, StatutFacture, TypeFacture } from "@/lib/types";
 
 // Intl insère des espaces insécables fines (U+202F) que la police des PDF ne
 // connaît pas : on les remplace par des espaces simples.
@@ -57,6 +57,12 @@ export const libelleStatutFacture: Record<StatutFacture, string> = {
   brouillon: "Brouillon",
   emise: "À payer",
   payee: "Payée",
+};
+
+export const libelleTypeFacture: Record<TypeFacture, string> = {
+  facture: "Facture",
+  avoir: "Avoir",
+  acompte: "Facture d'acompte",
 };
 
 export const libelleNature: Record<NatureOperation, string> = {

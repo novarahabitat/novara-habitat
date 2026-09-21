@@ -1,6 +1,7 @@
 export type StatutChantier = "prevu" | "en_cours" | "termine" | "annule";
 export type PhasePhoto = "avant" | "pendant" | "apres";
 export type StatutFacture = "brouillon" | "emise" | "payee";
+export type TypeFacture = "facture" | "avoir" | "acompte";
 export type NatureOperation = "prestation_services" | "livraison_biens" | "mixte";
 
 export type Client = {
@@ -82,7 +83,7 @@ export type Entreprise = {
 
 export type Facture = {
   id: string;
-  type: "facture" | "avoir";
+  type: TypeFacture;
   facture_origine_id: string | null;
   client_id: string;
   chantier_id: string | null;
@@ -101,6 +102,9 @@ export type Facture = {
   total_ht: string;
   total_tva: string;
   total_ttc: string;
+  deduit_sur: string | null;
+  acomptes: { id: string; numero: string; date: string; ttc: string | number }[] | null;
+  net_a_payer: string | null;
   emetteur: Partial<Entreprise> | null;
   destinataire: Partial<Client> | null;
   created_at: string;
