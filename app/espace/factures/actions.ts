@@ -38,6 +38,10 @@ export async function modifierEnTete(id: string, _: EtatAction, fd: FormData): P
     .update({
       objet: champ(fd, "objet"),
       periode_travaux: champ(fd, "periode_travaux"),
+      lieu_travaux: champ(fd, "lieu_travaux"),
+      nature_operation: ["prestation_services", "livraison_biens", "mixte"].includes(champ(fd, "nature_operation") ?? "")
+        ? champ(fd, "nature_operation")
+        : "prestation_services",
       mention_tva: champ(fd, "mention_tva"),
       date_echeance: champ(fd, "date_echeance"),
       chantier_id: champ(fd, "chantier_id"),

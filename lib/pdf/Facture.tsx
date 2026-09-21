@@ -1,6 +1,6 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Client, Entreprise, Facture, LigneFacture } from "@/lib/types";
-import { adresseComplete, formatDate, formatEuros, formatNombre } from "@/lib/format";
+import { adresseComplete, formatDate, formatEuros, formatNombre, libelleNature } from "@/lib/format";
 import { LOGO_PDF } from "./logo";
 import { base, couleurs } from "./styles";
 
@@ -87,7 +87,7 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
 
   const identite = [
     e.forme_juridique && e.capital ? `${e.forme_juridique} au capital de ${e.capital}` : e.forme_juridique,
-    e.siret && `SIRET ${e.siret}`,
+    e.siret && `SIREN ${e.siret.replace(/\s/g, "").slice(0, 9)} · SIRET ${e.siret}`,
     e.rcs,
     e.tva_intracom && `TVA ${e.tva_intracom}`,
   ].filter(Boolean);
@@ -121,6 +121,8 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
             <Text>Date : {brouillon ? "à l'émission" : formatDate(facture.date_emission)}</Text>
             {facture.date_echeance && <Text>Échéance : {formatDate(facture.date_echeance)}</Text>}
             {facture.periode_travaux && <Text>Travaux réalisés : {facture.periode_travaux}</Text>}
+            <Text>Nature : {libelleNature[facture.nature_operation ?? "prestation_services"]}</Text>
+            {facture.lieu_travaux && <Text>Lieu des travaux : {facture.lieu_travaux}</Text>}
             {origine?.numero && (
               <Text>
                 Annule et remplace la facture {origine.numero} du {formatDate(origine.date_emission)}
@@ -133,7 +135,11 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
             <Text style={c.societe ? {} : base.gras}>{c.nom}</Text>
             <Text>{c.adresse}</Text>
             <Text>{[c.code_postal, c.ville].filter(Boolean).join(" ")}</Text>
-            {c.siret && <Text style={base.petit}>SIRET {c.siret}</Text>}
+            {c.siret && (
+              <Text style={base.petit}>
+                SIREN {c.siret.replace(/\s/g, "").slice(0, 9)} (SIRET {c.siret})
+              </Text>
+            )}
             {c.tva_intracom && <Text style={base.petit}>TVA {c.tva_intracom}</Text>}
           </View>
         </View>
@@ -191,6 +197,7 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
 
         <View style={s.mentions} wrap={false}>
           {facture.mention_tva && <Text style={base.gras}>{facture.mention_tva}</Text>}
+          {e.tva_sur_debits && <Text style={base.gras}>Option pour le paiement de la taxe d&apos;après les débits.</Text>}
           {facture.type === "facture" && (
             <View style={s.cadre}>
               <Text>{e.conditions_paiement}</Text>

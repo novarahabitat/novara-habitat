@@ -34,6 +34,7 @@ export async function enregistrerEntreprise(_: EtatAction, fd: FormData): Promis
     rcs: champ(fd, "rcs"),
     tva_intracom: champ(fd, "tva_intracom")?.replace(/\s/g, "").toUpperCase() ?? null,
     franchise_tva: fd.get("franchise_tva") === "on",
+    tva_sur_debits: fd.get("tva_sur_debits") === "on",
     assureur_decennale: champ(fd, "assureur_decennale"),
     police_decennale: champ(fd, "police_decennale"),
     zone_couverture: champ(fd, "zone_couverture"),

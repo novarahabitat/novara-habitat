@@ -1,7 +1,10 @@
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
 
-const migration = readFileSync(new URL("../migrations/20260921000001_espace_pro.sql", import.meta.url), "utf8");
+const migrations = [
+  "20260921000001_espace_pro.sql",
+  "20260921000004_mentions_septembre_2026.sql",
+].map((f) => readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
 const db = new PGlite();
 
 // Minimal Supabase stand-ins: auth.users, auth.uid(), roles, storage.
@@ -25,7 +28,7 @@ await db.exec(`
     ('22222222-2222-2222-2222-222222222222', 'ancien@test');
 `);
 
-await db.exec(migration);
+for (const m of migrations) await db.exec(m);
 await db.exec(`insert into public.app_admin values ('11111111-1111-1111-1111-111111111111');`);
 
 let failures = 0;
@@ -88,6 +91,8 @@ await expectError("émission refusée sans décennale", ADMIN, `select emettre_f
 await q1(ADMIN, `update entreprise set assureur_decennale = 'AXA', police_decennale = 'P-1'`);
 await expectError("émission refusée : taux réduit sans mention", ADMIN, `select emettre_facture('${f.id}')`, /attestation/);
 await q1(ADMIN, `update factures set mention_tva = 'TVA 10 % — attestation client du 01/09/2026' where id = $1`, [f.id]);
+await expectError("date des travaux obligatoire", ADMIN, `select emettre_facture('${f.id}')`, /période des travaux/);
+await q1(ADMIN, `update chantiers set date_debut = '2026-09-02', date_fin = '2026-09-18', adresse = '8 chemin Y', ville = 'Nice' where id = $1`, [chantier.id]);
 await expectError("statut émis direct interdit", ADMIN, `update factures set statut = 'emise', numero = 'X' where id = '${f.id}'`, /Émettre/);
 await expectError("payée sans émission interdit", ADMIN, `update factures set statut = 'payee' where id = '${f.id}'`, /émise avant/);
 
@@ -96,6 +101,10 @@ const annee = new Date().getFullYear();
 ok("numéro attribué", em.numero === `F-${annee}-0001`, em.numero);
 ok("coordonnées figées", em.emetteur?.raison_sociale === "NOVARA Habitat" && em.destinataire?.nom === "Mme Dupont");
 ok("échéance = émission + 30 j", new Date(em.date_echeance) - new Date(em.date_emission) === 30 * 864e5);
+ok("période reprise du chantier", em.periode_travaux === "du 02/09/2026 au 18/09/2026", em.periode_travaux);
+ok("lieu des travaux = adresse du chantier", em.lieu_travaux === "8 chemin Y, Nice", em.lieu_travaux);
+ok("nature par défaut : prestation de services", em.nature_operation === "prestation_services");
+await expectError("nature non modifiable après émission", ADMIN, `update factures set nature_operation = 'mixte' where id = '${f.id}'`, /avoir/);
 
 // Immutabilité
 await expectError("ligne d'une facture émise non modifiable", ADMIN, `update facture_lignes set prix_unitaire_ht = 1 where facture_id = '${f.id}'`, /avoir/);
@@ -110,7 +119,7 @@ await q1(ADMIN, `update factures set statut = 'payee', date_paiement = current_d
 ok("marquer payée autorisé", (await q1(ADMIN, `select statut from factures where id = $1`, [f.id]))[0].statut === "payee");
 
 // Deuxième facture -> numéro suivant ; brouillon supprimable
-const [f2] = await q1(ADMIN, `insert into factures (client_id) values ($1) returning id`, [client.id]);
+const [f2] = await q1(ADMIN, `insert into factures (client_id, periode_travaux) values ($1, 'le 20/09/2026') returning id`, [client.id]);
 await q1(ADMIN, `insert into facture_lignes (facture_id, designation, quantite, prix_unitaire_ht) values ($1, 'Dépannage', 1, 100)`, [f2.id]);
 const [em2] = await q1(ADMIN, `select * from emettre_facture($1)`, [f2.id]);
 ok("numérotation continue", em2.numero === `F-${annee}-0002`, em2.numero);
@@ -125,6 +134,15 @@ const [av] = await q1(ADMIN, `select creer_avoir($1) as id`, [f2.id]);
 ok("avoir négatif en brouillon", t.type === "avoir" && t.total_ttc === "-120.00" && t.statut === "brouillon", JSON.stringify(t));
 const [emAv] = await q1(ADMIN, `select * from emettre_facture($1)`, [av.id]);
 ok("avoir dans la même séquence", emAv.numero === `F-${annee}-0003`, emAv.numero);
+
+// Client professionnel sans SIRET
+const [pro] = await q1(ADMIN, `insert into clients (nom, type, societe) values ('M. Martin', 'professionnel', 'SCI Martin') returning id`);
+const [f4] = await q1(ADMIN, `insert into factures (client_id, periode_travaux) values ($1, 'le 21/09/2026') returning id`, [pro.id]);
+await q1(ADMIN, `insert into facture_lignes (facture_id, designation, prix_unitaire_ht) values ($1, 'Diagnostic', 80)`, [f4.id]);
+await expectError("SIREN du client pro obligatoire", ADMIN, `select emettre_facture('${f4.id}')`, /SIRET/);
+await q1(ADMIN, `update clients set siret = '98765432100019' where id = $1`, [pro.id]);
+const [em4] = await q1(ADMIN, `select * from emettre_facture($1)`, [f4.id]);
+ok("facture pro émise avec SIRET client", em4.destinataire?.siret === "98765432100019" && em4.lieu_travaux === null);
 
 // Reprise de numérotation
 await expectError("numérotation figée une fois utilisée", ADMIN, `select fixer_dernier_numero(${annee}, 57)`, /déjà été émises/);

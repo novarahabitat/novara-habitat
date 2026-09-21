@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { BadgeFacture, EnTete, Section } from "@/components/espace/ui";
 import { BoutonEnvoi, Formulaire } from "@/components/espace/Formulaire";
-import { adresseComplete, aujourdhui, formatDate, formatEuros } from "@/lib/format";
+import { adresseComplete, aujourdhui, formatDate, formatEuros, libelleNature } from "@/lib/format";
 import type { Client, Entreprise, Facture, LigneFacture } from "@/lib/types";
 import {
   annulerPaiement,
@@ -66,6 +66,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     !entreprise?.franchise_tva && !entreprise?.tva_intracom && "n° de TVA",
     !entreprise?.assureur_decennale && "assurance décennale",
   ].filter(Boolean);
+  const clientSansSiret = facture.clients.type === "professionnel" && !facture.clients.siret;
 
   return (
     <>
@@ -121,6 +122,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                     placeholder="Ex. du 02/09 au 18/09/2026"
                     className="champ"
                   />
+                  <p className="mt-1 text-xs text-gris">Vide : reprise des dates du chantier.</p>
                 </div>
                 <div>
                   <label className="etiquette" htmlFor="date_echeance">
@@ -149,6 +151,36 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="etiquette" htmlFor="nature_operation">
+                    Nature de l&apos;opération
+                  </label>
+                  <select
+                    id="nature_operation"
+                    name="nature_operation"
+                    defaultValue={facture.nature_operation}
+                    className="champ"
+                  >
+                    {Object.entries(libelleNature).map(([valeur, libelle]) => (
+                      <option key={valeur} value={valeur}>
+                        {libelle}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gris">Des travaux, même avec fournitures : prestation de services.</p>
+                </div>
+                <div>
+                  <label className="etiquette" htmlFor="lieu_travaux">
+                    Lieu des travaux
+                  </label>
+                  <input
+                    id="lieu_travaux"
+                    name="lieu_travaux"
+                    defaultValue={facture.lieu_travaux ?? ""}
+                    className="champ"
+                  />
+                  <p className="mt-1 text-xs text-gris">Vide : adresse du chantier, si elle diffère de celle du client.</p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="etiquette" htmlFor="mention_tva">
@@ -207,6 +239,16 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   </div>
                 )}
                 <div>
+                  <dt className="text-gris">Nature</dt>
+                  <dd>{libelleNature[facture.nature_operation]}</dd>
+                </div>
+                {facture.lieu_travaux && (
+                  <div>
+                    <dt className="text-gris">Lieu des travaux</dt>
+                    <dd>{facture.lieu_travaux}</dd>
+                  </div>
+                )}
+                <div>
                   <dt className="text-gris">Échéance</dt>
                   <dd>{formatDate(facture.date_echeance)}</dd>
                 </div>
@@ -259,6 +301,14 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                     Réglages
                   </Link>{" "}
                   : {manquant.join(", ")}.
+                </p>
+              ) : clientSansSiret ? (
+                <p className="text-sm text-gris">
+                  Client professionnel : ajoutez son SIRET sur{" "}
+                  <Link href={`/espace/clients/${facture.client_id}`} className="text-or underline">
+                    sa fiche
+                  </Link>{" "}
+                  (son SIREN doit figurer sur la facture).
                 </p>
               ) : (
                 <p className="text-sm text-gris">

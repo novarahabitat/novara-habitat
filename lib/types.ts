@@ -1,6 +1,7 @@
 export type StatutChantier = "prevu" | "en_cours" | "termine" | "annule";
 export type PhasePhoto = "avant" | "pendant" | "apres";
 export type StatutFacture = "brouillon" | "emise" | "payee";
+export type NatureOperation = "prestation_services" | "livraison_biens" | "mixte";
 
 export type Client = {
   id: string;
@@ -66,6 +67,7 @@ export type Entreprise = {
   rcs: string | null;
   tva_intracom: string | null;
   franchise_tva: boolean;
+  tva_sur_debits: boolean;
   assureur_decennale: string | null;
   police_decennale: string | null;
   zone_couverture: string | null;
@@ -92,6 +94,8 @@ export type Facture = {
   mode_paiement: string | null;
   objet: string | null;
   periode_travaux: string | null;
+  nature_operation: NatureOperation;
+  lieu_travaux: string | null;
   mention_tva: string | null;
   notes_internes: string | null;
   total_ht: string;
