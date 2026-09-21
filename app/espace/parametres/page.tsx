@@ -58,7 +58,7 @@ export default async function ParametresPage() {
               libelle="Forme juridique"
               valeur={e?.forme_juridique}
               placeholder="SAS, SARL, EI…"
-              aide="Entrepreneur individuel : écrivez « EI » (mention obligatoire)."
+              aide="Micro-entrepreneur / entrepreneur individuel : écrivez « EI ». Il sera ajouté après votre nom sur les factures."
             />
             <Champ nom="capital" libelle="Capital social" valeur={e?.capital} placeholder="Ex. 5 000 €" />
             <Champ nom="adresse" libelle="Adresse *" valeur={e?.adresse} large />
@@ -77,7 +77,7 @@ export default async function ParametresPage() {
             <Champ nom="tva_intracom" libelle="N° de TVA intracommunautaire" valeur={e?.tva_intracom} placeholder="FR…" />
             <label className="flex items-center gap-3 self-end rounded-xl border border-black/10 bg-white px-4 py-3 text-sm">
               <input type="checkbox" name="franchise_tva" defaultChecked={e?.franchise_tva} className="h-4 w-4 accent-foret" />
-              Franchise en base de TVA (pas de TVA facturée)
+              Franchise en base de TVA (micro-entrepreneur : pas de TVA facturée)
             </label>
             <label className="flex items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3 text-sm sm:col-span-2">
               <input type="checkbox" name="tva_sur_debits" defaultChecked={e?.tva_sur_debits} className="h-4 w-4 accent-foret" />

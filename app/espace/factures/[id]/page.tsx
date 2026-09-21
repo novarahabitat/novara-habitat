@@ -14,6 +14,7 @@ import {
   modifierEnTete,
   supprimerBrouillon,
 } from "../actions";
+import { MENTION_FRANCHISE, mentionsTva } from "@/lib/facture";
 import Lignes from "./Lignes";
 
 const MENTIONS = [
@@ -48,6 +49,9 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
   ]);
 
   const brouillon = facture.statut === "brouillon";
+  // Émise : les réglages figés à l'émission ; brouillon : les réglages actuels.
+  const reglages: Partial<Entreprise> = (brouillon ? entreprise : facture.emetteur) ?? {};
+  const franchise = Boolean(reglages.franchise_tva);
   const client = brouillon ? facture.clients : { ...facture.clients, ...facture.destinataire };
   const libelle = facture.type === "avoir" ? "Avoir" : "Facture";
   const enRetard = facture.statut === "emise" && Boolean(facture.date_echeance && facture.date_echeance < aujourdhui());
@@ -182,31 +186,36 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   />
                   <p className="mt-1 text-xs text-gris">Vide : adresse du chantier, si elle diffère de celle du client.</p>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="etiquette" htmlFor="mention_tva">
-                    Mention TVA
-                  </label>
-                  <textarea
-                    id="mention_tva"
-                    name="mention_tva"
-                    rows={2}
-                    defaultValue={facture.mention_tva ?? (entreprise?.franchise_tva ? MENTIONS[3] : "")}
-                    className="champ text-sm"
-                  />
-                  <details className="mt-1 text-xs text-gris">
-                    <summary className="cursor-pointer">Mentions courantes (à copier)</summary>
-                    <ul className="mt-2 space-y-1.5">
-                      {MENTIONS.map((m) => (
-                        <li key={m} className="rounded-lg bg-creme p-2 select-all">
-                          {m}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                  <p className="mt-1 text-xs text-gris">
-                    Obligatoire pour la TVA à 10 %, 5,5 % ou 0 %. Faites valider ces mentions par votre comptable.
-                  </p>
-                </div>
+                {franchise ? (
+                  <div className="rounded-xl bg-creme p-3 text-sm sm:col-span-2">
+                    Franchise en base de TVA : aucune TVA n&apos;est facturée et la mention{" "}
+                    <strong>« {MENTION_FRANCHISE} »</strong> est ajoutée automatiquement sur la facture.
+                  </div>
+                ) : (
+                  <div className="sm:col-span-2">
+                    <label className="etiquette" htmlFor="mention_tva">
+                      Mention TVA
+                    </label>
+                    <textarea
+                      id="mention_tva"
+                      name="mention_tva"
+                      rows={2}
+                      defaultValue={facture.mention_tva ?? ""}
+                      className="champ text-sm"
+                    />
+                    <details className="mt-1 text-xs text-gris">
+                      <summary className="cursor-pointer">Mentions courantes (à copier)</summary>
+                      <ul className="mt-2 space-y-1.5">
+                        {MENTIONS.map((m) => (
+                          <li key={m} className="rounded-lg bg-creme p-2 select-all">
+                            {m}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                    <p className="mt-1 text-xs text-gris">Obligatoire pour la TVA à 10 %, 5,5 % ou 0 %.</p>
+                  </div>
+                )}
                 <div className="sm:col-span-2">
                   <BoutonEnvoi>Enregistrer</BoutonEnvoi>
                 </div>
@@ -252,10 +261,10 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   <dt className="text-gris">Échéance</dt>
                   <dd>{formatDate(facture.date_echeance)}</dd>
                 </div>
-                {facture.mention_tva && (
+                {mentionsTva(facture, reglages).length > 0 && (
                   <div className="sm:col-span-2">
                     <dt className="text-gris">Mention TVA</dt>
-                    <dd>{facture.mention_tva}</dd>
+                    <dd>{mentionsTva(facture, reglages).join(" ")}</dd>
                   </div>
                 )}
               </dl>
@@ -267,15 +276,17 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
               factureId={id}
               lignes={lignes ?? []}
               modifiable={brouillon}
-              franchiseTva={Boolean(entreprise?.franchise_tva)}
+              franchiseTva={franchise}
             />
 
             <dl className="ml-auto mt-5 w-full max-w-xs space-y-1.5 border-t border-black/10 pt-4 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-gris">Total HT</dt>
-                <dd className="tabular-nums">{formatEuros(facture.total_ht)}</dd>
-              </div>
-              {[...parTaux.entries()]
+              {!franchise && (
+                <div className="flex justify-between">
+                  <dt className="text-gris">Total HT</dt>
+                  <dd className="tabular-nums">{formatEuros(facture.total_ht)}</dd>
+                </div>
+              )}
+              {!franchise && [...parTaux.entries()]
                 .sort((a, b) => b[0] - a[0])
                 .map(([taux, ht]) => (
                   <div key={taux} className="flex justify-between">
@@ -284,7 +295,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   </div>
                 ))}
               <div className="flex justify-between border-t border-black/10 pt-2 text-base font-medium">
-                <dt>Total TTC</dt>
+                <dt>{franchise ? "Total" : "Total TTC"}</dt>
                 <dd className="tabular-nums">{formatEuros(facture.total_ttc)}</dd>
               </div>
             </dl>

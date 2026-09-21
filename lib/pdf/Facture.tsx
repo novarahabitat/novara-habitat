@@ -1,6 +1,7 @@
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Client, Entreprise, Facture, LigneFacture } from "@/lib/types";
 import { adresseComplete, formatDate, formatEuros, formatNombre, libelleNature } from "@/lib/format";
+import { mentionsTva, nomEmetteur, estEI } from "@/lib/facture";
 import { LOGO_PDF } from "./logo";
 import { base, couleurs } from "./styles";
 
@@ -85,22 +86,24 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
     parTaux.set(Number(l.taux_tva), (parTaux.get(Number(l.taux_tva)) ?? 0) + ht);
   }
 
+  const franchise = Boolean(e.franchise_tva);
+  const nom = nomEmetteur(e);
   const identite = [
-    e.forme_juridique && e.capital ? `${e.forme_juridique} au capital de ${e.capital}` : e.forme_juridique,
+    estEI(e) ? null : e.forme_juridique && e.capital ? `${e.forme_juridique} au capital de ${e.capital}` : e.forme_juridique,
     e.siret && `SIREN ${e.siret.replace(/\s/g, "").slice(0, 9)} · SIRET ${e.siret}`,
     e.rcs,
     e.tva_intracom && `TVA ${e.tva_intracom}`,
   ].filter(Boolean);
 
   return (
-    <Document title={`${libelle} ${facture.numero ?? "brouillon"}`} author={e.raison_sociale ?? "NOVARA Habitat"}>
+    <Document title={`${libelle} ${facture.numero ?? "brouillon"}`} author={nom || "NOVARA Habitat"}>
       <Page size="A4" style={base.page}>
         {brouillon && <Text style={s.filigrane}>BROUILLON</Text>}
 
         <View style={s.entete}>
           <Image src={LOGO_PDF} style={s.logo} />
           <View style={s.emetteur}>
-            <Text style={base.gras}>{e.raison_sociale}</Text>
+            <Text style={base.gras}>{nom}</Text>
             <Text>{e.adresse}</Text>
             <Text>{[e.code_postal, e.ville].filter(Boolean).join(" ")}</Text>
             {e.telephone && <Text>Tél. {e.telephone}</Text>}
@@ -156,9 +159,9 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
             <Text style={s.cDesignation}>Désignation</Text>
             <Text style={s.cQte}>Qté</Text>
             <Text style={s.cUnite}>Unité</Text>
-            <Text style={s.cPu}>PU HT</Text>
-            <Text style={s.cTva}>TVA</Text>
-            <Text style={s.cTotal}>Total HT</Text>
+            <Text style={s.cPu}>{franchise ? "Prix unit." : "PU HT"}</Text>
+            {!franchise && <Text style={s.cTva}>TVA</Text>}
+            <Text style={s.cTotal}>{franchise ? "Total" : "Total HT"}</Text>
           </View>
           {lignes.map((l) => (
             <View key={l.id} style={s.ligne} wrap={false}>
@@ -166,7 +169,7 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
               <Text style={s.cQte}>{formatNombre(l.quantite)}</Text>
               <Text style={s.cUnite}>{l.unite ?? ""}</Text>
               <Text style={s.cPu}>{formatEuros(l.prix_unitaire_ht)}</Text>
-              <Text style={s.cTva}>{formatNombre(l.taux_tva)} %</Text>
+              {!franchise && <Text style={s.cTva}>{formatNombre(l.taux_tva)} %</Text>}
               <Text style={s.cTotal}>
                 {formatEuros(Math.round(Number(l.quantite) * Number(l.prix_unitaire_ht) * 100) / 100)}
               </Text>
@@ -175,11 +178,13 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
         </View>
 
         <View style={s.totaux} wrap={false}>
-          <View style={s.totalLigne}>
-            <Text>Total HT</Text>
-            <Text>{formatEuros(facture.total_ht)}</Text>
-          </View>
-          {[...parTaux.entries()]
+          {!franchise && (
+            <View style={s.totalLigne}>
+              <Text>Total HT</Text>
+              <Text>{formatEuros(facture.total_ht)}</Text>
+            </View>
+          )}
+          {!franchise && [...parTaux.entries()]
             .sort((a, b) => b[0] - a[0])
             .map(([taux, ht]) => (
               <View key={taux} style={s.totalLigne}>
@@ -190,13 +195,20 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
               </View>
             ))}
           <View style={s.totalFinal}>
-            <Text>{facture.type === "avoir" ? "Total avoir TTC" : "Net à payer TTC"}</Text>
+            <Text>
+              {facture.type === "avoir" ? "Total avoir" : "Net à payer"}
+              {franchise ? "" : " TTC"}
+            </Text>
             <Text>{formatEuros(facture.total_ttc)}</Text>
           </View>
         </View>
 
         <View style={s.mentions} wrap={false}>
-          {facture.mention_tva && <Text style={base.gras}>{facture.mention_tva}</Text>}
+          {mentionsTva(facture, e).map((m) => (
+            <Text key={m} style={base.gras}>
+              {m}
+            </Text>
+          ))}
           {e.tva_sur_debits && <Text style={base.gras}>Option pour le paiement de la taxe d&apos;après les débits.</Text>}
           {facture.type === "facture" && (
             <View style={s.cadre}>
@@ -220,7 +232,7 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine 
         </View>
 
         <Text style={base.pied} fixed>
-          {`${e.raison_sociale ?? ""} · ${adresseComplete(e)}${e.siret ? ` · SIRET ${e.siret}` : ""}   —   ${libelle} ${
+          {`${nom} · ${adresseComplete(e)}${e.siret ? ` · SIRET ${e.siret}` : ""}   —   ${libelle} ${
             facture.numero ?? "brouillon"
           }`}
         </Text>

@@ -6,7 +6,15 @@ import { formatEuros, formatNombre, formatTaux } from "@/lib/format";
 import { BoutonEnvoi, Formulaire } from "@/components/espace/Formulaire";
 import { ajouterLigne, modifierLigne, supprimerLigne } from "../actions";
 
-function ChampsLigne({ ligne, tauxParDefaut }: { ligne?: LigneFacture; tauxParDefaut: string }) {
+function ChampsLigne({
+  ligne,
+  tauxParDefaut,
+  franchise,
+}: {
+  ligne?: LigneFacture;
+  tauxParDefaut: string;
+  franchise: boolean;
+}) {
   return (
     <div className="grid grid-cols-6 gap-2">
       <textarea
@@ -32,7 +40,7 @@ function ChampsLigne({ ligne, tauxParDefaut }: { ligne?: LigneFacture; tauxParDe
         <input name="unite" defaultValue={ligne?.unite ?? ""} placeholder="m², h, u…" className="champ px-3 text-sm" />
       </label>
       <label className="col-span-2 sm:col-span-2">
-        <span className="mb-1 block text-xs text-gris">Prix unitaire HT (€)</span>
+        <span className="mb-1 block text-xs text-gris">{franchise ? "Prix unitaire (€)" : "Prix unitaire HT (€)"}</span>
         <input
           name="prix_unitaire_ht"
           inputMode="decimal"
@@ -41,15 +49,19 @@ function ChampsLigne({ ligne, tauxParDefaut }: { ligne?: LigneFacture; tauxParDe
           className="champ px-3 text-sm"
         />
       </label>
-      <label className="col-span-6 sm:col-span-2">
-        <span className="mb-1 block text-xs text-gris">TVA</span>
-        <select name="taux_tva" defaultValue={ligne ? String(Number(ligne.taux_tva)) : tauxParDefaut} className="champ px-3 text-sm">
-          <option value="20">20 %</option>
-          <option value="10">10 % (rénovation logement + 2 ans)</option>
-          <option value="5.5">5,5 % (rénovation énergétique)</option>
-          <option value="0">0 % (autoliquidation, franchise…)</option>
-        </select>
-      </label>
+      {franchise ? (
+        <input type="hidden" name="taux_tva" value="0" />
+      ) : (
+        <label className="col-span-6 sm:col-span-2">
+          <span className="mb-1 block text-xs text-gris">TVA</span>
+          <select name="taux_tva" defaultValue={ligne ? String(Number(ligne.taux_tva)) : tauxParDefaut} className="champ px-3 text-sm">
+            <option value="20">20 %</option>
+            <option value="10">10 % (rénovation logement + 2 ans)</option>
+            <option value="5.5">5,5 % (rénovation énergétique)</option>
+            <option value="0">0 % (autoliquidation, franchise…)</option>
+          </select>
+        </label>
+      )}
     </div>
   );
 }
@@ -87,7 +99,7 @@ export default function Lignes({
                     return r;
                   }}
                 >
-                  <ChampsLigne ligne={l} tauxParDefaut={tauxParDefaut} />
+                  <ChampsLigne ligne={l} tauxParDefaut={tauxParDefaut} franchise={franchiseTva} />
                   <div className="mt-3 flex gap-2">
                     <BoutonEnvoi>Enregistrer</BoutonEnvoi>
                     <button type="button" onClick={() => setEdition(undefined)} className="bouton-secondaire">
@@ -101,8 +113,8 @@ export default function Lignes({
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-line text-sm">{l.designation}</p>
                   <p className="mt-0.5 text-xs text-gris">
-                    {formatNombre(l.quantite)} {l.unite ?? ""} × {formatEuros(l.prix_unitaire_ht)} HT · TVA{" "}
-                    {formatTaux(l.taux_tva)}
+                    {formatNombre(l.quantite)} {l.unite ?? ""} × {formatEuros(l.prix_unitaire_ht)}
+                    {franchiseTva ? "" : ` HT · TVA ${formatTaux(l.taux_tva)}`}
                   </p>
                 </div>
                 <p className="shrink-0 text-sm font-medium tabular-nums">
@@ -136,7 +148,7 @@ export default function Lignes({
           className={`rounded-xl bg-creme p-3 sm:p-4 ${lignes.length ? "mt-4" : ""}`}
         >
           <p className="mb-2 text-sm font-medium">Ajouter une ligne</p>
-          <ChampsLigne tauxParDefaut={tauxParDefaut} />
+          <ChampsLigne tauxParDefaut={tauxParDefaut} franchise={franchiseTva} />
           <div className="mt-3">
             <BoutonEnvoi enCours="Ajout…">Ajouter la ligne</BoutonEnvoi>
           </div>
