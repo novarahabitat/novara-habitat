@@ -1,6 +1,7 @@
 export type StatutChantier = "prevu" | "en_cours" | "termine" | "annule";
 export type PhasePhoto = "avant" | "pendant" | "apres";
 export type StatutFacture = "brouillon" | "emise" | "payee";
+export type StatutDevis = "brouillon" | "envoye" | "accepte" | "refuse";
 export type TypeFacture = "facture" | "avoir" | "acompte";
 export type NatureOperation = "prestation_services" | "livraison_biens" | "mixte";
 
@@ -78,6 +79,8 @@ export type Entreprise = {
   conditions_paiement: string;
   penalites_retard: string;
   prefixe_facture: string;
+  prefixe_devis: string;
+  validite_devis_jours: number;
   mentions_libres: string | null;
 };
 
@@ -87,6 +90,7 @@ export type Facture = {
   facture_origine_id: string | null;
   client_id: string;
   chantier_id: string | null;
+  devis_id: string | null;
   statut: StatutFacture;
   numero: string | null;
   date_emission: string | null;
@@ -113,6 +117,43 @@ export type Facture = {
 export type LigneFacture = {
   id: string;
   facture_id: string;
+  position: number;
+  designation: string;
+  quantite: string;
+  unite: string | null;
+  prix_unitaire_ht: string;
+  taux_tva: string;
+};
+
+export type Devis = {
+  id: string;
+  client_id: string;
+  chantier_id: string | null;
+  statut: StatutDevis;
+  numero: string | null;
+  date_emission: string | null;
+  date_validite: string | null;
+  date_reponse: string | null;
+  objet: string | null;
+  periode_travaux: string | null;
+  lieu_travaux: string | null;
+  nature_operation: NatureOperation;
+  mention_tva: string | null;
+  conditions: string | null;
+  notes_internes: string | null;
+  total_ht: string;
+  total_tva: string;
+  total_ttc: string;
+  emetteur: Partial<Entreprise> | null;
+  destinataire: Partial<Client> | null;
+  facture_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LigneDevis = {
+  id: string;
+  devis_id: string;
   position: number;
   designation: string;
   quantite: string;
