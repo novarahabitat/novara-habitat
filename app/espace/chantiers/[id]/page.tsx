@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { BadgeChantier, BadgeFacture, EnTete, Section, Vide } from "@/components/espace/ui";
+import { BadgeChantier, BadgeDevis, BadgeFacture, EnTete, Section, Vide } from "@/components/espace/ui";
 import { BoutonEnvoi, Formulaire } from "@/components/espace/Formulaire";
 import { adresseComplete, formatDate, formatEuros } from "@/lib/format";
-import type { Chantier, Client, Commentaire, Facture, Photo } from "@/lib/types";
+import type { Chantier, Client, Commentaire, Devis, Facture, Photo } from "@/lib/types";
 import { enregistrerRecap } from "../actions";
 import { nouvelleFacture } from "../../factures/actions";
+import { nouveauDevis } from "../../devis/actions";
 import Statut from "./Statut";
 import Commentaires from "./Commentaires";
 import Photos, { type PhotoAffichee } from "./Photos";
@@ -22,7 +23,7 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
     .maybeSingle<Chantier & { clients: Client | null }>();
   if (!chantier) notFound();
 
-  const [{ data: commentaires }, { data: photos }, { data: factures }] = await Promise.all([
+  const [{ data: commentaires }, { data: photos }, { data: factures }, { data: devis }] = await Promise.all([
     supabase
       .from("chantier_commentaires")
       .select("*")
@@ -41,6 +42,12 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
       .eq("chantier_id", id)
       .order("created_at", { ascending: false })
       .returns<Facture[]>(),
+    supabase
+      .from("devis")
+      .select("*")
+      .eq("chantier_id", id)
+      .order("created_at", { ascending: false })
+      .returns<Devis[]>(),
   ]);
 
   // Liens temporaires (1 h) : le bucket est privé.
@@ -157,6 +164,40 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
                 <BoutonEnvoi>Enregistrer</BoutonEnvoi>
               </div>
             </Formulaire>
+          </Section>
+
+          <Section
+            titre="Devis"
+            actions={
+              client ? (
+                <form action={nouveauDevis.bind(null, client.id, id)}>
+                  <button className="text-sm text-or hover:underline">+ Devis</button>
+                </form>
+              ) : null
+            }
+          >
+            {!client ? (
+              <p className="text-sm text-gris">Associez un client au chantier pour lui faire un devis.</p>
+            ) : !devis?.length ? (
+              <Vide>Aucun devis.</Vide>
+            ) : (
+              <ul className="space-y-1">
+                {devis.map((d) => (
+                  <li key={d.id}>
+                    <Link
+                      href={`/espace/devis/${d.id}`}
+                      className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-creme"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm">{d.numero ?? "Brouillon"}</span>
+                        <span className="block text-xs text-gris">{formatEuros(d.total_ttc)}</span>
+                      </span>
+                      <BadgeDevis statut={d.statut} facture={Boolean(d.facture_id)} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Section>
 
           <Section
