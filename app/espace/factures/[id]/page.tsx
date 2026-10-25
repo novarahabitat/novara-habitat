@@ -48,16 +48,14 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
       : Promise.resolve({ data: null }),
     // Brouillon de facture finale : acomptes (du devis, du chantier) qui seront déduits à l'émission.
     facture.statut === "brouillon" && facture.type === "facture" && (facture.chantier_id || facture.devis_id)
-      ? supabase
-          .rpc("acomptes_a_deduire", { p_facture_id: id })
-          .returns<{ id: string; numero: string; date_emission: string; total_ttc: string }[]>()
+      ? supabase.rpc("acomptes_a_deduire", { p_facture_id: id })
       : Promise.resolve({ data: null }),
     facture.devis_id
       ? supabase.from("devis").select("id, numero").eq("id", facture.devis_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
   const acomptes = (facture.statut === "brouillon"
-    ? (acomptesADeduire ?? []).map((a) => ({ id: a.id, numero: a.numero as string, date: a.date_emission as string, ttc: a.total_ttc }))
+    ? ((acomptesADeduire ?? []) as Facture[]).map((a) => ({ id: a.id, numero: a.numero as string, date: a.date_emission as string, ttc: a.total_ttc }))
     : (facture.acomptes ?? []));
   const totalAcomptes = acomptes.reduce((s, a) => s + Number(a.ttc), 0);
 
