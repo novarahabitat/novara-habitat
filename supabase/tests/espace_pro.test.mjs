@@ -5,6 +5,7 @@ const migrations = [
   "20260921000001_espace_pro.sql",
   "20260921000004_mentions_septembre_2026.sql",
   "20260921000005_acomptes.sql",
+  "20261025000006_devis.sql",
 ].map((f) => readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
 const db = new PGlite();
 
@@ -168,6 +169,64 @@ await expectError("net à payer figé", ADMIN, `update factures set net_a_payer 
 const [avAc] = await q1(ADMIN, `select creer_avoir($1) as id`, [ac.id]);
 ok("avoir possible sur un acompte", Boolean(avAc.id));
 await expectError("avoir sans facture d'origine refusé", ADMIN, `insert into factures (type, client_id) values ('avoir', '${client.id}')`, /check constraint/);
+
+// Devis : brouillon -> envoyé (numéroté, ajustable) -> accepté, acomptes, facture
+const [chD] = await q1(ADMIN, `insert into chantiers (titre, client_id, date_debut, date_fin) values ('Salon', $1, '2026-11-02', '2026-11-20') returning id`, [client.id]);
+const [dv] = await q1(ADMIN, `insert into devis (client_id, chantier_id, objet) values ($1, $2, 'Rénovation salon') returning id, numero, statut`, [client.id, chD.id]);
+ok("devis brouillon sans numéro", dv.numero === null && dv.statut === "brouillon");
+await expectError("devis vide non envoyable", ADMIN, `select envoyer_devis('${dv.id}')`, /aucune ligne/);
+await q1(ADMIN, `insert into devis_lignes (devis_id, position, designation, quantite, prix_unitaire_ht, taux_tva) values ($1, 1, 'Peinture', 1, 1000, 10), ($1, 2, 'Plinthes', 1, 500, 20)`, [dv.id]);
+[t] = await q1(ADMIN, `select total_ht, total_tva, total_ttc from devis where id = $1`, [dv.id]);
+ok("totaux du devis", t.total_ht === "1500.00" && t.total_tva === "200.00" && t.total_ttc === "1700.00", JSON.stringify(t));
+await expectError("devis : envoi manuel interdit", ADMIN, `update devis set statut = 'envoye', numero = 'X' where id = '${dv.id}'`, /ne se modifie pas|Envoyer/);
+const [dvE] = await q1(ADMIN, `select * from envoyer_devis($1)`, [dv.id]);
+ok("devis numéroté à l'envoi", dvE.numero === `D-${annee}-0001` && dvE.statut === "envoye", dvE.numero);
+ok("validité = envoi + 30 j", new Date(dvE.date_validite) - new Date(dvE.date_emission) === 30 * 864e5);
+await q1(ADMIN, `update devis_lignes set prix_unitaire_ht = 1200 where devis_id = $1 and position = 1`, [dv.id]);
+[t] = await q1(ADMIN, `select total_ttc from devis where id = $1`, [dv.id]);
+ok("devis envoyé ajustable", t.total_ttc === "1920.00", t.total_ttc);
+const [dvE2] = await q1(ADMIN, `select * from envoyer_devis($1)`, [dv.id]);
+ok("renvoi : même numéro", dvE2.numero === dvE.numero);
+await expectError("numéro de devis figé", ADMIN, `update devis set numero = 'D-1' where id = '${dv.id}'`, /ne se modifie pas/);
+
+const [dvR] = await q1(ADMIN, `insert into devis (client_id, objet) values ($1, 'Volets') returning id`, [client.id]);
+await q1(ADMIN, `insert into devis_lignes (devis_id, designation, prix_unitaire_ht, taux_tva) values ($1, 'Volets', 800, 10)`, [dvR.id]);
+await q1(ADMIN, `select envoyer_devis($1)`, [dvR.id]);
+await q1(ADMIN, `select repondre_devis($1, false)`, [dvR.id]);
+await expectError("devis refusé figé", ADMIN, `update devis_lignes set prix_unitaire_ht = 1 where devis_id = '${dvR.id}'`, /accepté ou refusé/);
+await q1(ADMIN, `select rouvrir_devis($1)`, [dvR.id]);
+ok("devis refusé rouvert", (await q1(ADMIN, `select statut from devis where id = $1`, [dvR.id]))[0].statut === "envoye");
+
+// Acompte de 30 % : 1920 x 30 % = 576 (une ligne par taux)
+const [acD] = await q1(ADMIN, `select creer_acompte_devis($1, 30) as id`, [dv.id]);
+[t] = await q1(ADMIN, `select total_ttc, type, devis_id, chantier_id, (select count(*) from facture_lignes where facture_id = $1) as n from factures where id = $1`, [acD.id]);
+ok("acompte de 30 % sur le devis", t.total_ttc === "576.00" && t.type === "acompte" && t.devis_id === dv.id && t.chantier_id === chD.id && Number(t.n) === 2, JSON.stringify(t));
+ok("acompte : devis accepté", (await q1(ADMIN, `select statut from devis where id = $1`, [dv.id]))[0].statut === "accepte");
+await expectError("devis accepté figé", ADMIN, `update devis set objet = 'autre' where id = '${dv.id}'`, /accepté ou refusé/);
+await expectError("devis accepté non supprimable", ADMIN, `delete from devis where id = '${dv.id}'`, /accepté|foreign key/);
+await q1(ADMIN, `update factures set mention_tva = 'TVA 10 % — attestation client' where id = $1`, [acD.id]);
+await q1(ADMIN, `select emettre_facture($1)`, [acD.id]);
+await q1(ADMIN, `update factures set statut = 'payee', date_paiement = current_date, mode_paiement = 'Virement' where id = $1`, [acD.id]);
+await expectError("devis avec acompte non rouvrable", ADMIN, `select rouvrir_devis('${dv.id}')`, /factures/);
+await expectError("acomptes plafonnés au devis", ADMIN, `select creer_acompte_devis('${dv.id}', null, 1500)`, /dépasseraient/);
+const [acD2] = await q1(ADMIN, `select creer_acompte_devis($1, 10) as id`, [dv.id]);
+await q1(ADMIN, `update factures set mention_tva = 'TVA 10 %' where id = $1`, [acD2.id]);
+await q1(ADMIN, `select emettre_facture($1)`, [acD2.id]);
+const [avD2] = await q1(ADMIN, `select creer_avoir($1) as id`, [acD2.id]);
+await q1(ADMIN, `select emettre_facture($1)`, [avD2.id]);
+
+// Transformation en facture : l'acompte payé est déduit, l'acompte annulé non
+const [fD] = await q1(ADMIN, `select transformer_devis($1) as id`, [dv.id]);
+[t] = await q1(ADMIN, `select total_ttc, statut, devis_id from factures where id = $1`, [fD.id]);
+ok("facture issue du devis", t.total_ttc === "1920.00" && t.statut === "brouillon" && t.devis_id === dv.id, JSON.stringify(t));
+await expectError("une seule facture par devis", ADMIN, `select transformer_devis('${dv.id}')`, /déjà sa facture/);
+await q1(ADMIN, `update factures set mention_tva = 'TVA 10 %' where id = $1`, [fD.id]);
+const [emD] = await q1(ADMIN, `select * from emettre_facture($1)`, [fD.id]);
+ok("facture du devis : acompte déduit, acompte annulé ignoré", emD.net_a_payer === "1344.00" && emD.acomptes?.length === 1 && emD.periode_travaux === "du 02/11/2026 au 20/11/2026", `${emD.net_a_payer} ${emD.periode_travaux}`);
+[t] = await q1(ADMIN, `select deduit_sur from factures where id = $1`, [acD2.id]);
+ok("acompte annulé jamais déduit", t.deduit_sur === null);
+await expectError("autre compte : devis invisible", OTHER, `select envoyer_devis('${dv.id}')`, /Accès refusé/);
+ok("autre compte ne voit aucun devis", (await q1(OTHER, `select * from devis`)).length === 0);
 
 // Reprise de numérotation
 await expectError("numérotation figée une fois utilisée", ADMIN, `select fixer_dernier_numero(${annee}, 57)`, /déjà été émises/);

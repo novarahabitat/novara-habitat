@@ -44,6 +44,16 @@ const liens: Lien[] = [
     ),
   },
   {
+    href: "/espace/devis",
+    label: "Devis",
+    mobile: true,
+    icone: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" {...trait}>
+        <path d="M9 3h6v3H9z M7 4.5H5v17h14v-17h-2 M8.5 12h7 M8.5 16h4.5" />
+      </svg>
+    ),
+  },
+  {
     href: "/espace/factures",
     label: "Factures",
     mobile: true,
@@ -152,7 +162,7 @@ export function NavigationMobile() {
             <Link
               key={l.href}
               href={l.href}
-              className={`flex min-w-16 flex-col items-center gap-1 px-2 pb-2 pt-2.5 text-[11px] ${
+              className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 pb-2 pt-2.5 text-[11px] ${
                 estActif(pathname, l.href) ? "text-foret" : "text-black/45"
               }`}
             >

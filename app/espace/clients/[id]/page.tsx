@@ -1,21 +1,23 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { BadgeChantier, BadgeFacture, EnTete, Section, Vide } from "@/components/espace/ui";
+import { BadgeChantier, BadgeDevis, BadgeFacture, EnTete, Section, Vide } from "@/components/espace/ui";
 import { BoutonEnvoi, Formulaire } from "@/components/espace/Formulaire";
 import { formatDate, formatEuros } from "@/lib/format";
-import type { Chantier, Client, Facture } from "@/lib/types";
+import type { Chantier, Client, Devis, Facture } from "@/lib/types";
 import ChampsClient from "../ChampsClient";
 import { modifierClient, supprimerClient } from "../actions";
+import { nouveauDevis } from "../../devis/actions";
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase } = await requireAdmin();
 
-  const [{ data: client }, { data: chantiers }, { data: factures }] = await Promise.all([
+  const [{ data: client }, { data: chantiers }, { data: factures }, { data: devis }] = await Promise.all([
     supabase.from("clients").select("*").eq("id", id).maybeSingle<Client>(),
     supabase.from("chantiers").select("*").eq("client_id", id).order("created_at", { ascending: false }).returns<Chantier[]>(),
     supabase.from("factures").select("*").eq("client_id", id).order("created_at", { ascending: false }).returns<Facture[]>(),
+    supabase.from("devis").select("*").eq("client_id", id).order("created_at", { ascending: false }).returns<Devis[]>(),
   ]);
   if (!client) notFound();
 
@@ -58,6 +60,35 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             )}
           </Section>
 
+          <Section
+            titre="Devis"
+            actions={
+              <form action={nouveauDevis.bind(null, client.id, null)}>
+                <button className="text-sm text-or hover:underline">+ Devis</button>
+              </form>
+            }
+          >
+            {!devis?.length ? (
+              <Vide>Aucun devis.</Vide>
+            ) : (
+              <ul className="space-y-2">
+                {devis.map((d) => (
+                  <li key={d.id}>
+                    <Link href={`/espace/devis/${d.id}`} className="flex items-center justify-between gap-3 rounded-xl px-2 py-2 hover:bg-creme">
+                      <span className="min-w-0">
+                        <span className="block truncate">{d.numero ?? "Brouillon"}</span>
+                        <span className="block text-xs text-gris">
+                          {formatEuros(d.total_ttc)} {d.objet && `· ${d.objet}`}
+                        </span>
+                      </span>
+                      <BadgeDevis statut={d.statut} facture={Boolean(d.facture_id)} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+
           <Section titre="Factures">
             {!factures?.length ? (
               <Vide>Aucune facture.</Vide>
@@ -80,7 +111,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             )}
           </Section>
 
-          {!chantiers?.length && !factures?.length && (
+          {!chantiers?.length && !factures?.length && !devis?.length && (
             <Formulaire
               action={supprimerClient.bind(null, client.id)}
               confirmation={`Supprimer définitivement le client ${client.nom} ?`}

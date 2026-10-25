@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { StatutChantier, StatutFacture } from "@/lib/types";
-import { libelleStatutChantier, libelleStatutFacture } from "@/lib/format";
+import type { StatutChantier, StatutDevis, StatutFacture } from "@/lib/types";
+import { libelleStatutChantier, libelleStatutDevis, libelleStatutFacture } from "@/lib/format";
 
 export function EnTete({
   titre,
@@ -63,6 +63,29 @@ export function BadgeFacture({ statut, enRetard }: { statut: StatutFacture; enRe
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${couleursFacture[statut]}`}>
       {libelleStatutFacture[statut]}
+    </span>
+  );
+}
+
+const couleursDevis: Record<StatutDevis, string> = {
+  brouillon: "bg-black/5 text-gris",
+  envoye: "bg-or/15 text-[#7a5d2c]",
+  accepte: "bg-foret/10 text-foret",
+  refuse: "bg-alerte/10 text-alerte",
+};
+
+export function BadgeDevis({ statut, expire, facture }: { statut: StatutDevis; expire?: boolean; facture?: boolean }) {
+  if (statut === "accepte" && facture) {
+    return <span className="inline-flex rounded-full bg-foret px-2.5 py-1 text-xs font-medium text-white">Facturé</span>;
+  }
+  if (statut === "envoye" && expire) {
+    return (
+      <span className="inline-flex rounded-full bg-alerte/10 px-2.5 py-1 text-xs font-medium text-alerte">Expiré</span>
+    );
+  }
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${couleursDevis[statut]}`}>
+      {libelleStatutDevis[statut]}
     </span>
   );
 }

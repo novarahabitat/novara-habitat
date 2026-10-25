@@ -87,9 +87,11 @@ type Props = {
   origine?: { numero: string | null; date_emission: string | null } | null;
   /** Acomptes déduits (figés sur une facture émise, prévisionnels sur un brouillon). */
   acomptes?: { numero: string; date: string | null; ttc: string | number }[];
+  /** Devis d'origine (facture finale ou acompte issus d'un devis). */
+  devis?: { numero: string | null; date_emission: string | null } | null;
 };
 
-export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine, acomptes = [] }: Props) {
+export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine, acomptes = [], devis }: Props) {
   const brouillon = facture.statut === "brouillon";
   const libelle = libelleTypeFacture[facture.type];
   const totalAcomptes = acomptes.reduce((t, a) => t + Number(a.ttc), 0);
@@ -144,6 +146,12 @@ export function FacturePdf({ facture, lignes, entreprise: e, client: c, origine,
             )}
             <Text>Nature : {libelleNature[facture.nature_operation ?? "prestation_services"]}</Text>
             {facture.lieu_travaux && <Text>Lieu des travaux : {facture.lieu_travaux}</Text>}
+            {devis?.numero && facture.type !== "avoir" && (
+              <Text>
+                Suivant devis {devis.numero}
+                {devis.date_emission ? ` du ${formatDate(devis.date_emission)}` : ""}
+              </Text>
+            )}
             {origine?.numero && (
               <Text>
                 Annule et remplace la facture {origine.numero} du {formatDate(origine.date_emission)}
