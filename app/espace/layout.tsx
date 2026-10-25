@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { seDeconnecter } from "@/app/connexion/actions";
-import { NavigationLaterale, NavigationMobile } from "./Navigation";
+import { NavigationLaterale, NavigationMobile, WEBMAIL_URL } from "./Navigation";
 
 export const metadata: Metadata = {
   title: { default: "Espace pro", template: "%s — Espace pro" },
@@ -20,9 +20,14 @@ export default async function EspaceLayout({ children }: { children: React.React
             <span className="block text-xs tracking-[0.4em] text-or">NOVARA</span>
             <span className="block text-[10px] uppercase tracking-[0.3em] text-gris">Espace pro</span>
           </Link>
-          <form action={seDeconnecter}>
-            <button className="text-sm text-gris">Déconnexion</button>
-          </form>
+          <div className="flex items-center gap-4">
+            <a href={WEBMAIL_URL} target="_blank" rel="noopener noreferrer" className="text-sm text-gris">
+              Mails
+            </a>
+            <form action={seDeconnecter}>
+              <button className="text-sm text-gris">Déconnexion</button>
+            </form>
+          </div>
         </div>
       </header>
 

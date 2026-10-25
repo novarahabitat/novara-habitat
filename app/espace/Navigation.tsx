@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Lien = { href: string; label: string; icone: React.ReactNode; mobile: boolean };
+type Lien = {
+  href: string;
+  label: string;
+  icone: React.ReactNode;
+  mobile: boolean;
+  externe?: boolean;
+};
+
+// Webmail OVH de la boîte contact@novarahabitat.fr (s'ouvre dans un nouvel onglet).
+export const WEBMAIL_URL = "https://webmail.mail.ovh.net/";
 
 const trait = {
   fill: "none",
@@ -66,6 +75,18 @@ const liens: Lien[] = [
     ),
   },
   {
+    href: WEBMAIL_URL,
+    label: "Mails",
+    mobile: false,
+    externe: true,
+    icone: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" {...trait}>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+    ),
+  },
+  {
     href: "/espace/parametres",
     label: "Réglages",
     mobile: true,
@@ -86,20 +107,36 @@ export function NavigationLaterale() {
   const pathname = usePathname();
   return (
     <nav className="space-y-1">
-      {liens.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
-            estActif(pathname, l.href)
-              ? "bg-foret text-white"
-              : "text-gris hover:bg-creme-fonce/60 hover:text-encre"
-          }`}
-        >
-          {l.icone}
-          {l.label}
-        </Link>
-      ))}
+      {liens.map((l) =>
+        l.externe ? (
+          <a
+            key={l.href}
+            href={l.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gris transition hover:bg-creme-fonce/60 hover:text-encre"
+          >
+            {l.icone}
+            {l.label}
+            <svg viewBox="0 0 24 24" className="ml-auto h-3.5 w-3.5 opacity-60" {...trait}>
+              <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+            </svg>
+          </a>
+        ) : (
+          <Link
+            key={l.href}
+            href={l.href}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+              estActif(pathname, l.href)
+                ? "bg-foret text-white"
+                : "text-gris hover:bg-creme-fonce/60 hover:text-encre"
+            }`}
+          >
+            {l.icone}
+            {l.label}
+          </Link>
+        ),
+      )}
     </nav>
   );
 }
