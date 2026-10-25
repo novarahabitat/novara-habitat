@@ -121,6 +121,25 @@ export default async function ParametresPage() {
           </div>
         </Section>
 
+        <Section titre="Devis">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Champ
+              nom="prefixe_devis"
+              libelle="Préfixe des numéros de devis"
+              valeur={e?.prefixe_devis ?? "D"}
+              aide={`Exemple : ${e?.prefixe_devis ?? "D"}-${annee}-0001`}
+              maxLength={6}
+            />
+            <Champ
+              nom="validite_devis_jours"
+              libelle="Validité d'un devis (jours)"
+              valeur={e?.validite_devis_jours ?? 30}
+              inputMode="numeric"
+              aide="Date limite d'acceptation imprimée sur le devis."
+            />
+          </div>
+        </Section>
+
         <Section titre="Factures">
           <div className="grid gap-4 sm:grid-cols-2">
             <Champ
