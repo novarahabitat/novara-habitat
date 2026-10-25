@@ -4,8 +4,11 @@ Site public de NOVARA Habitat et espace pro privé (un seul compte : le dirigean
 
 - **Site public** : `/`, `/experience`, `/contact` (le formulaire enregistre les demandes).
 - **Espace pro** (`/espace`, connexion sur `/connexion`) : chantiers, journal, photos
-  avant/pendant/après, clients, factures et avoirs, demandes de contact, réglages.
-- **PDF** : facture (`/api/factures/[id]/pdf`) et pack de fin de chantier remis au client
+  avant/pendant/après, clients, devis, factures et avoirs, demandes de contact, réglages.
+- **Devis** (`/espace/devis`) : brouillon → finalisé (numéro `D-aaaa-nnnn`, encore ajustable)
+  → accepté ou refusé. Sur un devis : acomptes (factures d'acompte rattachées, suivi encaissé /
+  reste à payer), puis « Transformer en facture » ; la facture finale déduit les acomptes.
+- **PDF** : devis (`/api/devis/[id]/pdf`), facture (`/api/factures/[id]/pdf`) et pack de fin de chantier remis au client
   (`/api/chantiers/[id]/pack`).
 
 L'ancien système (Brain, Core, Sales, espace client…) est archivé sous l'étiquette git
