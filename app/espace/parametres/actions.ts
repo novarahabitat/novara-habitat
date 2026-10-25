@@ -16,6 +16,12 @@ export async function enregistrerEntreprise(_: EtatAction, fd: FormData): Promis
   if (!Number.isInteger(delai) || delai < 0 || delai > 60)
     return { erreur: "Le délai de paiement doit être entre 0 et 60 jours." };
 
+  const prefixeDevis = (champ(fd, "prefixe_devis") ?? "D").toUpperCase();
+  if (!/^[A-Z0-9]{1,6}$/.test(prefixeDevis)) return { erreur: "Préfixe de devis : 1 à 6 lettres ou chiffres." };
+  const validite = champNombre(fd, "validite_devis_jours") ?? 30;
+  if (!Number.isInteger(validite) || validite < 1 || validite > 365)
+    return { erreur: "La validité des devis doit être entre 1 et 365 jours." };
+
   const conditions = champ(fd, "conditions_paiement");
   const penalites = champ(fd, "penalites_retard");
 
@@ -42,6 +48,8 @@ export async function enregistrerEntreprise(_: EtatAction, fd: FormData): Promis
     bic: champ(fd, "bic")?.toUpperCase() ?? null,
     delai_paiement_jours: delai,
     prefixe_facture: prefixe,
+    prefixe_devis: prefixeDevis,
+    validite_devis_jours: validite,
     mentions_libres: champ(fd, "mentions_libres"),
     ...(conditions ? { conditions_paiement: conditions } : {}),
     ...(penalites ? { penalites_retard: penalites } : {}),
