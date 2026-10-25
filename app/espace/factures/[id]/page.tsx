@@ -35,7 +35,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     .maybeSingle<Facture & { clients: Client }>();
   if (!facture) notFound();
 
-  const [{ data: lignes }, { data: entreprise }, { data: chantiers }, { data: origine }, { data: acomptesADeduire }] = await Promise.all([
+  const [{ data: lignes }, { data: entreprise }, { data: chantiers }, { data: origine }, { data: acomptesADeduire }, { data: devisOrigine }] = await Promise.all([
     supabase.from("facture_lignes").select("*").eq("facture_id", id).order("position").returns<LigneFacture[]>(),
     supabase.from("entreprise").select("*").eq("owner_id", user.id).maybeSingle<Entreprise>(),
     supabase
@@ -46,17 +46,14 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     facture.facture_origine_id
       ? supabase.from("factures").select("id, numero").eq("id", facture.facture_origine_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    // Brouillon de facture finale : acomptes qui seront déduits à l'émission.
-    facture.statut === "brouillon" && facture.type === "facture" && facture.chantier_id
+    // Brouillon de facture finale : acomptes (du devis, du chantier) qui seront déduits à l'émission.
+    facture.statut === "brouillon" && facture.type === "facture" && (facture.chantier_id || facture.devis_id)
       ? supabase
-          .from("factures")
-          .select("id, numero, date_emission, total_ttc")
-          .eq("type", "acompte")
-          .neq("statut", "brouillon")
-          .is("deduit_sur", null)
-          .eq("chantier_id", facture.chantier_id)
-          .eq("client_id", facture.client_id)
-          .order("date_emission")
+          .rpc("acomptes_a_deduire", { p_facture_id: id })
+          .returns<{ id: string; numero: string; date_emission: string; total_ttc: string }[]>()
+      : Promise.resolve({ data: null }),
+    facture.devis_id
+      ? supabase.from("devis").select("id, numero").eq("id", facture.devis_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
   const acomptes = (facture.statut === "brouillon"
@@ -102,6 +99,11 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
             {origine && (
               <Link href={`/espace/factures/${origine.id}`} className="hover:underline">
                 Sur la facture {origine.numero}
+              </Link>
+            )}
+            {devisOrigine && (
+              <Link href={`/espace/devis/${devisOrigine.id}`} className="hover:underline">
+                Devis {devisOrigine.numero ?? "(brouillon)"}
               </Link>
             )}
           </span>
