@@ -134,11 +134,17 @@ table.ct{border-collapse:collapse;width:100%;font-size:13px}
   #insp{grid-column:1;grid-row:2;border-left:0;border-top:1px solid var(--line);max-height:36vh}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+.sync{font-size:12px;color:var(--muted);white-space:nowrap;align-self:center}
+.sync.err{color:var(--danger)}
+.site{font-size:12px;color:var(--muted);max-width:30ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;align-self:center}
+.avert{display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--accent);color:#1C252D;font-size:13px;line-height:1.35}
+.avert button{border-color:#1C252D;margin-left:auto}
 </style>
 </head>
 <body data-tab="plan">
 <header class="bar">
   <div class="brand"><b>NOVARA</b> Plan</div>
+  <span class="site" id="siteNom" hidden></span>
   <nav class="tools" id="tools" aria-label="Outils">
     <button data-tool="select" class="on">Sélection</button>
     <button data-tool="room">Pièce</button>
@@ -150,6 +156,7 @@ table.ct{border-collapse:collapse;width:100%;font-size:13px}
   </nav>
   <label class="viewsel">Vue <select id="viewSel"><option value="plan">Plan meublé</option><option value="vide">Sans meubles</option><option value="all">Tous les réseaux</option><option value="elec">Électricité</option><option value="domo">Domotique</option><option value="eau">Eau</option><option value="air">Air (VMC)</option><option value="chauf">Chauffage</option></select></label>
   <div class="acts">
+    <span class="sync" id="syncChip" hidden></span>
     <button id="elecBtn" title="Tableau électrique et schéma unifilaire">Tableau élec.</button>
     <button id="packBtn" title="Dossier à remettre au client">Pack client</button>
     <button id="undoBtn" title="Annuler (Ctrl+Z)">Annuler</button>
@@ -157,6 +164,7 @@ table.ct{border-collapse:collapse;width:100%;font-size:13px}
   </div>
   <div class="tabs" id="tabs"><button data-tab="plan" class="on">Plan</button><button data-tab="view">3D</button></div>
 </header>
+<div class="avert" id="syncAvert" hidden><span id="syncAvertTexte"></span><button id="syncAvertFermer">Fermer</button></div>
 <main id="work">
   <section class="pane plan" id="planPane" aria-label="Plan 2D">
     <canvas id="plan"></canvas>
@@ -209,6 +217,15 @@ table.ct{border-collapse:collapse;width:100%;font-size:13px}
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
+/* L'outil s'ouvre avec ?chantier=<id> depuis l'Espace pro : la copie dans le
+   navigateur est alors propre à ce chantier, et elle part aussi sur le site.
+   Sans chantier, l'outil travaille comme avant, entièrement hors ligne. */
+const PARAMS=new URLSearchParams(location.search);
+const CH=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(PARAMS.get('chantier')||'')?PARAMS.get('chantier'):null;
+const LSKEY=CH?'novara-plan-v1:'+CH:'novara-plan-v1';
+const MEDIAKEY=CH?'pack:'+CH:'pack';
+const SYNC={pret:false,enCours:false,aRefaire:false,version:0,modifie:0,sale:false};
+let pushT=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const dist=(p,q)=>Math.hypot(p.x-q.x,p.y-q.y);
 const r5=v=>Math.round(v/0.05)*0.05;
@@ -268,8 +285,12 @@ const WALLCOLORS=[['#EDEBE6','Blanc cassé'],['#D8D8D4','Gris perle'],['#E3D7C3'
 
 function snapshot(){undoStack.push(JSON.stringify(M));if(undoStack.length>80)undoStack.shift();}
 function undo(){if(drawPts.length){drawPts=[];curLine=null;refresh();return;}const s=undoStack.pop();if(!s)return;M=JSON.parse(s);sel=null;changed();}
-function save(){try{localStorage.setItem('novara-plan-v1',JSON.stringify({M,uid,S}));}catch(e){}}
-function load(){try{const t=localStorage.getItem('novara-plan-v1');if(!t)return false;const d=JSON.parse(t);if(!d||!d.M||!Array.isArray(d.M.walls))return false;M={walls:d.M.walls,rooms:d.M.rooms||[],items:d.M.items||[],nets:d.M.nets||[],eqs:d.M.eqs||[]};uid=d.uid||5000;Object.assign(S,d.S||{});return true;}catch(e){return false;}}
+function appliquer(d){if(!d||!d.M||!Array.isArray(d.M.walls))return false;const m=d.M;
+  M={walls:m.walls,rooms:m.rooms||[],items:m.items||[],nets:m.nets||[],eqs:m.eqs||[]};
+  if(m.pack)M.pack=m.pack;if(m.elec)M.elec=m.elec;
+  uid=d.uid||5000;Object.assign(S,d.S||{});return true;}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify({M,uid,S}));}catch(e){}syncMarquer();}
+function load(){try{const t=localStorage.getItem(LSKEY);if(!t)return false;return appliquer(JSON.parse(t));}catch(e){return false;}}
 
 /* ---------- Géométrie ---------- */
 function wInfo(w){const dx=w.b.x-w.a.x,dy=w.b.y-w.a.y,L=Math.hypot(dx,dy)||1e-9,u={x:dx/L,y:dy/L};return{L,u,n:{x:-u.y,y:u.x}};}
@@ -922,9 +943,9 @@ $('#elecBody').addEventListener('click',e=>{const b=e.target.closest('[data-ea]'
 let PACKMEDIA=[];
 function PK(){if(!M.pack)M.pack={title:'',client:'',address:'',company:'',notes:'',inc:{r3d:true,plan:true,nets:true,elec:true,desc:true,photos:true,surf:true},desc:{}};return M.pack;}
 function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('novara-plan',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}});}
-let mediaT=0;function mediaSave(){clearTimeout(mediaT);mediaT=setTimeout(mediaSaveNow,400);}
-async function mediaSaveNow(){try{const db=await idb();db.transaction('kv','readwrite').objectStore('kv').put(PACKMEDIA,'pack');}catch(e){}}
-async function mediaLoad(){try{const db=await idb();const r=db.transaction('kv').objectStore('kv').get('pack');r.onsuccess=()=>{if(Array.isArray(r.result))PACKMEDIA=r.result;};}catch(e){}}
+let mediaT=0;function mediaSave(){clearTimeout(mediaT);mediaT=setTimeout(mediaSaveNow,400);syncMarquer();}
+async function mediaSaveNow(){try{const db=await idb();db.transaction('kv','readwrite').objectStore('kv').put(PACKMEDIA,MEDIAKEY);}catch(e){}}
+function mediaLoad(){return new Promise(res=>{idb().then(db=>{const r=db.transaction('kv').objectStore('kv').get(MEDIAKEY);r.onsuccess=()=>{if(Array.isArray(r.result))PACKMEDIA=r.result;res();};r.onerror=()=>res();}).catch(()=>res());});}
 function readPhoto(file){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1600/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82));};img.onerror=()=>res(null);img.src=fr.result;};fr.onerror=()=>res(null);fr.readAsDataURL(file);});}
 const LIGHTC={canvas:'#FFFFFF',grid:'#F1F3F5',grid2:'#DEE2E6',wall:'#28313A',ink:'#1C252D',muted:'#5B6873',accent:'#F2B705',sel:'#1F6FE0',panel:'#F8F9FA'};
 function planImage(mode){const keep={cx,PW,PH,dpr,s:view.s,ox:view.ox,oy:view.oy,vm:vmode,sel,tool,cursor,dp:drawPts,C:Object.assign({},C)};
@@ -1000,7 +1021,7 @@ $('#packBody').addEventListener('click',e=>{const b=e.target.closest('[data-pa]'
 $('#packExport').addEventListener('click',async()=>{const btn=$('#packExport');btn.disabled=true;btn.textContent='Préparation…';await new Promise(r=>setTimeout(r,30));
   let msg='';try{const html=packHTML();msg=await download('pack-client.html',html);}catch(err){msg='Export impossible : '+err.message;}
   btn.disabled=false;btn.textContent='Exporter le pack client';if(msg){const d=document.createElement('div');d.className='ck warn';d.textContent=msg;$('#packBody').prepend(d);}});
-mediaLoad();
+const MEDIAPRET=mediaLoad();
 function removeNiches(id){M.walls.forEach(w=>{w.openings=w.openings.filter(o=>o.item!==id);});}
 function unembed(it,moveOut){removeNiches(it.id);if(it.emb&&moveOut){it.x=r3(it.x-it.emb.dx);it.y=r3(it.y-it.emb.dy);}delete it.emb;}
 function embed(it,mode){
@@ -1214,16 +1235,122 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
     if(f||st||tr){const fx=Math.sin(walk.yaw),fz=Math.cos(walk.yaw),sp_=1.5*dt;walk.pos.x+=(fx*f-fz*st)*sp_;walk.pos.z+=(fz*f+fx*st)*sp_;walk.yaw-=tr*1.6*dt;needRender=true;}}
   if(needRender&&vis3D){applyCam();renderer.render(scene,camera);needRender=false;}}
 
+/* ---------- Enregistrement en ligne ---------- */
+/* Le plan vit d'abord dans le navigateur. Rattaché à un chantier, il part aussi
+   sur le site : on retrouve le même plan d'un appareil à l'autre. Sans réseau,
+   il attend et repart tout seul au retour de la connexion. Si l'autre appareil
+   a fait plus récent, c'est le plus récent qui est gardé, et l'avertissement
+   en haut de l'écran le dit. */
+const APPAREIL=(()=>{const u=navigator.userAgent;
+  for(const[re,n]of[[/iPad/,'iPad'],[/iPhone/,'iPhone'],[/Android/,'Android'],[/Macintosh|Mac OS X/,'Mac'],[/Windows/,'PC Windows'],[/Linux/,'Linux']])if(re.test(u))return n;
+  return 'Navigateur';})();
+const METAKEY=LSKEY+':sync';
+function metaSave(){try{localStorage.setItem(METAKEY,JSON.stringify({version:SYNC.version,modifie:SYNC.modifie,sale:SYNC.sale}));}catch(e){}}
+function metaLoad(){try{const d=JSON.parse(localStorage.getItem(METAKEY)||'null');if(!d)return;SYNC.version=d.version||0;SYNC.modifie=d.modifie||0;SYNC.sale=!!d.sale;}catch(e){}}
+function etat(t,err){const e=$('#syncChip');if(!e)return;e.hidden=false;e.textContent=t;e.classList.toggle('err',!!err);}
+function prevenir(t){const e=$('#syncAvert');if(!e)return;$('#syncAvertTexte').textContent=t;e.hidden=false;}
+function recadrer(){requestAnimationFrame(()=>{try{resizePlan();fitPlan();size3D();fit3D();}catch(e){}});}
+
+/* Appelé à chaque enregistrement local : note qu'il y a du nouveau à envoyer. */
+function syncMarquer(){if(!CH)return;SYNC.modifie=Date.now();SYNC.sale=true;metaSave();
+  if(!SYNC.pret)return;etat('Modifié…');clearTimeout(pushT);pushT=setTimeout(pousser,1200);}
+
+function docLocal(){return{M,uid,S,medias:PACKMEDIA.map(m=>({id:m.id,kind:m.kind,caption:m.caption||'',chemin:m.chemin||null}))};}
+function resumePlan(){const surface=M.rooms.reduce((a,r)=>a+roomArea(r),0),murs=M.walls.reduce((a,w)=>a+wInfo(w).L,0);
+  return{surface:Math.round(surface*10)/10,pieces:M.rooms.length,murs:Math.round(murs*10)/10};}
+
+/* Les photos ne tiennent pas dans le document : elles vont dans le stockage,
+   le document ne garde que leur chemin. */
+function dataUrlBlob(src){const i=String(src||'').indexOf(',');if(i<0)return null;
+  const type=src.slice(5,i).split(';')[0]||'image/jpeg';
+  try{const bin=atob(src.slice(i+1)),u=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)u[j]=bin.charCodeAt(j);return new Blob([u],{type});}catch(e){return null;}}
+function blobDataUrl(b){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>res(null);fr.readAsDataURL(b);});}
+async function mediasMonter(){let bouge=false;
+  for(const m of PACKMEDIA){if(m.chemin||!m.src)continue;const b=dataUrlBlob(m.src);if(!b)continue;
+    const r=await fetch('/api/plans/'+CH+'/medias/'+m.id,{method:'PUT',headers:{'Content-Type':b.type},body:b});
+    if(!r.ok)throw new Error('photo '+r.status);
+    m.chemin=(await r.json()).chemin;bouge=true;}
+  if(bouge)mediaSaveNow();}
+async function mediasDescendre(){let bouge=false;
+  for(const m of PACKMEDIA){if(m.src||!m.chemin)continue;
+    try{const r=await fetch('/api/plans/'+CH+'/medias/'+m.id);if(!r.ok)continue;m.src=await blobDataUrl(await r.blob());bouge=true;}catch(e){}}
+  if(bouge){mediaSaveNow();if(!$('#packModal').hidden)renderPack();}}
+
+/* Reprend le plan venu du site à la place de celui affiché. */
+function adopter(d){const doc=d.document||{};if(!appliquer(doc))return false;
+  const connus=new Map(PACKMEDIA.map(m=>[m.id,m]));
+  PACKMEDIA=(Array.isArray(doc.medias)?doc.medias:[]).map(m=>({id:m.id,kind:m.kind,caption:m.caption||'',chemin:m.chemin||null,src:(connus.get(m.id)||{}).src||null}));
+  SYNC.version=d.version||0;SYNC.modifie=Date.parse(d.modifie_le||'')||Date.now();SYNC.sale=false;metaSave();
+  try{localStorage.setItem(LSKEY,JSON.stringify({M,uid,S}));}catch(e){}
+  sel=null;undoStack.length=0;pending3D=true;refresh();recadrer();mediaSaveNow();mediasDescendre();
+  return true;}
+
+async function pousser(){
+  if(!CH||!SYNC.pret||SYNC.enCours)
+    {if(SYNC.enCours)SYNC.aRefaire=true;return;}
+  if(!SYNC.sale)return;
+  SYNC.enCours=true;
+  const envoye=SYNC.modifie;
+  try{
+    etat('Enregistrement…');
+    await mediasMonter();
+    const r=await fetch('/api/plans/'+CH,{method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({document:docLocal(),resume:resumePlan(),base_version:SYNC.version,
+        modifie_le:new Date(envoye||Date.now()).toISOString(),appareil:APPAREIL})});
+    if(r.status===409){const d=await r.json();
+      if(d&&d.document&&adopter(d)){prevenir('Ce plan a été modifié plus récemment sur '+(d.appareil||'un autre appareil')+'. C’est cette version-là qui est gardée : vos dernières retouches faites ici n’ont pas été enregistrées en ligne.');etat('Repris de l’autre appareil');}
+      else etat('Désaccord entre appareils',true);
+      return;}
+    if(!r.ok)throw new Error('http '+r.status);
+    const d=await r.json();
+    SYNC.version=d.version||SYNC.version+1;
+    if(SYNC.modifie===envoye)SYNC.sale=false;
+    metaSave();
+    etat(SYNC.sale?'Modifié…':'Enregistré en ligne');
+    if(d.etat==='remplace')prevenir('Une version plus ancienne, faite sur '+(d.remplace_appareil||'un autre appareil')+', vient d’être remplacée par celle-ci.');
+  }catch(e){etat('Hors ligne — gardé sur l’appareil',true);}
+  finally{SYNC.enCours=false;if(SYNC.aRefaire){SYNC.aRefaire=false;setTimeout(pousser,400);}}}
+
+async function syncDemarrer(avaitLocal){
+  if(!CH){SYNC.pret=true;return;}
+  const titre=PARAMS.get('titre');
+  if(titre){const e=$('#siteNom');e.textContent=titre;e.hidden=false;document.title='NOVARA Plan — '+titre;}
+  $('#syncAvertFermer').addEventListener('click',()=>{$('#syncAvert').hidden=true;});
+  metaLoad();
+  etat('Lecture du plan…');
+  await MEDIAPRET;
+  let srv=null;
+  try{const r=await fetch('/api/plans/'+CH);if(!r.ok)throw new Error('http '+r.status);srv=await r.json();}
+  catch(e){SYNC.pret=true;if(!avaitLocal){demo();recadrer();}etat('Hors ligne — gardé sur l’appareil',true);
+    addEventListener('online',()=>{if(SYNC.sale)pousser();});return;}
+
+  if(srv.existe){
+    const srvDate=Date.parse(srv.modifie_le||'')||0,enAttente=SYNC.sale;
+    if(!avaitLocal||(srv.version!==SYNC.version&&srvDate>=SYNC.modifie)){
+      if(adopter(srv)&&avaitLocal&&enAttente)
+        prevenir('Ce plan avait été modifié plus récemment sur '+(srv.appareil||'un autre appareil')+'. C’est cette version-là qui est affichée ; les retouches en attente sur cet appareil ont été écartées.');
+      etat('À jour');
+    }else etat(SYNC.sale?'Modifié…':'À jour');
+  }else{
+    if(!avaitLocal){demo();recadrer();}
+    SYNC.sale=true;SYNC.modifie=SYNC.modifie||Date.now();metaSave();
+  }
+  SYNC.pret=true;
+  if(SYNC.sale)pousser();
+  addEventListener('online',()=>{if(SYNC.sale)pousser();});}
+
 /* ---------- Onglets mobile, démarrage ---------- */
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;document.body.dataset.tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));requestAnimationFrame(()=>{const first=!PW;resizePlan();if(first)fitPlan();size3D();});});
 {const mq=matchMedia('(prefers-color-scheme: dark)'),fn=()=>{readTheme();drawPlan();};if(mq.addEventListener)mq.addEventListener('change',fn);else if(mq.addListener)mq.addListener(fn);}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>drawPlan());
-if(!load())demo();
+const AVAIT_LOCAL=load();
+if(!AVAIT_LOCAL&&!CH)demo();
 readTheme();init3D();
 $('#orthoBtn').classList.toggle('on',S.ortho);
 new ResizeObserver(()=>{const first=!PW;if(resizePlan()&&first)fitPlan();size3D();}).observe($('#work'));
 setTool('select');
 requestAnimationFrame(()=>{resizePlan();fitPlan();size3D();fit3D();updateSun();requestAnimationFrame(loop);});
+syncDemarrer(AVAIT_LOCAL);
 })();
 </script>
 </body>
