@@ -8,6 +8,9 @@ Site public de NOVARA Habitat et espace pro privé (un seul compte : le dirigean
 - **Devis** (`/espace/devis`) : brouillon → finalisé (numéro `D-aaaa-nnnn`, encore ajustable)
   → accepté ou refusé. Sur un devis : acomptes (factures d'acompte rattachées, suivi encaissé /
   reste à payer), puis « Transformer en facture » ; la facture finale déduit les acomptes.
+- **Conception** (`/espace/conception`) : outil de plan (murs, pièces, vue 3D) servi tel quel
+  depuis `app/espace/conception/novara-plan.html` par `/espace/conception/outil`, réservé au
+  compte de l'espace pro. Le plan en cours reste dans le navigateur.
 - **PDF** : devis (`/api/devis/[id]/pdf`), facture (`/api/factures/[id]/pdf`) et pack de fin de chantier remis au client
   (`/api/chantiers/[id]/pack`).
 
