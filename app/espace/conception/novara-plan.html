@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOVARA Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E6E9EB;--panel:#F7F8F8;--ink:#1C252D;--muted:#5B6873;--line:#CDD3D8;--canvas:#FCFCFB;--grid:#ECEFF1;--grid2:#D3D9DE;--wall:#28313A;--accent:#F2B705;--sel:#1F6FE0;--danger:#B93C10;color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161A;--panel:#1A2127;--ink:#E4E9ED;--muted:#8E9BA6;--line:#2C353D;--canvas:#0E1317;--grid:#161D22;--grid2:#252E35;--wall:#C7D0D8;--sel:#5A9CF5;--danger:#F0835A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161A;--panel:#1A2127;--ink:#E4E9ED;--muted:#8E9BA6;--line:#2C353D;--canvas:#0E1317;--grid:#161D22;--grid2:#252E35;--wall:#C7D0D8;--sel:#5A9CF5;--danger:#F0835A;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:7px;padding:7px 11px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--sel);outline-offset:1px}
+button.on,button.primary{background:var(--accent);border-color:var(--accent);color:#1C252D;font-weight:600}
+button:disabled{opacity:.4;cursor:default}
+button.danger{color:var(--danger);border-color:currentColor}
+.bar{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-size:16px;letter-spacing:.02em}
+.brand b{font-weight:700}
+.tools{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tools::-webkit-scrollbar{display:none}
+.acts{display:flex;gap:4px;margin-left:auto}
+.tabs{display:none}
+.tabs button{border-radius:0}
+.tabs button:first-child{border-radius:7px 0 0 7px}
+.tabs button:last-child{border-radius:0 7px 7px 0;border-left:0}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 280px}
+.pane{position:relative;min-width:0;min-height:0;overflow:hidden}
+.plan{border-right:1px solid var(--line)}
+#plan{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:crosshair}
+#view3d{position:absolute;inset:0;touch-action:none;cursor:grab}
+#view3d canvas{display:block}
+.hint{position:absolute;left:10px;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;pointer-events:none}
+.hint>*{pointer-events:auto}
+#hintText{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px;color:var(--muted);font-size:13px;max-width:100%}
+#lenBox{display:flex;gap:4px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:4px 6px;font-size:13px}
+#lenBox input{width:62px;padding:5px 6px}
+#lenBox button{padding:4px 8px}
+.corner{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.corner button{background:var(--panel)}
+.vctl{position:absolute;left:10px;right:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.vctl label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.vctl output{min-width:38px;color:var(--ink)}
+.vctl input[type=range]{width:96px;accent-color:var(--accent)}
+.seg{display:flex}
+.seg button{border-radius:0}
+.seg button:first-child{border-radius:7px 0 0 7px}
+.seg button:last-child{border-radius:0 7px 7px 0;border-left:0}
+.vctl .primary{margin-left:auto}
+.pad{position:absolute;right:14px;top:14px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:4px;user-select:none;-webkit-user-select:none}
+.pad button{background:var(--panel);padding:0;font-size:18px;touch-action:none}
+.pad [data-move=f]{grid-column:2;grid-row:1}
+.pad [data-move=l]{grid-column:1;grid-row:2}
+.pad [data-move=b]{grid-column:2;grid-row:2}
+.pad [data-move=r]{grid-column:3;grid-row:2}
+.walkhint{position:absolute;left:10px;top:10px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px;color:var(--muted);font-size:13px;max-width:calc(100% - 180px)}
+#insp{background:var(--panel);border-left:1px solid var(--line);overflow:auto;padding:14px 14px 28px}
+#insp h2{font-size:16px;margin:0 0 10px;font-weight:700}
+#insp h3{font-size:13px;margin:18px 0 8px;color:var(--muted);font-weight:600}
+.f{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0}
+.f>span:first-child{color:var(--muted);font-size:13px}
+.inp{display:flex;align-items:center;gap:4px}
+input{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:80px}
+input[data-f=rname]{width:150px}
+.inp em{font-style:normal;color:var(--muted);font-size:12px;min-width:12px}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{width:32px;height:32px;padding:0;border-radius:50%;border:1px solid var(--line)}
+.sw button.cur{outline:2px solid var(--sel);outline-offset:2px}
+.list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.list button{text-align:left;white-space:normal;padding:8px;line-height:1.25}
+.list small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.list button[data-act=cat],.list button[data-act=eq]{touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.viewsel{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+select{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:7px;padding:6px 8px}
+.ebox{background:var(--panel);border-radius:12px;width:min(1200px,100%);max-height:100%;overflow:auto;padding:0 16px 20px}
+.ehead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);padding:14px 0 10px;z-index:2;border-bottom:1px solid var(--line)}
+.ehead h2{margin:0;font-size:18px}.ehead .row{margin:0}
+.egrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 24px}
+.ebox h3{font-size:13px;margin:18px 0 8px;color:var(--muted);font-weight:600}
+.chk{display:flex;gap:8px;align-items:center;margin:7px 0}.chk input{width:auto}
+.tablewrap,.svgwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.svgwrap{background:#fff;padding:8px}.svgwrap svg{display:block}
+table.ct{border-collapse:collapse;width:100%;font-size:13px}
+.ct th,.ct td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.ct th{color:var(--muted);font-weight:600}
+.ct input{width:200px}.ct input.pts{width:56px}.ct select{padding:4px 6px}
+.ck{margin:5px 0;padding:6px 10px;border-radius:6px;font-size:13px;background:var(--canvas);border-left:4px solid var(--line)}
+.ck.err{border-left-color:#e03131}.ck.warn{border-left-color:#f08c00}.ck.info{border-left-color:#1c7ed6}.ck.ok{border-left-color:#2f9e44}
+.ebox input.wide,.ebox textarea{width:100%}
+.ebox textarea{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:6px;padding:8px;min-height:64px;resize:vertical}
+.ebox h4{margin:14px 0 4px;font-size:14px}
+.fl{display:block;margin:8px 0}.fl span{display:block;color:var(--muted);font-size:13px;margin-bottom:3px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:10px}
+.th img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;display:block;border:1px solid var(--line)}
+.th input{width:100%;margin-top:6px}.th button{margin-top:6px;width:100%}
+.filebtn{display:inline-block;border:1px solid var(--line);border-radius:7px;padding:7px 11px;cursor:pointer}
+.ghost{position:fixed;z-index:30;pointer-events:none;transform:translate(-50%,-130%);background:var(--accent);color:#1C252D;font-weight:600;padding:6px 10px;border-radius:7px;font-size:13px;white-space:nowrap}
+.list button.on small{color:#3B4650}
+.note{color:var(--muted);font-size:13px;margin:10px 0 0}
+.stat{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);gap:10px}
+.stat span{color:var(--muted)}
+.stat b{font-size:17px;font-weight:600;white-space:nowrap}
+.stat.small b{font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(10,14,18,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.mbox{background:var(--panel);border-radius:12px;padding:12px;max-width:min(1200px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px}
+.mbox img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:6px;display:block}
+.mbox p{margin:0;color:var(--muted);font-size:13px}
+.mbox .row{margin:0;justify-content:flex-end}
+.glerr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--muted)}
+@media (max-width:1100px){
+  .bar{gap:8px;padding:8px}
+  .brand{order:0}.acts{order:1}.tabs{order:2;display:flex}.tools{order:3;width:100%}.viewsel{order:4}
+  .acts button{padding:7px 9px}
+  main{grid-template-columns:minmax(0,1fr) 270px}
+  .pane{display:none;grid-column:1;grid-row:1}
+  body[data-tab=plan] .plan,body[data-tab=view] .view{display:block}
+  .plan{border-right:0}
+  #insp{grid-column:2;grid-row:1}
+  .vctl input[type=range]{width:72px}
+  .vctl .primary{margin-left:0}
+}
+@media (max-width:640px){
+  main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  #insp{grid-column:1;grid-row:2;border-left:0;border-top:1px solid var(--line);max-height:36vh}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body data-tab="plan">
+<header class="bar">
+  <div class="brand"><b>NOVARA</b> Plan</div>
+  <nav class="tools" id="tools" aria-label="Outils">
+    <button data-tool="select" class="on">Sélection</button>
+    <button data-tool="room">Pièce</button>
+    <button data-tool="wall">Mur</button>
+    <button data-tool="door">Porte</button>
+    <button data-tool="window">Fenêtre, niche</button>
+    <button data-tool="item">Meuble</button>
+    <button data-tool="net">Réseaux</button>
+  </nav>
+  <label class="viewsel">Vue <select id="viewSel"><option value="plan">Plan meublé</option><option value="vide">Sans meubles</option><option value="all">Tous les réseaux</option><option value="elec">Électricité</option><option value="domo">Domotique</option><option value="eau">Eau</option><option value="air">Air (VMC)</option><option value="chauf">Chauffage</option></select></label>
+  <div class="acts">
+    <button id="elecBtn" title="Tableau électrique et schéma unifilaire">Tableau élec.</button>
+    <button id="packBtn" title="Dossier à remettre au client">Pack client</button>
+    <button id="undoBtn" title="Annuler (Ctrl+Z)">Annuler</button>
+    <button id="delBtn" title="Supprimer (Suppr)" disabled>Supprimer</button>
+  </div>
+  <div class="tabs" id="tabs"><button data-tab="plan" class="on">Plan</button><button data-tab="view">3D</button></div>
+</header>
+<main id="work">
+  <section class="pane plan" id="planPane" aria-label="Plan 2D">
+    <canvas id="plan"></canvas>
+    <div class="hint">
+      <span id="hintText"></span>
+      <span id="lenBox" hidden>
+        <label>Longueur <input id="lenIn" inputmode="decimal" placeholder="3,20" aria-label="Longueur en mètres"> m</label>
+        <button data-dir="l" aria-label="Vers la gauche">←</button><button data-dir="u" aria-label="Vers le haut">↑</button><button data-dir="d" aria-label="Vers le bas">↓</button><button data-dir="r" aria-label="Vers la droite">→</button>
+      </span>
+      <button id="orthoBtn" class="on" hidden title="Bloquer les angles droits">Angles droits</button>
+      <button id="finishBtn" hidden>Terminer</button>
+    </div>
+    <div class="corner"><button id="fitBtn">Recentrer</button></div>
+  </section>
+  <section class="pane view" id="viewPane" aria-label="Vue 3D">
+    <div id="view3d"></div>
+    <div class="walkhint" id="walkHint" hidden>Glissez pour regarder. Flèches ou Z Q S D pour marcher.</div>
+    <div class="pad" id="pad" hidden>
+      <button data-move="f" aria-label="Avancer">▲</button><button data-move="l" aria-label="Tourner à gauche">◀</button><button data-move="b" aria-label="Reculer">▼</button><button data-move="r" aria-label="Tourner à droite">▶</button>
+    </div>
+    <div class="vctl">
+      <div class="seg"><button data-cam="orbit" class="on">Maquette</button><button data-cam="walk">Visite</button></div>
+      <label>Heure <input type="range" id="hour" min="6" max="20" step="0.25" value="15"><output id="hourOut">15h00</output></label>
+      <label>Nord <input type="range" id="north" min="0" max="355" step="5" value="0"></label>
+      <button id="photoBtn" class="primary">Photo HD</button>
+    </div>
+  </section>
+  <aside id="insp" aria-label="Propriétés"></aside>
+</main>
+<div class="modal" id="elecModal" hidden>
+  <div class="ebox">
+    <div class="ehead"><h2>Tableau électrique</h2><div class="row"><button id="elecGen">Générer depuis le plan</button><button id="elecSvg">Schéma en SVG</button><button id="elecExport" class="primary">Exporter le dossier</button><button id="elecClose">Fermer</button></div></div>
+    <div id="elecBody"></div>
+  </div>
+</div>
+<div class="modal" id="packModal" hidden>
+  <div class="ebox">
+    <div class="ehead"><h2>Pack client</h2><div class="row"><button id="packExport" class="primary">Exporter le pack client</button><button id="packClose">Fermer</button></div></div>
+    <div id="packBody"></div>
+  </div>
+</div>
+<div class="modal" id="modal" hidden>
+  <div class="mbox">
+    <img id="shot" alt="Rendu 3D du projet">
+    <p>Clic droit ou appui long sur l’image pour l’enregistrer.</p>
+    <div class="row"><button id="closeModal">Fermer</button></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dist=(p,q)=>Math.hypot(p.x-q.x,p.y-q.y);
+const r5=v=>Math.round(v/0.05)*0.05;
+const r3=v=>Math.round(v*1000)/1000;
+const fmt=(v,d=2)=>(Math.round(v*Math.pow(10,d))/Math.pow(10,d)).toFixed(d).replace('.',',');
+const num=v=>parseFloat(String(v).replace(',','.'));
+
+/* ---------- Données ---------- */
+let M={walls:[],rooms:[],items:[],nets:[],eqs:[]};
+const S={thick:0.2,height:2.5,wallColor:'#EDEBE6',hour:15,north:0,ortho:true};
+let uid=1;const nid=p=>p+(uid++);
+let tool='select',sel=null,drawPts=[],cursor=null,itemType='canape',winPreset='fenetre',doorPreset='porte',clearArmed=false;
+let vmode='plan',curNet='elec',curH=3,eqArm=null,curLine=null;
+const undoStack=[];
+const OPEN={porte:{type:'door',w:.83,h:2.04,sill:0,n:'Porte intérieure'},entree:{type:'door',w:.93,h:2.15,sill:0,n:'Porte d’entrée'},fenetre:{type:'window',w:1.2,h:1.25,sill:.95,n:'Fenêtre'},pf:{type:'window',w:.9,h:2.15,sill:0,n:'Porte-fenêtre'},baie:{type:'window',w:2.4,h:2.15,sill:0,n:'Baie vitrée'},niche:{type:'niche',w:.6,h:.4,sill:1.2,depth:.1,n:'Niche murale'}};
+const FLOORS={parquet:{n:'Parquet chêne',plan:'rgba(196,146,88,.20)',r:.55,size:2.4},parquet_fonce:{n:'Parquet noyer',plan:'rgba(120,80,50,.22)',r:.5,size:2.4},carrelage:{n:'Carrelage clair 60×60',plan:'rgba(150,160,170,.16)',r:.22,size:1.2},carrelage_fonce:{n:'Carrelage anthracite',plan:'rgba(70,75,82,.22)',r:.25,size:1.2},beton:{n:'Béton ciré',plan:'rgba(140,138,132,.20)',r:.45,size:3}};
+const NETS={elec:{n:'Électricité',g:'elec',c:'#F08C00',r:.011},domo:{n:'Bus domotique',g:'domo',c:'#7C4DFF',r:.007},ef:{n:'Eau froide',g:'eau',c:'#1C7ED6',r:.01},ec:{n:'Eau chaude',g:'eau',c:'#E03131',r:.01},eu:{n:'Évacuation eaux usées',g:'eau',c:'#8B6B4A',r:.025},vs:{n:'VMC air neuf / soufflage',g:'air',c:'#15AABF',r:.07},ve:{n:'VMC extraction / rejet',g:'air',c:'#74B816',r:.07},cd:{n:'Chauffage départ',g:'chauf',c:'#C2255C',r:.011},cr:{n:'Chauffage retour',g:'chauf',c:'#F06595',r:.011}};
+const GROUPS={elec:'Électricité',domo:'Domotique',eau:'Eau',air:'Air (VMC)',chauf:'Chauffage'};
+const GCOL={elec:'#F08C00',domo:'#7C4DFF',eau:'#1C7ED6',air:'#15AABF',chauf:'#C2255C'};
+const HEIGHTS=[['Sol',.05],['Bas de mur',.3],['Mi-hauteur',1.1],['Plafond',-.12]];
+const EQ={
+ arrivee_elec:{n:'Arrivée électrique',c:'AE',g:'elec',z:0,wall:false,m:['floorbox']},
+ linky:{n:'Compteur Linky',c:'LK',g:'elec',z:1.5,wall:true,m:['box',.2,.3,.08,'#eef0e8']},
+ tableau:{n:'Tableau électrique',c:'TB',g:'elec',z:1.3,wall:true,m:['box',.55,.75,.12,'#f2f2f0']},
+ prise:{n:'Prise de courant',c:'PC',g:'elec',z:.3,wall:true,m:['plate']},
+ inter:{n:'Interrupteur',c:'I',g:'elec',z:1.1,wall:true,m:['plate']},
+ lumiere:{n:'Point lumineux',c:'PL',g:'elec',z:'ceil',wall:false,m:['ceil']},
+ applique:{n:'Applique murale',c:'AP',g:'elec',z:1.8,wall:true,m:['box',.15,.15,.08,'#f5f2e8']},
+ rj45:{n:'Prise réseau RJ45',c:'RJ',g:'elec',z:.3,wall:true,m:['plate']},
+ miniserver:{n:'Serveur domotique',c:'MS',g:'domo',z:1.3,wall:true,m:['box',.2,.12,.09,'#6fbf4a']},
+ touch:{n:'Interrupteur connecté',c:'TS',g:'domo',z:1.1,wall:true,m:['plate']},
+ detecteur:{n:'Détecteur de présence',c:'DP',g:'domo',z:'ceil',wall:false,m:['ceil']},
+ sonde:{n:'Sonde de température',c:'ST',g:'domo',z:1.5,wall:true,m:['plate']},
+ volet:{n:'Moteur de volet',c:'VR',g:'domo',z:2.2,wall:true,m:['box',.6,.12,.12,'#d0d0cc']},
+ arrivee_eau:{n:'Arrivée d’eau principale',c:'AEP',g:'eau',z:0,wall:false,m:['floorbox']},
+ compteur_eau:{n:'Compteur d’eau',c:'CE',g:'eau',z:.3,wall:false,m:['box',.25,.15,.15,'#1c7ed6']},
+ nourrice:{n:'Nourrice eau sanitaire',c:'NS',g:'eau',z:.5,wall:true,m:['manifold']},
+ ballon:{n:'Chauffe-eau',c:'BE',g:'eau',z:.3,wall:false,m:['tank']},
+ point_ef:{n:'Point d’eau froide',c:'EF',g:'eau',z:.6,wall:true,m:['tap','#1c7ed6']},
+ point_ec:{n:'Point d’eau chaude',c:'EC',g:'eau',z:.6,wall:true,m:['tap','#e03131']},
+ evac:{n:'Évacuation (siphon)',c:'EV',g:'eau',z:.15,wall:true,m:['tap','#8b6b4a']},
+ chute:{n:'Colonne de chute',c:'CH',g:'eau',z:0,wall:false,m:['column']},
+ egout:{n:'Regard tout-à-l’égout',c:'TAE',g:'eau',z:0,wall:false,m:['regard']},
+ vmc:{n:'Groupe VMC double flux',c:'VMC',g:'air',z:'ceil',wall:false,m:['box',.6,.3,.6,'#e9ecef']},
+ souffl:{n:'Bouche de soufflage',c:'BS',g:'air',z:'ceil',wall:false,m:['vent','#15aabf']},
+ extr:{n:'Bouche d’extraction',c:'BX',g:'air',z:'ceil',wall:false,m:['vent','#74b816']},
+ air_neuf:{n:'Prise d’air neuf',c:'AN',g:'air',z:2.2,wall:true,m:['grille']},
+ rejet:{n:'Rejet d’air vicié',c:'AR',g:'air',z:2.2,wall:true,m:['grille']},
+ generateur:{n:'Chaudière ou PAC',c:'GEN',g:'chauf',z:1.0,wall:true,m:['box',.45,.75,.35,'#f1f3f5']},
+ nourrice_ch:{n:'Nourrice chauffage',c:'NC',g:'chauf',z:.5,wall:true,m:['manifold']},
+ radiateur:{n:'Radiateur',c:'R',g:'chauf',z:.15,wall:true,m:['radiator']},
+ seche:{n:'Sèche-serviettes',c:'SS',g:'chauf',z:.3,wall:true,m:['towel']}
+};
+const THK=[['Cloison plâtre',.07],['Brique, 1 rang',.11],['Brique, 2 rangs',.22],['Parpaing',.2],['Mur en pierre',.5]];
+const thkList=cur=>`<h3>Composition du mur</h3><div class="list">${THK.map(([n,v])=>`<button data-act="thk" data-v="${v}" class="${Math.abs(cur-v)<.001?'on':''}">${n}<small>${fmt(v*100,0)} cm</small></button>`).join('')}</div>`;
+const WALLCOLORS=[['#EDEBE6','Blanc cassé'],['#D8D8D4','Gris perle'],['#E3D7C3','Lin'],['#B9C3AA','Sauge'],['#AFC0CC','Bleu brume'],['#C99476','Terracotta'],['#50565C','Anthracite']];
+
+function snapshot(){undoStack.push(JSON.stringify(M));if(undoStack.length>80)undoStack.shift();}
+function undo(){if(drawPts.length){drawPts=[];curLine=null;refresh();return;}const s=undoStack.pop();if(!s)return;M=JSON.parse(s);sel=null;changed();}
+function save(){try{localStorage.setItem('novara-plan-v1',JSON.stringify({M,uid,S}));}catch(e){}}
+function load(){try{const t=localStorage.getItem('novara-plan-v1');if(!t)return false;const d=JSON.parse(t);if(!d||!d.M||!Array.isArray(d.M.walls))return false;M={walls:d.M.walls,rooms:d.M.rooms||[],items:d.M.items||[],nets:d.M.nets||[],eqs:d.M.eqs||[]};uid=d.uid||5000;Object.assign(S,d.S||{});return true;}catch(e){return false;}}
+
+/* ---------- Géométrie ---------- */
+function wInfo(w){const dx=w.b.x-w.a.x,dy=w.b.y-w.a.y,L=Math.hypot(dx,dy)||1e-9,u={x:dx/L,y:dy/L};return{L,u,n:{x:-u.y,y:u.x}};}
+function proj(w,p){const{L,u}=wInfo(w),vx=p.x-w.a.x,vy=p.y-w.a.y;return{s:vx*u.x+vy*u.y,d:-vx*u.y+vy*u.x,L};}
+function addWall(a,b){M.walls.push({id:nid('w'),a:{x:r3(a.x),y:r3(a.y)},b:{x:r3(b.x),y:r3(b.y)},thick:S.thick,height:S.height,openings:[]});}
+function addWallSmart(a,b){
+  const L=dist(a,b);if(L<0.05)return;
+  const u={x:(b.x-a.x)/L,y:(b.y-a.y)/L};
+  const off=p=>Math.abs((p.x-a.x)*u.y-(p.y-a.y)*u.x),along=p=>(p.x-a.x)*u.x+(p.y-a.y)*u.y;
+  const cov=[];
+  for(const w of M.walls){if(off(w.a)<0.02&&off(w.b)<0.02){let s1=along(w.a),s2=along(w.b);if(s1>s2)[s1,s2]=[s2,s1];s1=Math.max(0,s1);s2=Math.min(L,s2);if(s2-s1>0.01)cov.push([s1,s2]);}}
+  cov.sort((x,y)=>x[0]-y[0]);
+  const pt=s=>({x:a.x+u.x*s,y:a.y+u.y*s});let cur=0;
+  for(const[s1,s2]of cov){if(s1-cur>0.05)addWall(pt(cur),pt(s1));cur=Math.max(cur,s2);}
+  if(L-cur>0.05)addWall(pt(cur),b);
+}
+function createRoom(pts){const P=pts.map(p=>({x:r3(p.x),y:r3(p.y)}));for(let i=0;i<P.length;i++)addWallSmart(P[i],P[(i+1)%P.length]);M.rooms.push({id:nid('r'),name:'Pièce '+(M.rooms.length+1),floor:'parquet',pts:P});}
+function polyArea(P){let a=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];a+=p.x*q.y-q.x*p.y;}return Math.abs(a)/2;}
+function polyPerim(P){let s=0;for(let i=0;i<P.length;i++)s+=dist(P[i],P[(i+1)%P.length]);return s;}
+function roomArea(r){return Math.max(0,polyArea(r.pts)-polyPerim(r.pts)*S.thick/2+S.thick*S.thick);}
+function centroid(P){let a=0,x=0,y=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length],c=p.x*q.y-q.x*p.y;a+=c;x+=(p.x+q.x)*c;y+=(p.y+q.y)*c;}if(Math.abs(a)<1e-9){let sx=0,sy=0;P.forEach(p=>{sx+=p.x;sy+=p.y;});return{x:sx/P.length,y:sy/P.length};}return{x:x/(3*a),y:y/(3*a)};}
+function pip(p,P){let ins=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if(((a.y>p.y)!==(b.y>p.y))&&(p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x))ins=!ins;}return ins;}
+function refsAt(pt){const out=[];const chk=o=>{if(Math.abs(o.x-pt.x)<1e-3&&Math.abs(o.y-pt.y)<1e-3)out.push(o);};M.walls.forEach(w=>{chk(w.a);chk(w.b);});M.rooms.forEach(r=>r.pts.forEach(chk));return out;}
+function bounds(){let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;const add=p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);};M.walls.forEach(w=>{add(w.a);add(w.b);});M.rooms.forEach(r=>r.pts.forEach(add));M.items.forEach(add);(M.eqs||[]).forEach(add);(M.nets||[]).forEach(l=>l.pts.forEach(add));if(!isFinite(x0)){x0=-4;y0=-3;x1=4;y1=3;}if(x1-x0<2){x0-=1;x1+=1;}if(y1-y0<2){y0-=1;y1+=1;}return{x0,y0,x1,y1,cx:(x0+x1)/2,cy:(y0+y1)/2,size:Math.max(x1-x0,y1-y0)};}
+
+/* ---------- Catalogue (dimensions en mètres) ---------- */
+let MAT={};
+function bx(g,w,h,d,x,y,z,m){const me=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);me.position.set(x,y+h/2,z);me.castShadow=true;me.receiveShadow=true;g.add(me);return me;}
+function cy(g,rt,rb,h,x,y,z,m,sz=1){const me=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,28),m);me.position.set(x,y+h/2,z);me.scale.z=sz;me.castShadow=true;me.receiveShadow=true;g.add(me);return me;}
+function sp(g,r,x,y,z,m){const me=new THREE.Mesh(new THREE.SphereGeometry(r,20,14),m);me.position.set(x,y,z);me.castShadow=true;me.receiveShadow=true;g.add(me);return me;}
+const legs=(g,w,d,h,s,m)=>{for(const x of[-1,1])for(const z of[-1,1])bx(g,s,h,s,x*(w/2-s),0,z*(d/2-s),m);};
+const CAT={
+  canape:{n:'Canapé 3 places',w:2.2,d:.9,b:g=>{legs(g,2.1,.8,.1,.05,MAT.black);bx(g,2.2,.3,.9,0,.1,0,MAT.fabric);bx(g,2.2,.48,.22,0,.4,-.34,MAT.fabric);for(const x of[-1,1]){bx(g,.2,.22,.9,x*1.0,.4,0,MAT.fabric);bx(g,.88,.13,.66,x*.45,.4,.1,MAT.fabric2);bx(g,.85,.4,.14,x*.45,.53,-.17,MAT.fabric2);}}},
+  lit:{n:'Lit double 160',w:1.6,d:2.0,b:g=>{legs(g,1.56,1.94,.08,.06,MAT.dark);bx(g,1.6,.26,2.0,0,.08,0,MAT.wood);bx(g,1.54,.22,1.94,0,.34,.02,MAT.linen);bx(g,1.7,.82,.08,0,.08,-1.0,MAT.fabric);for(const x of[-1,1])bx(g,.62,.13,.42,x*.38,.56,-.7,MAT.linen);bx(g,1.62,.07,1.4,0,.56,.3,MAT.fabric2);}},
+  chevet:{n:'Chevet',w:.45,d:.4,b:g=>{bx(g,.45,.5,.4,0,0,0,MAT.wood);cy(g,.07,.07,.02,0,.5,0,MAT.black);cy(g,.01,.01,.25,0,.52,0,MAT.black);cy(g,.09,.13,.16,0,.72,0,MAT.linen);}},
+  armoire:{n:'Armoire',w:1.2,d:.6,b:g=>{bx(g,1.2,2.2,.6,0,0,0,MAT.white);bx(g,.006,2.16,.004,0,.02,.301,MAT.black);for(const x of[-1,1])bx(g,.02,.4,.025,x*.06,.95,.31,MAT.chrome);}},
+  table:{n:'Table 6 pers.',w:1.6,d:.9,b:g=>{bx(g,1.6,.04,.9,0,.72,0,MAT.wood);legs(g,1.5,.8,.72,.06,MAT.metal);}},
+  chaise:{n:'Chaise',w:.45,d:.5,b:g=>{legs(g,.42,.42,.44,.03,MAT.metal);bx(g,.45,.04,.45,0,.44,.02,MAT.wood);bx(g,.45,.4,.03,0,.5,-.21,MAT.wood);}},
+  meubletv:{n:'Meuble TV',w:1.8,d:.4,b:g=>{legs(g,1.7,.34,.05,.04,MAT.black);bx(g,1.8,.45,.4,0,.05,0,MAT.dark);bx(g,.3,.1,.2,0,.5,-.05,MAT.black);bx(g,1.3,.75,.04,0,.6,-.05,MAT.black);}},
+  bureau:{n:'Bureau',w:1.2,d:.6,b:g=>{bx(g,1.2,.03,.6,0,.72,0,MAT.wood);legs(g,1.12,.52,.72,.04,MAT.metal);}},
+  cuisine:{n:'Cuisine linéaire',w:2.4,d:.6,b:g=>{bx(g,2.4,.1,.52,0,0,-.04,MAT.black);bx(g,2.4,.78,.58,0,.1,-.01,MAT.white);for(const x of[-.6,0,.6])bx(g,.006,.76,.004,x,.11,.282,MAT.black);bx(g,2.42,.04,.62,0,.88,0,MAT.stone);bx(g,.5,.004,.4,.6,.92,.03,MAT.chrome);bx(g,.03,.26,.03,.6,.92,-.2,MAT.chrome);bx(g,.03,.03,.16,.6,1.15,-.13,MAT.chrome);bx(g,.6,.006,.5,-.6,.92,.02,MAT.black);for(let i=0;i<4;i++)bx(g,.3,.015,.02,-.9+i*.6,.8,.29,MAT.chrome);bx(g,2.4,.7,.35,0,1.5,-.125,MAT.white);for(const x of[-.6,0,.6])bx(g,.006,.68,.004,x,1.51,.053,MAT.black);}},
+  ilot:{n:'Îlot central',w:1.8,d:.9,b:g=>{bx(g,1.7,.1,.7,0,0,-.05,MAT.black);bx(g,1.7,.78,.75,0,.1,-.05,MAT.white);bx(g,1.8,.04,.9,0,.88,0,MAT.stone);}},
+  douche:{n:'Douche 90×90',w:.9,d:.9,b:g=>{bx(g,.9,.05,.9,0,0,0,MAT.ceramic);const gl=bx(g,.6,1.95,.012,-.15,.05,.444,MAT.glass);gl.castShadow=false;bx(g,.6,.02,.02,-.15,2.0,.444,MAT.chrome);bx(g,.03,1.1,.03,0,.95,-.43,MAT.chrome);bx(g,.03,.03,.14,0,2.05,-.38,MAT.chrome);cy(g,.12,.12,.015,0,2.03,-.3,MAT.chrome);}},
+  baignoire:{n:'Baignoire',w:1.7,d:.75,b:g=>{bx(g,1.7,.15,.75,0,0,0,MAT.ceramic);for(const z of[-1,1])bx(g,1.7,.42,.08,0,.15,z*.335,MAT.ceramic);for(const x of[-1,1])bx(g,.08,.42,.59,x*.81,.15,0,MAT.ceramic);bx(g,.03,.14,.03,-.79,.57,0,MAT.chrome);}},
+  wc:{n:'WC',w:.38,d:.65,b:g=>{cy(g,.19,.15,.4,0,0,.08,MAT.ceramic,1.3);cy(g,.2,.2,.03,0,.4,.08,MAT.white,1.3);bx(g,.38,.42,.16,0,.38,-.245,MAT.ceramic);}},
+  lavabo:{n:'Meuble vasque',w:.8,d:.48,b:g=>{bx(g,.8,.5,.45,0,.35,-.015,MAT.wood);bx(g,.82,.1,.48,0,.85,0,MAT.ceramic);bx(g,.03,.18,.03,0,.95,-.17,MAT.chrome);bx(g,.03,.03,.1,0,1.1,-.12,MAT.chrome);bx(g,.7,.8,.02,0,1.15,-.23,MAT.mirror);}},
+  plante:{n:'Plante',w:.45,d:.45,b:g=>{cy(g,.2,.15,.42,0,0,0,MAT.pot);sp(g,.28,0,.78,0,MAT.leaf);sp(g,.2,.12,1.0,.05,MAT.leaf);sp(g,.19,-.1,.97,-.07,MAT.leaf);}},
+  bibli:{n:'Bibliothèque',w:1.0,d:.35,b:g=>{for(const x of[-1,1])bx(g,.02,2.0,.35,x*.49,0,0,MAT.wood);for(const y of[0,.4,.8,1.2,1.6,1.98])bx(g,.96,.02,.35,0,y,0,MAT.wood);bx(g,.96,2.0,.01,0,0,-.17,MAT.wood);const R=rng(7);const bm=[MAT.fabric,MAT.dark,MAT.linen,MAT.stone];for(const y of[.42,.82,1.22,1.62]){let x=-.45;while(x<.4){const bw=.025+R()*.03,bh=.22+R()*.12;bx(g,bw,bh,.24,x+bw/2,y,-.02,bm[Math.floor(R()*4)]);x+=bw+.004;}}}},
+  etagere:{n:'Étagères murales',w:.8,d:.25,b:g=>{for(const y of[1.0,1.35,1.7])bx(g,.8,.025,.25,0,y,0,MAT.wood);}},
+  tapis:{n:'Tapis',w:2.0,d:1.4,b:g=>{const t=bx(g,2.0,.012,1.4,0,0,0,MAT.rug);t.castShadow=false;}}
+};
+
+const EMB={canape:[0,.9],lit:[0,.92],chevet:[0,.52],armoire:[0,2.21],table:[0,.77],chaise:[0,.9],meubletv:[0,.52],bureau:[0,.76],cuisine:[0,2.16],ilot:[0,.93],douche:[0,2.06],baignoire:[0,.58],wc:[0,.83],lavabo:[.35,.96],plante:[0,1.25],bibli:[0,2.01],etagere:[.95,1.75],tapis:[0,.02]};
+/* ---------- Exemple ---------- */
+function wallAt(ax,ay,bx_,by){return M.walls.find(w=>Math.abs(w.a.x-ax)<1e-3&&Math.abs(w.a.y-ay)<1e-3&&Math.abs(w.b.x-bx_)<1e-3&&Math.abs(w.b.y-by)<1e-3);}
+function addOp(w,preset,t,side=1){if(!w)return;const p=OPEN[preset];w.openings.push({id:nid('o'),type:p.type,w:p.w,h:p.h,sill:p.sill,t,side,hinge:0});}
+function demo(){
+  M={walls:[],rooms:[],items:[],nets:[],eqs:[]};uid=1;
+  createRoom([{x:0,y:0},{x:5,y:0},{x:5,y:6},{x:0,y:6}]);M.rooms[0].name='Séjour';
+  createRoom([{x:5,y:0},{x:8.5,y:0},{x:8.5,y:3.5},{x:5,y:3.5}]);M.rooms[1].name='Chambre';
+  createRoom([{x:5,y:3.5},{x:8.5,y:3.5},{x:8.5,y:6},{x:5,y:6}]);M.rooms[2].name='Salle d’eau';M.rooms[2].floor='carrelage';
+  addOp(wallAt(0,0,5,0),'baie',2.5);
+  addOp(wallAt(5,0,5,6),'porte',2.2,1);addOp(wallAt(5,0,5,6),'porte',4.6,1);
+  addOp(wallAt(5,6,0,6),'entree',1.0,1);
+  addOp(wallAt(0,6,0,0),'fenetre',2.6);
+  addOp(wallAt(5,0,8.5,0),'fenetre',1.75);
+  const w8=wallAt(8.5,3.5,8.5,6);if(w8)w8.openings.push({id:nid('o'),type:'window',w:.6,h:.6,sill:1.45,t:1.25,side:1,hinge:0});
+  const I=(type,x,y,rot=0)=>M.items.push({id:nid('i'),type,x,y,rot});
+  I('cuisine',.4,1.4,270);I('table',2.6,2.4);I('chaise',2.2,1.75);I('chaise',3.0,1.75);I('chaise',2.2,3.05,180);I('chaise',3.0,3.05,180);
+  I('tapis',2.3,4.3);I('canape',2.3,5.35,180);I('plante',4.55,.45);I('plante',.45,5.5);
+  I('lit',6.75,1.15);I('chevet',5.65,.35);I('chevet',7.85,.35);I('armoire',8.05,2.6,90);
+  I('douche',7.9,5.4,180);I('wc',5.45,5.55,180);I('lavabo',7.0,3.85);
+  const E=(type,x,y,z,rot=0)=>M.eqs.push({id:nid('e'),type,x,y,z,rot}),N=(net,z,pts)=>M.nets.push({id:nid('n'),net,pts:pts.map(([x,y])=>({x,y,z}))});
+  E('arrivee_elec',4.75,6.4,0);E('linky',4.75,6.105,1.5,0);E('tableau',4.895,5.5,1.3,90);
+  E('prise',.105,4.4,.3,270);E('prise',.105,1.0,1.1,270);E('prise',2.0,5.895,.3,180);E('prise',5.65,.105,.3,0);E('prise',7.85,.105,.3,0);
+  E('inter',3.3,5.895,1.1,180);E('inter',5.105,1.6,1.1,270);E('lumiere',2.5,3.0,2.48);E('lumiere',6.75,1.75,2.48);E('lumiere',6.8,4.75,2.48);
+  N('elec',.05,[[4.75,6.4],[4.75,6.105]]);N('elec',2.38,[[4.75,6.105],[4.75,5.5],[4.895,5.5]]);
+  N('elec',2.38,[[4.895,5.5],[4.6,5.5],[4.6,3.0],[2.5,3.0]]);N('elec',2.38,[[4.895,5.5],[.3,5.5],[.3,4.4],[.105,4.4]]);
+  N('elec',2.38,[[4.895,5.5],[4.7,5.4],[4.7,1.0],[.105,1.0]]);N('elec',2.38,[[4.895,5.5],[4.75,5.3],[4.75,.6],[5.65,.6],[5.65,.105]]);
+  N('elec',2.38,[[5.65,.6],[7.85,.6],[7.85,.105]]);N('elec',2.38,[[4.895,5.5],[3.3,5.6],[3.3,5.895]]);N('elec',2.38,[[4.895,5.5],[2.0,5.7],[2.0,5.895]]);
+  N('elec',2.38,[[5.65,.6],[6.75,1.75]]);N('elec',2.38,[[6.75,1.75],[5.3,1.6],[5.105,1.6]]);N('elec',2.38,[[4.895,5.5],[5.3,4.75],[6.8,4.75]]);
+  E('miniserver',4.895,5.0,1.3,90);E('detecteur',1.0,1.0,2.48);E('touch',3.0,5.895,1.1,180);E('sonde',.105,5.0,1.5,270);
+  N('domo',2.36,[[4.895,5.0],[4.5,5.0],[4.5,1.0],[1.0,1.0]]);N('domo',2.36,[[4.895,5.0],[3.0,5.0],[3.0,5.895]]);N('domo',2.36,[[3.0,5.0],[.3,5.0],[.105,5.0]]);
+  E('arrivee_eau',6.0,6.6,0);E('compteur_eau',6.0,6.3,.3);E('nourrice',6.3,5.895,.5,180);E('ballon',8.05,4.0,.3);
+  E('point_ef',6.9,3.605,.6,0);E('point_ec',7.1,3.605,.6,0);E('evac',7.0,3.605,.45,0);E('point_ef',7.8,5.895,1.0,180);E('point_ec',8.0,5.895,1.0,180);
+  E('evac',7.9,5.4,.05,0);E('point_ef',5.45,5.895,.2,180);E('evac',5.6,5.895,.15,180);E('egout',7.0,6.8,0);
+  N('ef',.05,[[6.0,6.6],[6.0,6.3]]);N('ef',.05,[[6.0,6.3],[6.3,6.3],[6.3,5.895]]);N('ef',.05,[[6.3,5.895],[6.3,5.7],[6.9,5.7],[6.9,3.605]]);
+  N('ef',.05,[[6.3,5.895],[6.4,5.8],[7.8,5.8],[7.8,5.895]]);N('ef',.05,[[6.3,5.895],[6.2,5.8],[5.45,5.8],[5.45,5.895]]);N('ef',.05,[[6.3,5.895],[6.5,5.6],[8.2,5.6],[8.2,4.0],[8.05,4.0]]);
+  N('ec',.05,[[8.05,4.0],[7.1,4.0],[7.1,3.605]]);N('ec',.05,[[8.05,4.0],[8.3,4.1],[8.3,5.75],[8.0,5.75],[8.0,5.895]]);
+  N('eu',.02,[[7.9,5.4],[7.9,6.8],[7.0,6.8]]);N('eu',.02,[[5.6,5.895],[5.6,6.5],[7.0,6.5],[7.0,6.8]]);N('eu',.02,[[7.0,3.605],[7.0,6.8]]);
+  E('vmc',4.3,.7,2.3);E('air_neuf',4.3,-.105,2.2,180);E('rejet',4.6,-.105,2.2,180);E('souffl',2.5,4.5,2.48);E('souffl',7.5,2.5,2.48);E('extr',.6,1.5,2.48);E('extr',6.2,4.5,2.48);
+  N('vs',2.38,[[4.3,-.105],[4.3,.7]]);N('vs',2.38,[[4.3,.7],[3.8,.8],[3.8,4.5],[2.5,4.5]]);N('vs',2.38,[[4.3,.7],[4.4,1.1],[7.5,1.1],[7.5,2.5]]);
+  N('ve',2.38,[[4.3,.7],[4.6,.6],[4.6,-.105]]);N('ve',2.38,[[.6,1.5],[.6,.45],[4.1,.45],[4.3,.7]]);N('ve',2.38,[[6.2,4.5],[4.85,4.5],[4.85,.85],[4.3,.7]]);
+  E('generateur',4.895,3.3,1.0,90);E('radiateur',.105,3.4,.15,270);E('radiateur',8.395,1.2,.15,90);E('seche',8.395,4.6,.3,90);
+  N('cd',.06,[[4.895,3.3],[.3,3.3],[.3,3.4],[.105,3.4]]);N('cr',.06,[[.105,3.4],[.25,3.5],[4.7,3.5],[4.895,3.3]]);
+  N('cd',.06,[[4.895,3.3],[5.3,3.2],[8.2,3.2],[8.2,1.2],[8.395,1.2]]);N('cr',.06,[[8.395,1.2],[8.25,1.3],[8.25,3.3],[5.3,3.3],[4.895,3.3]]);
+  N('cd',.06,[[4.895,3.3],[5.3,3.75],[8.2,3.75],[8.2,4.6],[8.395,4.6]]);
+}
+
+/* ---------- Plan 2D ---------- */
+const cv=$('#plan');let cx=cv.getContext('2d');let dpr=1,PW=0,PH=0;
+const view={s:50,ox:40,oy:40};
+const toW=(x,y)=>({x:(x-view.ox)/view.s,y:(y-view.oy)/view.s});
+const toS=p=>({x:p.x*view.s+view.ox,y:p.y*view.s+view.oy});
+let C={};
+function readTheme(){const cs=getComputedStyle(document.documentElement);['canvas','grid','grid2','wall','ink','muted','accent','sel','panel'].forEach(k=>C[k]=cs.getPropertyValue('--'+k).trim());}
+function resizePlan(){const r=$('#planPane').getBoundingClientRect();if(r.width<2)return false;dpr=window.devicePixelRatio||1;PW=r.width;PH=r.height;cv.width=Math.round(PW*dpr);cv.height=Math.round(PH*dpr);drawPlan();return true;}
+function fitPlan(){if(!PW)return;const b=bounds();const pad=48;view.s=clamp(Math.min((PW-pad*2)/(b.x1-b.x0),(PH-pad*2-60)/(b.y1-b.y0)),8,400);view.ox=PW/2-b.cx*view.s;view.oy=PH/2+18-b.cy*view.s;drawPlan();}
+function gridLines(step,color){const x0=Math.floor(-view.ox/view.s/step)*step,y0=Math.floor(-view.oy/view.s/step)*step;cx.beginPath();for(let x=x0;x*view.s+view.ox<PW;x+=step){const X=Math.round(x*view.s+view.ox)+.5;cx.moveTo(X,0);cx.lineTo(X,PH);}for(let y=y0;y*view.s+view.oy<PH;y+=step){const Y=Math.round(y*view.s+view.oy)+.5;cx.moveTo(0,Y);cx.lineTo(PW,Y);}cx.strokeStyle=color;cx.lineWidth=1;cx.stroke();}
+function pathPoly(P){cx.beginPath();P.forEach((p,i)=>{const s=toS(p);i?cx.lineTo(s.x,s.y):cx.moveTo(s.x,s.y);});cx.closePath();}
+function pathScr(P){cx.beginPath();P.forEach((s,i)=>i?cx.lineTo(s.x,s.y):cx.moveTo(s.x,s.y));cx.closePath();}
+function line(a,b){cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke();}
+function bubble(text,x,y){cx.font='600 12px Archivo, system-ui, sans-serif';const w=cx.measureText(text).width+12;cx.fillStyle=C.accent;cx.beginPath();if(cx.roundRect)cx.roundRect(x-w/2,y-11,w,22,5);else cx.rect(x-w/2,y-11,w,22);cx.fill();cx.fillStyle='#1C252D';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(text,x,y+.5);}
+function wallPoly(w){const{u,n}=wInfo(w),t=w.thick/2,A={x:w.a.x-u.x*t,y:w.a.y-u.y*t},B={x:w.b.x+u.x*t,y:w.b.y+u.y*t};return[{x:A.x+n.x*t,y:A.y+n.y*t},{x:B.x+n.x*t,y:B.y+n.y*t},{x:B.x-n.x*t,y:B.y-n.y*t},{x:A.x-n.x*t,y:A.y-n.y*t}];}
+function drawOpening(w,o,isSel,ghost){
+  const{u,n}=wInfo(w),t=w.thick/2;const P=(s,d)=>toS({x:w.a.x+u.x*s+n.x*d,y:w.a.y+u.y*s+n.y*d});
+  const s0=o.t-o.w/2,s1=o.t+o.w/2;
+  if(o.type==='niche'){const sd=o.side||1,dp=Math.min(o.depth||.1,w.thick-.01);
+    pathScr([P(s0,sd*(t+.012)),P(s1,sd*(t+.012)),P(s1,sd*(t-dp)),P(s0,sd*(t-dp))]);cx.fillStyle=ghost?C.accent:C.canvas;cx.globalAlpha=ghost?.5:1;cx.fill();cx.globalAlpha=1;
+    cx.save();cx.strokeStyle=isSel?C.sel:C.ink;cx.lineWidth=isSel?2:1.2;if(o.sill>0)cx.setLineDash([4,3]);line(P(s0,sd*t),P(s0,sd*(t-dp)));line(P(s0,sd*(t-dp)),P(s1,sd*(t-dp)));line(P(s1,sd*(t-dp)),P(s1,sd*t));cx.restore();return;}
+  pathScr([P(s0,t+.012),P(s1,t+.012),P(s1,-t-.012),P(s0,-t-.012)]);cx.fillStyle=ghost?C.accent:C.canvas;cx.globalAlpha=ghost?.5:1;cx.fill();cx.globalAlpha=1;
+  cx.strokeStyle=isSel?C.sel:C.ink;cx.lineWidth=isSel?2:1.2;
+  line(P(s0,t),P(s0,-t));line(P(s1,t),P(s1,-t));
+  if(o.type==='window'){line(P(s0,t*.3),P(s1,t*.3));line(P(s0,-t*.3),P(s1,-t*.3));}
+  else{const hs=o.hinge?-1:1,hS=o.hinge?s1:s0,side=o.side||1;const H=P(hS,0),open=P(hS,side*o.w),closed=P(hS+hs*o.w,0);
+    line(H,open);const a0=Math.atan2(closed.y-H.y,closed.x-H.x),a1=Math.atan2(open.y-H.y,open.x-H.x);
+    cx.save();cx.setLineDash([4,3]);cx.lineWidth=1;cx.beginPath();cx.arc(H.x,H.y,o.w*view.s,a0,a1,hs*side<0);cx.stroke();cx.restore();}
+}
+function drawItem(it,isSel){
+  const c=CAT[it.type];if(!c)return;const s=toS(it);
+  cx.save();cx.translate(s.x,s.y);cx.rotate(it.rot*Math.PI/180);
+  const w=c.w*view.s,d=c.d*view.s;
+  cx.fillStyle=C.canvas;cx.globalAlpha=it.type==='tapis'?.35:.9;cx.fillRect(-w/2,-d/2,w,d);cx.globalAlpha=1;
+  cx.strokeStyle=isSel?C.sel:C.ink;cx.lineWidth=isSel?2:1;cx.strokeRect(-w/2,-d/2,w,d);
+  cx.beginPath();cx.moveTo(-w*.18,d/2-Math.min(6,d*.15));cx.lineTo(0,d/2-1);cx.lineTo(w*.18,d/2-Math.min(6,d*.15));cx.stroke();
+  if(view.s>30&&w>34){cx.fillStyle=C.muted;cx.font='500 11px Archivo, system-ui, sans-serif';cx.textAlign='center';cx.textBaseline='middle';let txt=c.n;while(cx.measureText(txt).width>w-6&&txt.length>3)txt=txt.slice(0,-2);if(txt!==c.n)txt=txt.slice(0,-1)+'…';cx.fillText(txt,0,0);}
+  cx.restore();
+}
+function findWallNear(p){let best=null,bd=Infinity;for(const w of M.walls){const pr=proj(w,p);if(pr.s<0||pr.s>pr.L)continue;const ad=Math.abs(pr.d);if(ad<=w.thick/2+14/view.s&&ad<bd){bd=ad;best={w,pr};}}return best;}
+function drawPlan(){
+  if(!PW)return;
+  cx.setTransform(dpr,0,0,dpr,0,0);cx.fillStyle=C.canvas;cx.fillRect(0,0,PW,PH);
+  const s=view.s;
+  if(s>=90)gridLines(.1,C.grid);else if(s>=25)gridLines(.5,C.grid);
+  gridLines(s>=8?1:5,C.grid2);
+  for(const r of M.rooms){if(r.pts.length<3)continue;pathPoly(r.pts);cx.fillStyle=(FLOORS[r.floor]||FLOORS.parquet).plan;cx.fill();if(sel&&sel.r===r){cx.save();cx.strokeStyle=C.sel;cx.lineWidth=2;cx.setLineDash([7,4]);cx.stroke();cx.restore();}}
+  cx.globalAlpha=showNets()?.35:1;for(const w of M.walls){pathPoly(wallPoly(w));cx.fillStyle=(sel&&sel.kind==='wall'&&sel.w===w)?C.sel:C.wall;cx.fill();}
+  cx.globalAlpha=1;
+  for(const w of M.walls)for(const o of w.openings)drawOpening(w,o,sel&&sel.o===o,false);
+  for(const it of M.items)if(vmode==='plan'&&it.type==='tapis')drawItem(it,sel&&sel.it===it);
+  for(const r of M.rooms){if(r.pts.length<3)continue;const c=toS(centroid(r.pts));cx.textAlign='center';cx.textBaseline='middle';cx.fillStyle=C.ink;cx.font='600 13px Archivo, system-ui, sans-serif';cx.fillText(r.name,c.x,c.y-8);cx.fillStyle=C.muted;cx.font='500 12px Archivo, system-ui, sans-serif';cx.fillText(fmt(roomArea(r),1)+' m²',c.x,c.y+9);}
+  if(s>=22)for(const w of M.walls){const{L,u,n}=wInfo(w);const m=toS({x:(w.a.x+w.b.x)/2,y:(w.a.y+w.b.y)/2});const off=w.thick/2*s+10;let ang=Math.atan2(u.y,u.x);if(ang>Math.PI/2)ang-=Math.PI;if(ang<=-Math.PI/2)ang+=Math.PI;cx.save();cx.translate(m.x+n.x*off,m.y+n.y*off);cx.rotate(ang);cx.font='600 11px Archivo, system-ui, sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillStyle=C.muted;cx.fillText(fmt(L),0,0);cx.restore();}
+  for(const it of M.items)if(vmode==='plan'&&it.type!=='tapis')drawItem(it,sel&&sel.it===it);
+  drawNets();
+  if(sel&&sel.kind==='wall'){for(const p of[sel.w.a,sel.w.b]){const q=toS(p);cx.fillStyle=C.canvas;cx.strokeStyle=C.sel;cx.lineWidth=2;cx.fillRect(q.x-5,q.y-5,10,10);cx.strokeRect(q.x-5,q.y-5,10,10);}}
+  if((tool==='door'||tool==='window')&&cursor){const h=findWallNear(cursor);if(h){const p=tool==='door'?OPEN[doorPreset]:OPEN[winPreset];if(h.pr.L>p.w+.1){const o={type:p.type,w:p.w,sill:p.sill,depth:Math.min(p.depth||.1,h.w.thick-.02),t:clamp(h.pr.s,p.w/2+.05,h.pr.L-p.w/2-.05),side:h.pr.d>=0?1:-1,hinge:0};drawOpening(h.w,o,true,true);}}}
+  if((tool==='wall'||tool==='room'||tool==='net')&&!(tool==='net'&&eqArm)){
+    const last=drawPts[drawPts.length-1];const q=cursor?snapPoint(cursor,last):null;
+    cx.strokeStyle=tool==='net'?NETS[curNet].c:C.accent;cx.lineWidth=3;
+    if(drawPts.length){cx.beginPath();const pts=tool==='room'?drawPts:[last];pts.forEach((p,i)=>{const s2=toS(p);i?cx.lineTo(s2.x,s2.y):cx.moveTo(s2.x,s2.y);});if(q){const s2=toS(q);cx.lineTo(s2.x,s2.y);}cx.stroke();
+      if(tool==='room'&&drawPts.length>=2&&q){cx.save();cx.setLineDash([5,5]);cx.lineWidth=1.5;line(toS(q),toS(drawPts[0]));cx.restore();}
+      cx.fillStyle=C.accent;drawPts.forEach(p=>{const s2=toS(p);cx.beginPath();cx.arc(s2.x,s2.y,4,0,Math.PI*2);cx.fill();});
+      if(q&&dist(q,last)>.01){const s2=toS(q);bubble(fmt(dist(q,last))+' m',s2.x,s2.y-22);}}
+    if(q){const s2=toS(q);cx.strokeStyle=q.snapped?C.accent:C.ink;cx.lineWidth=q.snapped?2.5:1;if(q.snapped){cx.beginPath();cx.arc(s2.x,s2.y,8,0,Math.PI*2);cx.stroke();}else{line({x:s2.x-7,y:s2.y},{x:s2.x+7,y:s2.y});line({x:s2.x,y:s2.y-7},{x:s2.x,y:s2.y+7});}}
+  }
+  if(gest&&gest.type==='rect'&&gest.b){const ra=gest.a,rb=gest.b;pathPoly([{x:ra.x,y:ra.y},{x:rb.x,y:ra.y},{x:rb.x,y:rb.y},{x:ra.x,y:rb.y}]);cx.fillStyle=C.accent;cx.globalAlpha=.15;cx.fill();cx.globalAlpha=1;cx.strokeStyle=C.accent;cx.lineWidth=3;cx.stroke();const s2=toS(rb);bubble(fmt(Math.abs(rb.x-ra.x))+' × '+fmt(Math.abs(rb.y-ra.y))+' m',s2.x,s2.y-22);}
+  const nx=PW-34,ny=PH-74,a=S.north*Math.PI/180;cx.save();cx.translate(nx,ny);cx.rotate(a);cx.fillStyle=C.ink;cx.beginPath();cx.moveTo(0,-16);cx.lineTo(7,8);cx.lineTo(0,3);cx.lineTo(-7,8);cx.closePath();cx.fill();cx.font='700 11px Archivo, system-ui, sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('N',0,-26);cx.restore();
+}
+function snapPoint(raw,from,ignore){
+  const tol=12/view.s;let best=null,bd=tol;
+  const cand=p=>{if(ignore&&ignore.has(p))return;const d=dist(raw,p);if(d<bd){bd=d;best=p;}};
+  for(const w of M.walls){cand(w.a);cand(w.b);}for(const p of drawPts)cand(p);if(showNets()){for(const e of M.eqs)if(EQ[e.type]&&netVis(EQ[e.type].g))cand(e);for(const l of M.nets)if(NETS[l.net]&&netVis(NETS[l.net].g))l.pts.forEach(cand);}
+  if(best)return{x:best.x,y:best.y,snapped:true};
+  let lockX=false,lockY=false;
+  if(from&&S.ortho){if(Math.abs(raw.x-from.x)>=Math.abs(raw.y-from.y))lockY=true;else lockX=true;}
+  return{x:lockX?from.x:r3(r5(raw.x)),y:lockY?from.y:r3(r5(raw.y)),snapped:false};
+}
+
+/* ---------- Interactions plan ---------- */
+const ptrs=new Map();let gest=null;
+const spt=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+function hitTest(p){
+  const tol=8/view.s;
+  if(showNets()){
+    for(let i=M.eqs.length-1;i>=0;i--){const e=M.eqs[i];if(!EQ[e.type]||!netVis(EQ[e.type].g))continue;if(dist(e,p)<12/view.s)return{sel:{kind:'eq',e},drag:'eq'};}
+    for(const l of M.nets){if(!NETS[l.net]||!netVis(NETS[l.net].g))continue;for(const v of l.pts)if(dist(v,p)<8/view.s)return{sel:{kind:'net',l},drag:'nv',v};}
+    for(const l of M.nets){if(!NETS[l.net]||!netVis(NETS[l.net].g))continue;for(let i=0;i<l.pts.length-1;i++)if(segDist(p,l.pts[i],l.pts[i+1])<7/view.s)return{sel:{kind:'net',l},drag:null};}
+  }
+  for(const w of M.walls)for(const k of['a','b'])if(dist(w[k],p)<tol*1.3)return{sel:{kind:'wall',w},drag:'end',pt:{x:w[k].x,y:w[k].y}};
+  for(let i=M.items.length-1;i>=0;i--){const it=M.items[i],c=CAT[it.type];if(!c||it.type==='tapis'||vmode!=='plan')continue;if(inItem(it,c,p))return{sel:{kind:'item',it},drag:'item'};}
+  for(const w of M.walls){const pr=proj(w,p);for(const o of w.openings)if(Math.abs(pr.s-o.t)<=o.w/2&&Math.abs(pr.d)<=w.thick/2+tol)return{sel:{kind:'open',w,o},drag:'open'};}
+  let best=null,bd=Infinity;for(const w of M.walls){const pr=proj(w,p);if(pr.s>=-w.thick/2&&pr.s<=pr.L+w.thick/2&&Math.abs(pr.d)<=w.thick/2+tol&&Math.abs(pr.d)<bd){bd=Math.abs(pr.d);best=w;}}
+  if(best)return{sel:{kind:'wall',w:best},drag:'wall'};
+  for(let i=M.items.length-1;i>=0;i--){const it=M.items[i];if(vmode==='plan'&&it.type==='tapis'&&inItem(it,CAT.tapis,p))return{sel:{kind:'item',it},drag:'item'};}
+  for(let i=M.rooms.length-1;i>=0;i--)if(pip(p,M.rooms[i].pts))return{sel:{kind:'room',r:M.rooms[i]},drag:null};
+  return null;
+}
+function inItem(it,c,p){const th=-it.rot*Math.PI/180,dx=p.x-it.x,dy=p.y-it.y;const lx=dx*Math.cos(th)-dy*Math.sin(th),ly=dx*Math.sin(th)+dy*Math.cos(th);return Math.abs(lx)<=c.w/2&&Math.abs(ly)<=c.d/2;}
+function onSeg(E,A,B){const dx=B.x-A.x,dy=B.y-A.y,L2=dx*dx+dy*dy;if(L2<1e-6)return false;const cr=Math.abs(dx*(E.y-A.y)-dy*(E.x-A.x))/Math.sqrt(L2),d=dx*(E.x-A.x)+dy*(E.y-A.y);return cr<1e-3&&d>1e-6&&d<L2-1e-6;}
+function pullStart(g,w){
+  const{n}=wInfo(w);g.n=n;const mov=new Set();
+  const onW=(v,E,O)=>Math.abs((v.x-E.x)*n.x+(v.y-E.y)*n.y)<1e-3&&((v.x-E.x)*(O.x-E.x)+(v.y-E.y)*(O.y-E.y))>1e-6;
+  for(const end of['a','b']){
+    const E={x:w[end].x,y:w[end].y},O=end==='a'?{x:w.b.x,y:w.b.y}:{x:w.a.x,y:w.a.y};
+    const coll=M.walls.some(o=>{if(o===w||!(dist(o.a,E)<1e-3||dist(o.b,E)<1e-3))return false;const ou=wInfo(o).u;return Math.abs(ou.x*n.x+ou.y*n.y)<1e-3;});
+    if(!coll){refsAt(E).forEach(o=>mov.add(o));continue;}
+    const m={x:E.x,y:E.y};w[end]=m;mov.add(m);
+    const cb={x:E.x,y:E.y};M.walls.push({id:nid('w'),a:{x:E.x,y:E.y},b:cb,thick:w.thick,height:w.height,openings:[]});mov.add(cb);
+    for(const r of M.rooms){const P=r.pts,N=P.length;const i=P.findIndex(v=>dist(v,E)<1e-3);
+      if(i>=0){const c={x:E.x,y:E.y};if(onW(P[(i+1)%N],E,O)){P.splice(i+1,0,c);mov.add(c);}else if(onW(P[(i-1+N)%N],E,O)){P.splice(i,0,c);mov.add(c);}}
+      else{for(let k=0;k<N;k++){const A=P[k],B=P[(k+1)%N];if(onSeg(E,A,B)){const f={x:E.x,y:E.y},c={x:E.x,y:E.y};const fwd=((O.x-E.x)*(B.x-A.x)+(O.y-E.y)*(B.y-A.y))>0;P.splice(k+1,0,...(fwd?[f,c]:[c,f]));mov.add(c);break;}}}}
+  }
+  g.refs=[...mov].map(o=>({o,x:o.x,y:o.y}));
+}
+function splitWall(w,p){const pr=proj(w,p);const s=r5(pr.s);if(s<.1||s>pr.L-.1)return false;const{u}=wInfo(w);
+  const P={x:r3(w.a.x+u.x*s),y:r3(w.a.y+u.y*s)};snapshot();
+  const w2={id:nid('w'),a:{x:P.x,y:P.y},b:w.b,thick:w.thick,height:w.height,openings:[]};w.b={x:P.x,y:P.y};
+  w2.openings=w.openings.filter(o=>o.t>s).map(o=>Object.assign(o,{t:Math.round((o.t-s)*100)/100}));w.openings=w.openings.filter(o=>!w2.openings.includes(o));
+  M.walls.push(w2);
+  for(const r of M.rooms){const R=r.pts;for(let k=0;k<R.length;k++){if(onSeg(P,R[k],R[(k+1)%R.length])){R.splice(k+1,0,{x:P.x,y:P.y});break;}}}
+  return true;}
+function cleanupGeom(){M.walls=M.walls.filter(w=>dist(w.a,w.b)>=.01);for(const r of M.rooms){if(r.pts.length>3)r.pts=r.pts.filter((p,i,A)=>dist(p,A[(i+1)%A.length])>=.01);}}
+function dragStart(g){const h=g.hit;snapshot();
+  if(h.drag==='end'){g.refs=refsAt(h.pt);g.ign=new Set(g.refs);}
+  else if(h.drag==='wall'){pullStart(g,h.sel.w);}
+  else if(h.drag==='eq'){const e=h.sel.e;g.links=[];M.nets.forEach(l=>l.pts.forEach(q=>{if(Math.abs(q.x-e.x)<1e-3&&Math.abs(q.y-e.y)<1e-3)g.links.push(q);}));}
+  else if(h.drag==='nv'){g.ign=new Set([h.v]);}
+  else if(h.drag==='item'){if(h.sel.it.emb)unembed(h.sel.it,false);g.x0=h.sel.it.x;g.y0=h.sel.it.y;}}
+function dragMove(g,p){const h=g.hit;
+  if(h.drag==='end'){const q=snapPoint(p,null,g.ign);g.refs.forEach(o=>{o.x=r3(q.x);o.y=r3(q.y);});}
+  else if(h.drag==='wall'){const k=r5((p.x-g.start.x)*g.n.x+(p.y-g.start.y)*g.n.y);g.refs.forEach(r=>{r.o.x=r3(r.x+g.n.x*k);r.o.y=r3(r.y+g.n.y*k);});}
+  else if(h.drag==='eq'){const e=h.sel.e,q=eqPos(e.type,p);e.x=q.x;e.y=q.y;e.rot=q.rot;g.links.forEach(v=>{v.x=e.x;v.y=e.y;});}
+  else if(h.drag==='nv'){const q=snapPoint(p,null,g.ign);h.v.x=r3(q.x);h.v.y=r3(q.y);}
+  else if(h.drag==='item'){const it=h.sel.it;it.x=r3(r5(g.x0+p.x-g.start.x));it.y=r3(r5(g.y0+p.y-g.start.y));}
+  else if(h.drag==='open'){const{w,o}=h.sel;const pr=proj(w,p);o.t=clamp(Math.round(pr.s*100)/100,o.w/2+.05,Math.max(o.w/2+.05,pr.L-o.w/2-.05));}
+  pending3D=true;}
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('pointerdown',e=>{
+  cv.setPointerCapture(e.pointerId);const sp_=spt(e);ptrs.set(e.pointerId,sp_);
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};gest={type:'pinch',d0:Math.hypot(a.x-b.x,a.y-b.y),s0:view.s,w0:toW(mid.x,mid.y)};return;}
+  if(ptrs.size>2)return;
+  if(e.button===1||e.button===2){gest={type:'pan',sx:sp_.x,sy:sp_.y,ox:view.ox,oy:view.oy};return;}
+  const wp=toW(sp_.x,sp_.y);
+  if(tool==='item'){const h0=hitTest(wp);if(h0&&h0.drag==='item')setTool('select');}
+  if(tool==='select'){const h=hitTest(wp);sel=h?h.sel:null;gest={type:'sel',hit:h&&h.drag?h:null,sx:sp_.x,sy:sp_.y,start:wp,moved:false,ox:view.ox,oy:view.oy};renderInspector();updateButtons();drawPlan();}
+  else if(tool==='room'&&!drawPts.length&&e.button===0){gest={type:'rect',sx:sp_.x,sy:sp_.y,a:snapPoint(wp,null),b:null,moved:false};}
+  else gest={type:'tap',sx:sp_.x,sy:sp_.y,ox:view.ox,oy:view.oy,moved:false};
+});
+cv.addEventListener('pointermove',e=>{
+  const sp_=spt(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,sp_);
+  if(gest&&gest.type==='pinch'){if(ptrs.size<2)return;const[a,b]=[...ptrs.values()];const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};view.s=clamp(gest.s0*Math.hypot(a.x-b.x,a.y-b.y)/gest.d0,5,600);view.ox=mid.x-gest.w0.x*view.s;view.oy=mid.y-gest.w0.y*view.s;drawPlan();return;}
+  if(!gest){if(e.pointerType==='mouse'){cursor=toW(sp_.x,sp_.y);if(tool!=='select')drawPlan();}return;}
+  if(gest.type==='none')return;
+  const dx=sp_.x-gest.sx,dy=sp_.y-gest.sy,far=Math.hypot(dx,dy)>6;
+  if(gest.type==='pan'){view.ox=gest.ox+dx;view.oy=gest.oy+dy;drawPlan();return;}
+  if(gest.type==='tap'){if(far)gest.moved=true;if(gest.moved){view.ox=gest.ox+dx;view.oy=gest.oy+dy;drawPlan();}return;}
+  if(gest.type==='rect'){if(far)gest.moved=true;if(gest.moved){const q=snapPoint(toW(sp_.x,sp_.y),null);gest.b={x:q.x,y:q.y};drawPlan();}return;}
+  if(gest.type==='sel'){if(!gest.moved&&!far)return;if(!gest.moved){gest.moved=true;if(gest.hit)dragStart(gest);}
+    if(gest.hit)dragMove(gest,toW(sp_.x,sp_.y));else{view.ox=gest.ox+dx;view.oy=gest.oy+dy;}drawPlan();}
+});
+function endPtr(e){
+  const had=ptrs.has(e.pointerId);ptrs.delete(e.pointerId);if(!had||!gest)return;
+  if(gest.type==='pinch'){gest=ptrs.size?{type:'none'}:null;return;}
+  if(gest.type==='none'){if(!ptrs.size)gest=null;return;}
+  if(e.type==='pointerup'){
+    if(gest.type==='tap'&&!gest.moved){const s2=spt(e);doTap(toW(s2.x,s2.y));}
+    if(gest.type==='rect'){const{a,b}=gest;if(gest.moved&&b&&Math.abs(b.x-a.x)>=.3&&Math.abs(b.y-a.y)>=.3){snapshot();createRoom([{x:a.x,y:a.y},{x:b.x,y:a.y},{x:b.x,y:b.y},{x:a.x,y:b.y}]);gest=null;changed();return;}else if(!gest.moved){const s2=spt(e);gest=null;doTap(toW(s2.x,s2.y));return;}}
+    if(gest.type==='sel'&&gest.moved&&gest.hit){cleanupGeom();changed();}
+    if(gest.type==='sel'&&!gest.moved&&gest.hit&&gest.hit.drag==='wall'){const now=performance.now(),w=gest.hit.sel.w;if(lastTap&&now-lastTap.t<400&&lastTap.w===w&&dist(lastTap.p,gest.start)<.3){lastTap=null;if(splitWall(w,gest.start)){sel=null;gest=null;changed();flash('Angle ajouté : tirez une des deux parties du mur.');return;}}else lastTap={t:now,w,p:gest.start};}
+  }
+  gest=null;drawPlan();
+}
+let lastTap=null;
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!gest){cursor=null;drawPlan();}});
+cv.addEventListener('wheel',e=>{e.preventDefault();const s2=spt(e);const w=toW(s2.x,s2.y);view.s=clamp(view.s*Math.exp(-e.deltaY*.0015),5,600);view.ox=s2.x-w.x*view.s;view.oy=s2.y-w.y*view.s;drawPlan();},{passive:false});
+cv.addEventListener('dblclick',()=>{if(drawPts.length)finishDraw();});
+
+function doTap(wp){
+  cursor=wp;
+  if(tool==='net'){if(eqArm){placeEq(eqArm,wp);return;}placePoint(snapPoint(wp,drawPts[drawPts.length-1]));return;}
+  if(tool==='wall'||tool==='room'){placePoint(snapPoint(wp,drawPts[drawPts.length-1]));return;}
+  if(tool==='door'||tool==='window'){placeOpening(wp);return;}
+  if(tool==='item'){snapshot();const it={id:nid('i'),type:itemType,x:r3(r5(wp.x)),y:r3(r5(wp.y)),rot:0};M.items.push(it);setTool('select');sel={kind:'item',it};changed();return;}
+}
+function placePoint(q){
+  q={x:r3(q.x),y:r3(q.y)};const last=drawPts[drawPts.length-1];
+  if(tool==='net'){const z=curZ();
+    if(!last)drawPts=[q];
+    else if(dist(q,last)<.02){finishDraw();return;}
+    else{snapshot();if(!curLine){curLine={id:nid('n'),net:curNet,pts:[{x:last.x,y:last.y,z}]};M.nets.push(curLine);}curLine.pts.push({x:q.x,y:q.y,z});drawPts.push(q);changed();}
+    updateHint();drawPlan();return;}
+  if(tool==='wall'){
+    if(!last)drawPts=[q];
+    else if(dist(q,last)<.02){finishDraw();return;}
+    else{snapshot();addWallSmart(last,q);drawPts.push(q);if(drawPts.length>2&&dist(q,drawPts[0])<.02)drawPts=[];changed();}
+  }else{
+    if(drawPts.length>=3&&dist(q,drawPts[0])<.02){closeRoom();return;}
+    if(last&&dist(q,last)<.02)return;
+    drawPts.push(q);
+  }
+  updateHint();drawPlan();
+}
+function closeRoom(){if(drawPts.length<3)return;snapshot();createRoom(drawPts);drawPts=[];changed();updateHint();}
+function finishDraw(){if(tool==='room'&&drawPts.length>=3){closeRoom();return;}drawPts=[];curLine=null;updateHint();drawPlan();}
+function placeOpening(wp){
+  const h=findWallNear(wp);const p=tool==='door'?OPEN[doorPreset]:OPEN[winPreset];
+  if(!h){flash('Touchez un mur pour placer l’ouverture.');return;}
+  if(h.pr.L<p.w+.1){flash('Ce mur est trop court pour cette ouverture.');return;}
+  snapshot();const o={id:nid('o'),type:p.type,w:p.w,h:p.h,sill:p.sill,t:Math.round(clamp(h.pr.s,p.w/2+.05,h.pr.L-p.w/2-.05)*100)/100,side:h.pr.d>=0?1:-1,hinge:0};
+  if(p.type==='niche')o.depth=r3(Math.min(p.depth,h.w.thick-.02));h.w.openings.push(o);changed();
+}
+let flashT=0;function flash(t){$('#hintText').textContent=t;clearTimeout(flashT);flashT=setTimeout(updateHint,2600);}
+
+/* ---------- Saisie de longueur ---------- */
+function dirFromCursor(){const last=drawPts[drawPts.length-1];if(cursor){let dx=cursor.x-last.x,dy=cursor.y-last.y;if(S.ortho){if(Math.abs(dx)>=Math.abs(dy))dy=0;else dx=0;}const L=Math.hypot(dx,dy);if(L>.01)return{x:dx/L,y:dy/L};}
+  if(drawPts.length>1){const p=drawPts[drawPts.length-2];const L=dist(p,last);return{x:(last.x-p.x)/L,y:(last.y-p.y)/L};}return{x:1,y:0};}
+function addLen(L,D){const last=drawPts[drawPts.length-1];if(!last||!(L>0))return;placePoint({x:last.x+D.x*L,y:last.y+D.y*L});}
+$('#lenIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addLen(num(e.target.value),dirFromCursor());}});
+$('#lenBox').addEventListener('click',e=>{const b=e.target.closest('[data-dir]');if(!b)return;const L=num($('#lenIn').value);if(!(L>0)){$('#lenIn').focus();flash('Tapez une longueur en mètres, puis choisissez la direction.');return;}addLen(L,{l:{x:-1,y:0},r:{x:1,y:0},u:{x:0,y:-1},d:{x:0,y:1}}[b.dataset.dir]);});
+$('#finishBtn').addEventListener('click',finishDraw);
+$('#orthoBtn').addEventListener('click',()=>{S.ortho=!S.ortho;$('#orthoBtn').classList.toggle('on',S.ortho);save();drawPlan();});
+
+/* ---------- Outils, inspecteur ---------- */
+function setTool(t){tool=t;drawPts=[];curLine=null;eqArm=null;if(t!=='select')sel=null;if(t==='net'&&!showNets())setView(NETS[curNet].g,true);if(t==='item'&&vmode!=='plan')setView('plan',true);if(t==='net'&&GROUPS[vmode]&&NETS[curNet].g!==vmode)curNet=Object.keys(NETS).find(k=>NETS[k].g===vmode);document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));cv.style.cursor=t==='select'?'default':'crosshair';updateHint();renderInspector();updateButtons();drawPlan();}
+document.getElementById('tools').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b)setTool(b.dataset.tool);});
+const HINTS={select:'Glissez un élément pour le déplacer. Tirez un mur pour l’avancer ou le reculer. Double-clic sur un mur : ajoute un angle.',room:'Glissez pour tracer une pièce rectangulaire, ou cliquez chaque angle pour une forme libre.',wall:'Cliquez pour poser chaque extrémité du mur. Double-clic ou « Terminer » pour arrêter.',door:'Cliquez sur un mur pour poser la porte, du côté où elle doit s’ouvrir.',window:'Cliquez sur un mur pour poser la fenêtre ou la niche, du côté voulu.',item:'Glissez un meuble du panneau jusqu’au plan, ou choisissez-le puis cliquez dans le plan.',net:'Choisissez un réseau puis cliquez point par point. Ou choisissez un équipement et touchez le plan.'};
+function updateHint(){
+  const drawing=(tool==='wall'||tool==='room'||tool==='net');
+  $('#hintText').textContent=drawing&&drawPts.length?(tool==='room'?'Point suivant, ou tapez une longueur. Revenez au premier point pour fermer.':'Point suivant, ou tapez une longueur puis Entrée.'):(tool==='net'&&eqArm?'Touchez le plan pour poser : '+EQ[eqArm].n+'. Touchez de nouveau la carte pour arrêter.':HINTS[tool]);
+  $('#lenBox').hidden=!(drawing&&drawPts.length);$('#finishBtn').hidden=!drawPts.length;$('#orthoBtn').hidden=!drawing;
+  $('#finishBtn').textContent=tool==='room'?'Fermer la pièce':'Terminer';
+}
+function updateButtons(){$('#delBtn').disabled=!sel;$('#undoBtn').disabled=!undoStack.length&&!drawPts.length;}
+const insp=$('#insp');
+const field=(label,key,val,unit='')=>`<label class="f"><span>${label}</span><span class="inp"><input data-f="${key}" value="${val}" ${key==='rname'?'':'inputmode="decimal"'}>${unit?`<em>${unit}</em>`:''}</span></label>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderInspector(){
+  let h='';
+  if(sel&&sel.kind==='wall'){const w=sel.w,L=wInfo(w).L;
+    h=`<h2>Mur</h2>${field('Longueur','wlen',fmt(L),'m')}${field('Épaisseur','wthick',fmt(w.thick),'m')}${field('Hauteur','wh',fmt(w.height),'m')}${thkList(w.thick)}
+    <div class="stat small"><span>Surface d’une face</span><b>${fmt(Math.max(0,L*w.height-w.openings.reduce((s,o)=>s+o.w*o.h,0)),2)} m²</b></div>
+    <p class="note">Tirez le mur pour l’avancer ou le reculer : les murs voisins s’allongent. Pour une forme en L, ajoutez un angle (double-clic sur le mur), puis tirez une des deux parties.</p><div class="row"><button data-act="split">Ajouter un angle au milieu</button><button data-act="del" class="danger">Supprimer le mur</button></div>`;}
+  else if(sel&&sel.kind==='open'&&sel.o.type==='niche'){const o=sel.o,t=sel.w.thick;
+    h=`<h2>Niche</h2>${field('Largeur','ow',fmt(o.w),'m')}${field('Hauteur','oh',fmt(o.h),'m')}${field('Hauteur du bas','osill',fmt(o.sill),'m')}${field('Profondeur','odepth',fmt(o.depth||.1),'m')}${field('Distance de l’angle','opos',fmt(o.t-o.w/2),'m')}
+    <p class="note">Mur de ${fmt(t*100,0)} cm : profondeur maximale ${fmt((t-.02)*100,0)} cm.${o.item?' Cette niche accueille un meuble encastré.':''} Dans un mur porteur, prévoir un linteau au-dessus.</p>
+    <div class="row"><button data-act="flipside">Passer de l’autre côté du mur</button><button data-act="del" class="danger">Supprimer</button></div>`;}
+  else if(sel&&sel.kind==='open'){const o=sel.o,isD=o.type==='door';
+    h=`<h2>${isD?'Porte':(o.sill===0?'Porte-fenêtre':'Fenêtre')}</h2>${field('Largeur','ow',fmt(o.w),'m')}${field('Hauteur','oh',fmt(o.h),'m')}${isD?'':field('Allège','osill',fmt(o.sill),'m')}${field('Distance de l’angle','opos',fmt(o.t-o.w/2),'m')}
+    ${isD?'<div class="row"><button data-act="flipside">Ouvrir de l’autre côté</button><button data-act="fliphinge">Inverser la charnière</button></div>':''}
+    <div class="row"><button data-act="del" class="danger">Supprimer</button></div>`;}
+  else if(sel&&sel.kind==='room'){const r=sel.r;
+    h=`<h2>Pièce</h2>${field('Nom','rname',esc(r.name))}<div class="stat"><span>Surface habitable</span><b>${fmt(roomArea(r),2)} m²</b></div><div class="stat small"><span>Périmètre</span><b>${fmt(polyPerim(r.pts),2)} m</b></div>
+    <h3>Revêtement de sol</h3><div class="list">${Object.entries(FLOORS).map(([k,f])=>`<button data-act="floor" data-v="${k}" class="${r.floor===k?'on':''}">${f.n}</button>`).join('')}</div>
+    <div class="row"><button data-act="del" class="danger">Supprimer la pièce</button></div><p class="note">Supprimer la pièce retire le sol. Les murs restent.</p>`;}
+  else if(sel&&sel.kind==='eq'){const e=sel.e,d=EQ[e.type];
+    h=`<h2>${d.n}</h2><div class="stat small"><span>Réseau</span><b>${GROUPS[d.g]}</b></div>${field('Hauteur','ez',fmt(e.z),'m')}<p class="note">Glissez le symbole pour le déplacer : les lignes reliées suivent.</p><div class="row"><button data-act="del" class="danger">Supprimer</button></div>`;}
+  else if(sel&&sel.kind==='net'){const l=sel.l,d=NETS[l.net];
+    h=`<h2>${d.n}</h2><div class="stat"><span>Longueur, descentes comprises</span><b>${fmt(netLen(l),2)} m</b></div>${field('Hauteur de passage','lz',fmt(l.pts[0].z),'m')}
+    <h3>Changer de réseau</h3><div class="list">${Object.entries(NETS).filter(([,x])=>x.g===d.g).map(([k,x])=>`<button data-act="lnet" data-v="${k}" class="${l.net===k?'on':''}"><span class="dot" style="background:${x.c}"></span>${x.n}</button>`).join('')}</div>
+    <p class="note">Glissez un point carré pour modifier le tracé.</p><div class="row"><button data-act="del" class="danger">Supprimer la ligne</button></div>`;}
+  else if(sel&&sel.kind==='item'){const it=sel.it,c=CAT[it.type];
+    h=`<h2>${c.n}</h2><div class="stat small"><span>Encombrement</span><b>${fmt(c.w)} × ${fmt(c.d)} m</b></div>${field('Position X','ix',fmt(it.x),'m')}${field('Position Y','iy',fmt(it.y),'m')}
+    <h3>Rotation (${it.rot}°)</h3><div class="row"><button data-act="rot" data-v="-90">−90°</button><button data-act="rot" data-v="90">+90°</button><button data-act="rot" data-v="15">+15°</button></div>
+    <h3>Encastrement</h3>${it.emb?`<p class="note">${it.emb.mode==='demi'?'Demi-encastré':'Encastré'} dans le mur.</p><div class="row"><button data-act="unembed">Sortir du mur</button></div>`:`<div class="row"><button data-act="embed" data-v="demi">Demi-encastrer</button><button data-act="embed" data-v="complet">Encastrer complètement</button></div><p class="note">Placez d’abord le dos du meuble contre le mur.</p>`}
+    <div class="row"><button data-act="dup">Dupliquer</button><button data-act="del" class="danger">Supprimer</button></div>`;}
+  else if(tool==='wall'||tool==='room'){
+    h=`<h2>${tool==='room'?'Nouvelle pièce':'Nouveau mur'}</h2>${field('Épaisseur','defthick',fmt(S.thick),'m')}${field('Hauteur','defh',fmt(S.height),'m')}${thkList(S.thick)}
+    <p class="note">${tool==='room'?'La pièce crée ses murs et son sol. Un mur déjà présent n’est pas doublé.':'Les points s’accrochent aux angles existants (cercle jaune).'}</p><p class="note">Pour une cote exacte : posez le premier point, tapez la longueur, puis une flèche.</p>`;}
+  else if(tool==='door'||tool==='window'){const keys=tool==='door'?['porte','entree']:['fenetre','pf','baie','niche'];const cur=tool==='door'?doorPreset:winPreset;
+    h=`<h2>${tool==='door'?'Portes':'Fenêtres, baies et niches'}</h2><div class="list">${keys.map(k=>`<button data-act="preset" data-v="${k}" class="${cur===k?'on':''}">${OPEN[k].n}<small>${fmt(OPEN[k].w)} × ${fmt(OPEN[k].h)} m</small></button>`).join('')}</div><p class="note">Les dimensions se règlent ensuite en touchant l’ouverture.</p>`;}
+  else if(tool==='net'){const gs=vmode==='all'?Object.keys(GROUPS):[vmode];
+    h=`<h2>Réseaux</h2><h3>Tracer une ligne</h3><div class="list">${Object.entries(NETS).map(([k,d])=>`<button data-act="net" data-v="${k}" class="${!eqArm&&curNet===k?'on':''}"><span class="dot" style="background:${d.c}"></span>${d.n}</button>`).join('')}</div>
+    <h3>Hauteur de passage</h3><div class="list">${HEIGHTS.map(([n,v],i)=>`<button data-act="nh" data-v="${i}" class="${curH===i?'on':''}">${n}<small>${fmt(v<0?S.height+v:v)} m</small></button>`).join('')}</div>
+    <p class="note">Une ligne qui touche un équipement descend ou monte toute seule jusqu’à lui.</p>
+    ${gs.map(g=>`<h3>Équipements : ${GROUPS[g]}</h3><div class="list">${Object.entries(EQ).filter(([,d])=>d.g===g).map(([k,d])=>`<button data-act="eq" data-v="${k}" class="${eqArm===k?'on':''}">${d.n}<small>${d.c}</small></button>`).join('')}</div>`).join('')}`;}
+  else if(tool==='item'){
+    h=`<h2>Meubles</h2><div class="list">${Object.entries(CAT).map(([k,c])=>`<button data-act="cat" data-v="${k}" class="${itemType===k?'on':''}">${c.n}<small>${fmt(c.w)} × ${fmt(c.d)} m</small></button>`).join('')}</div>`;}
+  else{
+    const tot=M.rooms.reduce((s,r)=>s+roomArea(r),0),lin=M.walls.reduce((s,w)=>s+wInfo(w).L,0),wallS=M.walls.reduce((s,w)=>s+Math.max(0,wInfo(w).L*w.height-w.openings.reduce((a,o)=>a+o.w*o.h,0)),0);
+    h=`<h2>Projet</h2><div class="stat"><span>Surface habitable</span><b>${fmt(tot,1)} m²</b></div>
+    ${M.rooms.map(r=>`<div class="stat small"><span>${esc(r.name)}</span><b>${fmt(roomArea(r),1)} m²</b></div>`).join('')}
+    <div class="stat small"><span>Longueur de murs</span><b>${fmt(lin,1)} m</b></div><div class="stat small"><span>Murs, une face, ouvertures déduites</span><b>${fmt(wallS,1)} m²</b></div>
+${metreHTML()}
+    <h3>Couleur des murs</h3><div class="sw">${WALLCOLORS.map(([c,n])=>`<button data-act="wallcolor" data-v="${c}" title="${n}" aria-label="${n}" class="${S.wallColor===c?'cur':''}" style="background:${c}"></button>`).join('')}</div>
+    <h3>Murs neufs</h3>${field('Épaisseur','defthick',fmt(S.thick),'m')}${field('Hauteur sous plafond','defh',fmt(S.height),'m')}<div class="row"><button data-act="applyh">Appliquer la hauteur à tous les murs</button></div>
+    <h3>Fichier</h3><div class="row"><button data-act="demo">Charger l’exemple</button><button data-act="clear" class="danger">${clearArmed?'Confirmer : tout effacer':'Nouveau projet'}</button></div>
+    <p class="note">Le projet s’enregistre tout seul dans ce navigateur.</p>`;}
+  insp.innerHTML=h;
+}
+insp.addEventListener('change',e=>{const k=e.target.dataset.f;if(!k)return;const raw=e.target.value,v=num(raw);
+  if(k==='rname'&&sel&&sel.r){snapshot();sel.r.name=raw.trim()||sel.r.name;changed();return;}
+  if(!(v>=0)){renderInspector();return;}
+  if(k==='defthick'){S.thick=clamp(v,.05,.6);save();renderInspector();return;}
+  if(k==='defh'){S.height=clamp(v,1.8,6);save();renderInspector();return;}
+  snapshot();
+  if(sel&&sel.kind==='wall'){const w=sel.w;
+    if(k==='wlen'&&v>.1){const{u}=wInfo(w);const nb={x:r3(w.a.x+u.x*v),y:r3(w.a.y+u.y*v)};refsAt(w.b).forEach(o=>{o.x=nb.x;o.y=nb.y;});}
+    if(k==='wthick')w.thick=clamp(v,.05,.8);if(k==='wh')w.height=clamp(v,.3,8);}
+  else if(sel&&sel.kind==='open'){const o=sel.o,L=wInfo(sel.w).L;
+    if(k==='ow')o.w=clamp(v,.3,L-.1);if(k==='oh')o.h=clamp(v,.2,sel.w.height-(o.type!=='door'?o.sill:0));if(k==='osill')o.sill=clamp(v,0,sel.w.height-o.h);if(k==='opos')o.t=v+o.w/2;if(k==='odepth')o.depth=clamp(v,.01,sel.w.thick-.02);
+    o.t=clamp(o.t,o.w/2+.05,Math.max(o.w/2+.05,L-o.w/2-.05));}
+  else if(sel&&sel.kind==='eq'){if(k==='ez')sel.e.z=clamp(v,0,8);}
+  else if(sel&&sel.kind==='net'){if(k==='lz')sel.l.pts.forEach(q=>{q.z=clamp(v,0,8);});}
+  else if(sel&&sel.kind==='item'){if(sel.it.emb)unembed(sel.it,false);if(k==='ix')sel.it.x=r3(v);if(k==='iy')sel.it.y=r3(v);}
+  changed();});
+insp.addEventListener('click',e=>{if(ignoreClick)return;const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,v=b.dataset.v;
+  if(a!=='clear')clearArmed=false;
+  if(a==='del')return deleteSel();
+  if(a==='split'){const w=sel.w;if(splitWall(w,{x:(w.a.x+w.b.x)/2,y:(w.a.y+w.b.y)/2})){sel=null;changed();flash('Angle ajouté : tirez une des deux parties du mur.');}return;}
+  if(a==='floor'){snapshot();sel.r.floor=v;return changed();}
+  if(a==='rot'){snapshot();if(sel.it.emb)unembed(sel.it,true);sel.it.rot=((sel.it.rot+Number(v))%360+360)%360;return changed();}
+  if(a==='net'){curNet=v;eqArm=null;drawPts=[];curLine=null;if(vmode!=='all'&&vmode!==NETS[v].g)setView(NETS[v].g,true);pending3D=true;updateHint();renderInspector();return drawPlan();}
+  if(a==='nh'){curH=Number(v);return renderInspector();}
+  if(a==='eq'){eqArm=eqArm===v?null:v;drawPts=[];curLine=null;updateHint();renderInspector();return drawPlan();}
+  if(a==='lnet'){snapshot();sel.l.net=v;return changed();}
+  if(a==='embed'){snapshot();const msg=embed(sel.it,v);changed();if(msg)flash(msg);return;}
+  if(a==='unembed'){snapshot();unembed(sel.it,true);return changed();}
+  if(a==='thk'){const v2=Number(v);if(sel&&sel.kind==='wall'){snapshot();sel.w.thick=v2;sel.w.openings.forEach(o=>{if(o.type==='niche')o.depth=Math.min(o.depth,v2-.02);});return changed();}S.thick=v2;save();return renderInspector();}
+  if(a==='dup'){snapshot();const it=Object.assign({},sel.it,{id:nid('i'),x:r3(sel.it.x+.3),y:r3(sel.it.y+.3)});delete it.emb;M.items.push(it);sel={kind:'item',it};return changed();}
+  if(a==='flipside'){snapshot();sel.o.side=-(sel.o.side||1);return changed();}
+  if(a==='fliphinge'){snapshot();sel.o.hinge=sel.o.hinge?0:1;return changed();}
+  if(a==='wallcolor'){S.wallColor=v;if(MAT.paint){MAT.paint.color.copy(col(v));needRender=true;}save();return renderInspector();}
+  if(a==='applyh'){snapshot();M.walls.forEach(w=>w.height=S.height);return changed();}
+  if(a==='demo'){snapshot();demo();sel=null;changed();fitPlan();fit3D();return;}
+  if(a==='clear'){if(!clearArmed){clearArmed=true;return renderInspector();}clearArmed=false;snapshot();const kp=M.pack?M.pack.company:'',ke=M.elec?{abo:M.elec.abo,phase:M.elec.phase}:null;M={walls:[],rooms:[],items:[],nets:[],eqs:[]};if(kp)PK().company=kp;if(ke)Object.assign(EL(),ke);sel=null;changed();return;}
+  if(a==='cat'){itemType=v;return renderInspector();}
+  if(a==='preset'){if(tool==='door')doorPreset=v;else winPreset=v;renderInspector();drawPlan();}
+});
+let catDrag=null,ghost=null,ignoreClick=false;
+insp.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-act="cat"],[data-act="eq"]');if(!b)return;catDrag={kind:b.dataset.act,type:b.dataset.v,x:e.clientX,y:e.clientY,on:false};});
+document.addEventListener('pointermove',e=>{if(!catDrag)return;if(!catDrag.on){if(Math.hypot(e.clientX-catDrag.x,e.clientY-catDrag.y)<8)return;catDrag.on=true;ghost=document.createElement('div');ghost.className='ghost';ghost.textContent=(catDrag.kind==='eq'?EQ:CAT)[catDrag.type].n;document.body.appendChild(ghost);}ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';});
+function catDrop(e){if(!catDrag)return;const d=catDrag;catDrag=null;if(!d.on)return;if(ghost){ghost.remove();ghost=null;}ignoreClick=true;setTimeout(()=>{ignoreClick=false;},80);if(e.type!=='pointerup')return;
+  const r=cv.getBoundingClientRect();if(r.width>0&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){const wp=toW(e.clientX-r.left,e.clientY-r.top);if(d.kind==='eq'){const e2=placeEq(d.type,wp);setTool('select');sel={kind:'eq',e:e2};refresh();return;}snapshot();itemType=d.type;const it={id:nid('i'),type:d.type,x:r3(r5(wp.x)),y:r3(r5(wp.y)),rot:0};M.items.push(it);setTool('select');sel={kind:'item',it};changed();}}
+document.addEventListener('pointerup',catDrop);document.addEventListener('pointercancel',catDrop);
+function showNets(){return vmode!=='plan'&&vmode!=='vide';}
+function netVis(g){return showNets()&&(vmode==='all'||vmode===g);}
+function curZ(){const v=HEIGHTS[curH][1];return v<0?r3(S.height+v):v;}
+function segDist(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy;const t=L2?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/L2,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);}
+function eqAt(p){return M.eqs.find(e=>Math.abs(e.x-p.x)<1e-3&&Math.abs(e.y-p.y)<1e-3);}
+function netLen(l){let s=0;for(let i=0;i<l.pts.length-1;i++){const a=l.pts[i],b=l.pts[i+1];s+=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);}for(const q of l.pts){const e=eqAt(q);if(e)s+=Math.abs(e.z-q.z);}return s;}
+function eqPos(type,wp){const d=EQ[type];let x=r3(r5(wp.x)),y=r3(r5(wp.y)),rot=0;
+  if(d&&d.wall){let best=null;for(const w of M.walls){const pr=proj(w,wp);if(pr.s<0||pr.s>pr.L)continue;const ad=Math.abs(pr.d);if(ad<=w.thick/2+.5&&(!best||ad<best.ad))best={w,pr,ad};}
+    if(best){const{w,pr}=best,{u,n}=wInfo(w),side=pr.d>=0?1:-1,s=clamp(r5(pr.s),0,pr.L),off=side*(w.thick/2+.005);x=r3(w.a.x+u.x*s+n.x*off);y=r3(w.a.y+u.y*s+n.y*off);rot=Math.round(((Math.atan2(-side*n.x,side*n.y)*180/Math.PI)%360+360)%360);}}
+  return{x,y,rot};}
+function placeEq(type,wp){const d=EQ[type],q=eqPos(type,wp),z=d.z==='ceil'?r3(S.height-(type==='vmc'?.2:.02)):d.z;snapshot();const e={id:nid('e'),type,x:q.x,y:q.y,z,rot:q.rot};M.eqs.push(e);changed();return e;}
+function setView(v,quiet){vmode=v;if(GROUPS[v]&&NETS[curNet].g!==v){curNet=Object.keys(NETS).find(k=>NETS[k].g===v);curLine=null;drawPts=[];}const s2=$('#viewSel');if(s2)s2.value=v;
+  if(sel&&sel.kind==='item'&&v!=='plan')sel=null;if(sel&&(sel.kind==='eq'||sel.kind==='net')&&!showNets())sel=null;
+  if((tool==='item'&&v!=='plan')||(tool==='net'&&!showNets())){tool='select';drawPts=[];curLine=null;eqArm=null;document.querySelectorAll('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.tool==='select'));}
+  pending3D=true;if(!quiet)refresh();}
+function metreHTML(){const nt={},ec={};M.nets.forEach(l=>{nt[l.net]=(nt[l.net]||0)+netLen(l);});M.eqs.forEach(e=>{ec[e.type]=(ec[e.type]||0)+1;});
+  return (Object.keys(nt).length?`<h3>Métré des réseaux</h3>${Object.entries(nt).filter(([k])=>NETS[k]).map(([k,v])=>`<div class="stat small"><span><span class="dot" style="background:${NETS[k].c}"></span>${NETS[k].n}</span><b>${fmt(v,1)} m</b></div>`).join('')}`:'')
+   +(Object.keys(ec).length?`<h3>Équipements</h3>${Object.entries(ec).filter(([k])=>EQ[k]).map(([k,v])=>`<div class="stat small"><span>${EQ[k].n}</span><b>${v}</b></div>`).join('')}`:'');}
+function drawNets(){if(!showNets())return;
+  cx.lineJoin='round';cx.lineCap='round';
+  for(const l of M.nets){const d=NETS[l.net];if(!d||!netVis(d.g)||l.pts.length<2)continue;const lw=l.net==='eu'?5:(d.g==='air'?8:3);
+    cx.beginPath();l.pts.forEach((q,i)=>{const s2=toS(q);i?cx.lineTo(s2.x,s2.y):cx.moveTo(s2.x,s2.y);});
+    if(sel&&sel.l===l){cx.strokeStyle=C.sel;cx.lineWidth=lw+5;cx.stroke();}
+    cx.strokeStyle=d.c;cx.lineWidth=lw;cx.globalAlpha=d.g==='air'?.7:1;cx.stroke();cx.globalAlpha=1;
+    if(sel&&sel.l===l)l.pts.forEach(q=>{const s2=toS(q);cx.fillStyle=C.canvas;cx.strokeStyle=C.sel;cx.lineWidth=2;cx.fillRect(s2.x-4,s2.y-4,8,8);cx.strokeRect(s2.x-4,s2.y-4,8,8);});}
+  cx.lineCap='butt';cx.lineJoin='miter';
+  for(const e of M.eqs){const d=EQ[e.type];if(!d||!netVis(d.g))continue;const s2=toS(e),on=sel&&sel.e===e;cx.beginPath();cx.arc(s2.x,s2.y,11,0,Math.PI*2);cx.fillStyle=GCOL[d.g];cx.fill();cx.lineWidth=on?3:1.5;cx.strokeStyle=on?C.sel:C.canvas;cx.stroke();
+    cx.fillStyle='#fff';cx.font=`700 ${d.c.length>2?8:9}px Archivo, system-ui, sans-serif`;cx.textAlign='center';cx.textBaseline='middle';cx.fillText(d.c,s2.x,s2.y+.5);}
+  const keys=Object.keys(NETS).filter(k=>netVis(NETS[k].g));if(!keys.length)return;
+  const rh=18,bw=200,bh=keys.length*rh+12,x0=10,y0=PH-bh-10;cx.fillStyle=C.panel;cx.fillRect(x0,y0,bw,bh);cx.strokeStyle=C.grid2;cx.lineWidth=1;cx.strokeRect(x0+.5,y0+.5,bw,bh);
+  keys.forEach((k,i)=>{const y=y0+15+i*rh;cx.strokeStyle=NETS[k].c;cx.lineWidth=4;line({x:x0+10,y},{x:x0+32,y});cx.fillStyle=C.ink;cx.font='500 12px Archivo, system-ui, sans-serif';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(NETS[k].n,x0+40,y);});}
+/* ---------- Tableau électrique ---------- */
+const CIRC={
+ eclairage:{n:'Éclairage',sec:1.5,cal:16,max:8,unit:'points'},
+ prises16:{n:'Prises 16 A',sec:1.5,cal:16,max:8,unit:'prises'},
+ prises20:{n:'Prises 20 A',sec:2.5,cal:20,max:12,unit:'prises'},
+ cuisson:{n:'Plaque de cuisson',sec:6,cal:32,typ:'A'},
+ four:{n:'Four',sec:2.5,cal:20},
+ lavelinge:{n:'Lave-linge',sec:2.5,cal:20,typ:'A'},
+ lavevaisselle:{n:'Lave-vaisselle',sec:2.5,cal:20},
+ sechelinge:{n:'Sèche-linge',sec:2.5,cal:20},
+ congel:{n:'Congélateur',sec:2.5,cal:20},
+ chauffeeau:{n:'Chauffe-eau',sec:2.5,cal:20},
+ chauffage:{n:'Chauffage électrique (3 500 W max.)',sec:1.5,cal:16},
+ vmc:{n:'VMC',sec:1.5,cal:2},
+ volets:{n:'Volets roulants',sec:1.5,cal:16},
+ pac:{n:'Pompe à chaleur ou chaudière',sec:2.5,cal:20,typ:'F',note:'calibre et section selon la notice du fabricant ; type F exigé pour une PAC à variateur'},
+ irve:{n:'Borne de recharge véhicule',sec:6,cal:32,typ:'A',note:'section selon la puissance de la borne et la longueur'},
+ domotique:{n:'Alimentation domotique',sec:1.5,cal:2},
+ multimedia:{n:'Coffret de communication',sec:1.5,cal:16},
+ prisetab:{n:'Prise de tableau',sec:1.5,cal:16},
+ autre:{n:'Autre circuit',sec:1.5,cal:16}
+};
+const CALS=[2,10,16,20,25,32,40],SECS=[1.5,2.5,4,6,10],ABO={3:15,6:30,9:45,12:60};
+const fmtS=v=>String(v).replace('.',',');
+const ABO_T={6:10,9:15,12:20,15:25,18:30,24:40,30:50,36:60};
+function aboList(){return EL().phase==='tri'?[6,9,12,15,18,24,30,36]:[3,6,9,12];}
+function aboCal(){const E=EL();return (E.phase==='tri'?ABO_T:ABO)[E.abo]||'?';}
+const PWR={eclairage:400,prises16:1500,prises20:1800,cuisson:5000,four:2500,lavelinge:2200,lavevaisselle:2000,sechelinge:2500,congel:300,chauffeeau:2400,chauffage:2000,vmc:100,volets:300,pac:3000,irve:7400,domotique:50,multimedia:100,prisetab:200,autre:1000};
+const TRIOK=['cuisson','pac','irve','chauffage','chauffeeau','autre'];
+function phaseLoads(){const L=[0,0,0];EL().circuits.forEach(c=>{const w=PWR[c.kind]||0;if(c.tri){L[0]+=w/3;L[1]+=w/3;L[2]+=w/3;}else L[(c.ph||1)-1]+=w;});return L;}
+function balancePhases(){const L=[0,0,0];EL().circuits.filter(c=>c.tri).forEach(c=>{const w=(PWR[c.kind]||0)/3;L[0]+=w;L[1]+=w;L[2]+=w;});[...EL().circuits].filter(c=>!c.tri).sort((a,b)=>(PWR[b.kind]||0)-(PWR[a.kind]||0)).forEach(c=>{const i=L.indexOf(Math.min(...L));c.ph=i+1;L[i]+=PWR[c.kind]||0;});}
+function phLabel(c){return c.tri?'Triphasé':'L'+(c.ph||1);}
+function cabG(c){return (EL().phase==='tri'&&c.tri?'5G':'3G')+fmtS(c.sec);}
+const maxCal=s2=>({1.5:16,2.5:20,4:25,6:32,10:40}[s2]||16);
+function EL(){if(!M.elec)M.elec={abo:9,parafoudre:false,delesteur:false,horloge:false,hc:true,prisetab:true,rcds:[],circuits:[]};if(!M.elec.phase)M.elec.phase='mono';return M.elec;}
+function ordered(){const E=EL(),out=[];E.rcds.forEach(r=>E.circuits.filter(c=>c.rcd===r.id).forEach(c=>out.push(c)));E.circuits.filter(c=>!out.includes(c)).forEach(c=>out.push(c));return out;}
+function rcdName(id){const E=EL(),i=E.rcds.findIndex(r=>r.id===id);return i<0?'—':`ID ${i+1} (type ${E.rcds[i].typ})`;}
+function addCirc(kind,name,pts){const E=EL(),k=CIRC[kind],c={id:nid('c'),kind,name,pts:pts!=null?pts:(k.max?0:null),cal:k.cal,sec:k.sec,rcd:null,ph:1,tri:false};if(E.phase==='tri'){const L=phaseLoads();c.ph=L.indexOf(Math.min(...L))+1;}E.circuits.push(c);
+  const cnt=r=>E.circuits.filter(x=>x.rcd===r.id).length;
+  const ok=E.rcds.filter(r=>(k.typ==='F'?r.typ==='F':k.typ==='A'?r.typ!=='AC':true)&&cnt(r)<8).sort((a,b)=>cnt(a)-cnt(b));if(ok.length)c.rcd=ok[0].id;return c;}
+function autoRCD(){const E=EL(),C=E.circuits;E.rcds=[];C.forEach(c=>{c.rcd=null;});
+  const surf=M.rooms.reduce((t,r)=>t+roomArea(r),0),cal=E.abo>=12?63:40;
+  const mk=t=>{const r={id:nid('d'),typ:t,cal};E.rcds.push(r);return r;};
+  const put=(list,t)=>{for(let i=0;i<list.length;i+=8){const r=mk(t);list.slice(i,i+8).forEach(c=>{c.rcd=r.id;});}};
+  put(C.filter(c=>CIRC[c.kind].typ==='A'),'A');put(C.filter(c=>CIRC[c.kind].typ==='F'),'F');
+  const rest=C.filter(c=>!CIRC[c.kind].typ);if(!rest.length)return;
+  let n=Math.max(Math.ceil(rest.length/8),surf<=35?1:surf<=100?2:3);if(E.rcds.length+n<2)n=2-E.rcds.length;
+  const acs=[];for(let i=0;i<n;i++)acs.push(mk('AC'));
+  const rk=c=>c.kind==='eclairage'?0:c.kind.startsWith('prises')?1:2,cnt=r=>C.filter(c=>c.rcd===r.id).length;
+  let i=0;[...rest].sort((a,b)=>rk(a)-rk(b)).forEach(c=>{let k=0;while(cnt(acs[i%n])>=8&&k<n){i++;k++;}c.rcd=acs[i%n].id;i++;});}
+function genCircuits(){const E=EL();E.circuits=[];E.rcds=[];
+  const room=p=>{const r=M.rooms.find(r=>pip(p,r.pts));return r?r.name:'Extérieur';};
+  const group=(types,kind,max,label)=>{const m={};M.eqs.filter(e=>types.includes(e.type)).forEach(e=>{const r=room(e);m[r]=(m[r]||0)+1;});let cur=null;
+    for(const[r,n0]of Object.entries(m)){let n=n0;while(n>0){if(!cur||cur.pts>=max){cur=addCirc(kind,label+' '+r,0);cur._r=[r];}else if(!cur._r.includes(r)){cur._r.push(r);cur.name+=', '+r;}const take=Math.min(n,max-cur.pts);cur.pts+=take;n-=take;}}
+    E.circuits.forEach(c=>{delete c._r;});};
+  group(['lumiere','applique'],'eclairage',8,'Éclairage');group(['prise'],'prises20',12,'Prises');
+  addCirc('cuisson','Plaque de cuisson');addCirc('four','Four');addCirc('lavevaisselle','Lave-vaisselle');addCirc('lavelinge','Lave-linge');
+  const has=t=>M.eqs.some(e=>e.type===t);
+  if(has('ballon'))addCirc('chauffeeau','Chauffe-eau');if(has('vmc'))addCirc('vmc','VMC double flux');if(has('volet'))addCirc('volets','Volets roulants');
+  if(has('miniserver'))addCirc('domotique','Serveur domotique');if(has('generateur'))addCirc('pac','Chaudière ou PAC');if(has('rj45'))addCirc('multimedia','Coffret de communication');
+  if(E.prisetab)addCirc('prisetab','Prise de tableau');
+  autoRCD();balancePhases();}
+function layout(){const E=EL(),O=ordered(),tri=E.phase==='tri',rows=[];let cur=null;
+  const wd=r=>r.items.reduce((a,b)=>a+b.w,0),newRow=()=>{cur={items:[]};rows.push(cur);},put=it=>{if(!cur||wd(cur)+it.w>13)newRow();cur.items.push(it);};
+  const head=[];if(E.parafoudre){head.push({t:'pf',w:tri?4:2,a:'PF',b:'Parafoudre'});head.push({t:'dj',w:tri?4:1,a:'P',b:'Prot.',c:'PF'});}
+  if(E.delesteur)head.push({t:'aux',w:2,a:'DEL',b:'Délesteur'});if(E.horloge)head.push({t:'aux',w:1,a:'HOR',b:'Horloge'});
+  if(head.length){newRow();head.forEach(put);}
+  E.rcds.forEach((r,i)=>{newRow();put({t:'id',w:tri?4:2,a:`ID ${i+1}`,b:`${r.cal} A`,c:`30 mA ${r.typ}`});O.filter(c=>c.rcd===r.id).forEach(c=>{put({t:'dj',w:tri&&c.tri?4:1,a:'C'+(O.indexOf(c)+1),b:`${c.cal} A`,c:tri?phLabel(c).replace('Triphasé','Tri'):fmtS(c.sec)});if(c.kind==='chauffeeau'&&E.hc)put({t:'aux',w:1,a:'J/N',b:'Cont.'});});});
+  const used=rows.reduce((t,r)=>t+wd(r),0);while(!rows.length||(rows.length*13-used)/(rows.length*13)<.2)rows.push({items:[]});
+  rows.forEach((r,i)=>{r.label='R'+(i+1);});return{rows,used,total:rows.length*13,free:rows.length*13-used};}
+function elecChecks(){const E=EL(),W=[],O=ordered(),R2=E.rcds;
+  if(R2.length<2)W.push(['err','Au moins 2 interrupteurs différentiels 30 mA sont exigés.']);
+  R2.forEach((r,i)=>{const n=E.circuits.filter(c=>c.rcd===r.id).length;if(n>8)W.push(['err',`ID ${i+1} : ${n} circuits, 8 au maximum.`]);if(!n)W.push(['warn',`ID ${i+1} ne protège aucun circuit.`]);});
+  O.forEach((c,i)=>{const k=CIRC[c.kind],r=R2.find(x=>x.id===c.rcd),lab=`C${i+1} ${c.name}`;
+    if(!r)W.push(['err',`${lab} : aucun interrupteur différentiel.`]);
+    else if(k.typ==='A'&&r.typ==='AC')W.push(['err',`${lab} : doit être sous un différentiel type A (ou F).`]);
+    else if(k.typ==='F'&&r.typ!=='F')W.push(['err',`${lab} : doit être sous un différentiel type F.`]);
+    if(k.max&&c.pts>k.max)W.push(['err',`${lab} : ${c.pts} ${k.unit}, ${k.max} au maximum.`]);
+    if(c.cal>maxCal(c.sec))W.push(['err',`${lab} : disjoncteur ${c.cal} A trop fort pour du ${fmtS(c.sec)} mm².`]);
+    if(k.note)W.push(['info',`${lab} : ${k.note}.`]);});
+  if(E.phase==='tri'){const P=phaseLoads(),mx=Math.max(...P),mn=Math.min(...P);if(mx>0&&(mx-mn)/mx>.3)W.push(['warn',`Phases déséquilibrées (L1 ${fmt(P[0]/1000,1)} kW, L2 ${fmt(P[1]/1000,1)} kW, L3 ${fmt(P[2]/1000,1)} kW) : utilisez « Équilibrer les phases ».`]);}
+  else if(E.circuits.some(c=>c.tri))W.push(['err','Un circuit triphasé est impossible avec une arrivée monophasée.']);
+  const L=layout();W.push(['info',`Coffret conseillé : ${L.rows.length} rangées de 13 modules, réserve de ${Math.round(L.free/L.total*100)} % (20 % minimum).`]);
+  if(!E.parafoudre)W.push(['info','Parafoudre : obligatoire selon la zone de foudre et le type de raccordement, à vérifier pour ce logement.']);
+  return W;}
+function tableauSVG(){const L=layout(),mw=34,mh=92,gap=44,x0=70,y00=26,W=x0+13*mw+30,H=y00+L.rows.length*(mh+gap)+10;
+  const col={id:'#d0ebff',dj:'#ffffff',aux:'#fff3bf',pf:'#ffe3e3'};
+  let s2=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Arial, Helvetica, sans-serif"><rect width="${W}" height="${H}" fill="#fff"/><rect x="${x0-14}" y="8" width="${13*mw+28}" height="${H-16}" rx="10" fill="#f1f3f5" stroke="#868e96"/>`;
+  L.rows.forEach((row,ri)=>{const y=y00+ri*(mh+gap);s2+=`<text x="20" y="${y+mh/2+4}" font-size="13" font-weight="bold" fill="#495057">${row.label}</text><rect x="${x0-6}" y="${y+mh/2-6}" width="${13*mw+12}" height="12" fill="#ced4da"/>`;
+    let x=x0;row.items.forEach(it=>{const w=it.w*mw-2;s2+=`<rect x="${x}" y="${y}" width="${w}" height="${mh}" rx="3" fill="${col[it.t]}" stroke="#495057"/><text x="${x+w/2}" y="${y+22}" font-size="11" font-weight="bold" text-anchor="middle">${esc(it.a)}</text><text x="${x+w/2}" y="${y+44}" font-size="10" text-anchor="middle">${esc(it.b||'')}</text>${it.c?`<text x="${x+w/2}" y="${y+60}" font-size="9" text-anchor="middle" fill="#495057">${esc(it.c)}</text>`:''}${it.t==='dj'||it.t==='id'?`<rect x="${x+w/2-5}" y="${y+68}" width="10" height="16" rx="2" fill="#343a40"/>`:''}`;x+=it.w*mw;});
+    while(x<x0+13*mw-1){s2+=`<rect x="${x}" y="${y}" width="${mw-2}" height="${mh}" rx="3" fill="#f8f9fa" stroke="#adb5bd" stroke-dasharray="3 3"/>`;x+=mw;}
+    s2+=`<line x1="${x0}" y1="${y+mh+10}" x2="${x0+13*mw-2}" y2="${y+mh+10}" stroke="#868e96" stroke-width="3"/><text x="${x0}" y="${y+mh+26}" font-size="10" fill="#495057">Peigne d’alimentation</text>`;});
+  return s2+'</svg>';}
+function unifSVG(){const E=EL(),O=ordered(),col=58,busY=250,left=210;let x=left+(E.parafoudre?80:30);
+  const G=E.rcds.map(r=>{const cs=O.filter(c=>c.rcd===r.id),g={r,cs,x0:x};x+=Math.max(1,cs.length)*col+40;g.x1=x-40;return g;});
+  const W=Math.max(x+20,960),H=800;
+  const T=(x1,y1,t,o='')=>`<text x="${x1}" y="${y1}" ${o}>${esc(t)}</text>`,Ln=(a,b,c,d,o='')=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#212529" stroke-width="1.5" ${o}/>`,B=(a,b,w,h,f='#fff')=>`<rect x="${a}" y="${b}" width="${w}" height="${h}" fill="${f}" stroke="#212529" stroke-width="1.5" rx="3"/>`;
+  let s2=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Arial, Helvetica, sans-serif" font-size="11"><rect width="${W}" height="${H}" fill="#fff"/>`;
+  s2+=B(40,20,130,34,'#f1f3f5')+T(105,41,'Réseau Enedis','text-anchor="middle" font-weight="bold"')+Ln(105,54,105,74)+B(40,74,130,34)+T(105,95,'Compteur Linky','text-anchor="middle"');
+  s2+=Ln(105,108,105,128)+B(40,128,130,50,'#fff4e6')+T(105,148,E.phase==='tri'?'AGCP tétrapolaire':'AGCP différentiel','text-anchor="middle" font-weight="bold"')+T(105,165,`${aboCal()} A – 500 mA`,'text-anchor="middle"');
+  s2+=Ln(105,178,105,busY)+Ln(105,busY,W-20,busY,'stroke-width="3"')+T(112,busY-8,E.phase==='tri'?'Répartiteur L1 L2 L3 + neutre':'Répartiteur phase + neutre','font-size="10" fill="#495057"');
+  const aux=[];if(E.delesteur)aux.push('Délesteur : coupe les circuits de chauffage en cas de dépassement');if(E.horloge)aux.push('Horloge programmable : commande des circuits choisis');if(E.hc&&E.circuits.some(c=>c.kind==='chauffeeau'))aux.push('Contacteur jour/nuit : chauffe-eau en heures creuses (signal Linky)');
+  aux.forEach((t,i)=>{s2+=T(220,40+i*18,'• '+t,'font-size="11"');});
+  s2+=B(W-300,20,280,58,'#f8f9fa')+T(W-290,42,'NOVARA Habitat – Schéma unifilaire','font-weight="bold" font-size="12"')+T(W-290,62,`Abonnement ${E.abo} kVA ${E.phase==='tri'?'triphasé':'monophasé'} – ${new Date().toLocaleDateString('fr-FR')}`,'font-size="10"');
+  if(E.parafoudre){const px=left+20;s2+=Ln(px,busY,px,busY+30)+B(px-22,busY+30,44,26,'#ffe3e3')+T(px,busY+47,'PF','text-anchor="middle" font-weight="bold"')+Ln(px,busY+56,px,busY+92,'stroke-dasharray="4 3"')+T(px,busY+106,'vers terre','text-anchor="middle" font-size="9"');}
+  G.forEach((g,gi)=>{const xm=(g.x0+g.x1)/2,f=g.r.typ==='AC'?'#e7f5ff':g.r.typ==='A'?'#d0ebff':'#e5dbff';
+    s2+=Ln(xm,busY,xm,busY+24)+B(xm-50,busY+24,100,54,f)+T(xm,busY+42,`ID ${gi+1}`,'text-anchor="middle" font-weight="bold"')+T(xm,busY+57,`${g.r.cal} A 30 mA${E.phase==='tri'?' 4P':''}`,'text-anchor="middle"')+T(xm,busY+71,`type ${g.r.typ}`,'text-anchor="middle"');
+    const sy=busY+104;s2+=Ln(xm,busY+78,xm,sy);if(g.cs.length){const a=g.x0+col/2,b=g.x0+col/2+(g.cs.length-1)*col;s2+=Ln(Math.min(a,xm),sy,Math.max(b,xm),sy,'stroke-width="2"');}
+    g.cs.forEach((c,ci)=>{const cx2=g.x0+col/2+ci*col,n=O.indexOf(c)+1;s2+=Ln(cx2,sy,cx2,sy+18)+B(cx2-19,sy+18,38,40)+T(cx2,sy+36,`${c.cal} A`,'text-anchor="middle" font-weight="bold"')+T(cx2,sy+50,'C','text-anchor="middle" font-size="9" fill="#495057"');
+      let y=sy+58;if(c.kind==='chauffeeau'&&E.hc){s2+=Ln(cx2,y,cx2,y+12)+B(cx2-17,y+12,34,22,'#fff3bf')+T(cx2,y+27,'J/N','text-anchor="middle" font-size="10"');y+=34;}
+      s2+=Ln(cx2,y,cx2,sy+120)+`<circle cx="${cx2}" cy="${sy+124}" r="4" fill="#212529"/>`;
+      const nm=('C'+n+' '+c.name).slice(0,40),k=CIRC[c.kind];
+      s2+=T(cx2-4,sy+136,nm,`transform="rotate(90 ${cx2-4} ${sy+136})" font-weight="bold"`)+T(cx2+10,sy+136,`${cabG(c)} mm²${E.phase==='tri'?' – '+phLabel(c):''}${k.max?' – '+(c.pts||0)+' '+k.unit:''}`,`transform="rotate(90 ${cx2+10} ${sy+136})" font-size="10" fill="#495057"`);});});
+  s2+=B(40,330,130,30,'#ebfbee')+T(105,350,'Bornier de terre','text-anchor="middle" font-weight="bold"')+Ln(170,345,200,345,'stroke-dasharray="4 3"')+T(176,338,'PE','font-size="9"');
+  s2+=Ln(105,360,105,420)+T(112,385,'Conducteur de terre','font-size="10"')+T(112,399,'16 mm² Cu isolé','font-size="10"')+B(55,420,100,26)+T(105,437,'Barrette de mesure','text-anchor="middle" font-size="10"');
+  s2+=Ln(105,446,105,490)+Ln(85,490,125,490,'stroke-width="2.5"')+Ln(91,498,119,498,'stroke-width="2.5"')+Ln(98,506,112,506,'stroke-width="2.5"')+T(105,526,'Prise de terre ≤ 100 Ω','text-anchor="middle" font-size="10"');
+  s2+=T(40,560,'Liaison équipotentielle principale : 6 mm² min.','font-size="10"')+T(40,575,'Salle d’eau : 2,5 mm² protégé ou 4 mm²','font-size="10"');
+  return s2+'</svg>';}
+function nomen(){const E=EL(),L=layout(),N=[],add=(k,n=1)=>{const f=N.find(x=>x[0]===k);if(f)f[1]+=n;else N.push([k,n]);};
+  add(`Coffret ${L.rows.length} rangées × 13 modules`);E.rcds.forEach(r=>add(`Interrupteur différentiel ${r.cal} A 30 mA type ${r.typ}${E.phase==='tri'?' tétrapolaire':''}`));
+  E.circuits.forEach(c=>add(c.tri?`Disjoncteur tétrapolaire ${c.cal} A courbe C`:`Disjoncteur phase + neutre ${c.cal} A courbe C`));
+  if(E.hc&&E.circuits.some(c=>c.kind==='chauffeeau'))add('Contacteur jour/nuit 20 A');
+  if(E.parafoudre){add(E.phase==='tri'?'Parafoudre triphasé':'Parafoudre monophasé');add('Disjoncteur de protection du parafoudre');}
+  if(E.delesteur)add('Délesteur');if(E.horloge)add('Horloge programmable modulaire');if(E.prisetab)add('Prise de courant modulaire (prise de tableau)');
+  add('Peigne d’alimentation (un par rangée)',L.rows.length);add('Bornier de terre');add('Barrette de coupure et de mesure');add('Piquet de terre ou boucle à fond de fouille');
+  E.circuits.forEach(c=>add(`Câble ${cabG(c)} mm² : circuits`));
+  const g=M.nets.filter(l=>l.net==='elec').reduce((t,l)=>t+netLen(l),0);if(g>0)add(`Gaine électrique relevée sur le plan : ${fmt(g,1)} m`,0);
+  return N;}
+function checksHTML(W){return W.length?W.map(([k,t])=>`<div class="ck ${k}">${esc(t)}</div>`).join(''):'<div class="ck ok">Aucun problème détecté.</div>';}
+function circTable(edit){const E=EL(),O=ordered(),tri=E.phase==='tri';
+  const opt=(arr,v,f=x=>x)=>arr.map(a=>`<option value="${a}" ${a==v?'selected':''}>${f(a)}</option>`).join('');
+  const phSel=c=>`<select data-c="${c.id}" data-k="ph">${[1,2,3].map(i=>`<option value="${i}" ${!c.tri&&(c.ph||1)===i?'selected':''}>L${i}</option>`).join('')}${TRIOK.includes(c.kind)?`<option value="tri" ${c.tri?'selected':''}>Triphasé</option>`:''}</select>`;
+  return `<table class="ct"><thead><tr><th>Repère</th><th>Désignation</th><th>Type de circuit</th><th>Points</th><th>Disjoncteur</th><th>Section</th>${tri?'<th>Phase</th>':''}<th>Différentiel</th>${edit?'<th></th>':''}</tr></thead><tbody>${O.map((c,i)=>{const k=CIRC[c.kind];
+    if(!edit)return `<tr><td>C${i+1}</td><td>${esc(c.name)}</td><td>${k.n}</td><td>${k.max?(c.pts||0)+' / '+k.max:'—'}</td><td>${c.cal} A</td><td>${cabG(c)} mm²</td>${tri?`<td>${phLabel(c)}</td>`:''}<td>${rcdName(c.rcd)}</td></tr>`;
+    return `<tr><td>C${i+1}</td><td><input data-c="${c.id}" data-k="name" value="${esc(c.name)}"></td><td><select data-c="${c.id}" data-k="kind">${Object.entries(CIRC).map(([kk,x])=>`<option value="${kk}" ${kk===c.kind?'selected':''}>${x.n}</option>`).join('')}</select></td>
+    <td>${k.max?`<input class="pts" data-c="${c.id}" data-k="pts" value="${c.pts||0}" inputmode="numeric">`:'—'}</td><td><select data-c="${c.id}" data-k="cal">${opt(CALS,c.cal,a=>a+' A')}</select></td><td><select data-c="${c.id}" data-k="sec">${opt(SECS,c.sec,a=>fmtS(a)+' mm²')}</select></td>${tri?`<td>${phSel(c)}</td>`:''}
+    <td><select data-c="${c.id}" data-k="rcd"><option value="">—</option>${E.rcds.map((r,j)=>`<option value="${r.id}" ${r.id===c.rcd?'selected':''}>ID ${j+1} (type ${r.typ})</option>`).join('')}</select></td><td><button data-ea="delc" data-v="${c.id}" aria-label="Supprimer le circuit">✕</button></td></tr>`;}).join('')}</tbody></table>`;}
+function renderElec(){const E=EL(),surf=M.rooms.reduce((t,r)=>t+roomArea(r),0);
+  let h=`<div class="egrid"><section><h3>Raccordement</h3><label class="f"><span>Arrivée</span><select data-e="phase"><option value="mono" ${E.phase==='mono'?'selected':''}>Monophasée</option><option value="tri" ${E.phase==='tri'?'selected':''}>Triphasée</option></select></label>
+    <label class="f"><span>Abonnement</span><select data-e="abo">${aboList().map(v=>`<option value="${v}" ${E.abo==v?'selected':''}>${v} kVA</option>`).join('')}</select></label>
+    <div class="stat small"><span>Disjoncteur de branchement (AGCP)</span><b>${aboCal()} A, 500 mA${E.phase==='tri'?', tétrapolaire':''}</b></div>
+    ${E.phase==='tri'?(()=>{const P=phaseLoads();return `<div class="stat small"><span>Charge estimée par phase</span><b>L1 ${fmt(P[0]/1000,1)} / L2 ${fmt(P[1]/1000,1)} / L3 ${fmt(P[2]/1000,1)} kW</b></div><div class="row"><button data-ea="bal">Équilibrer les phases</button></div>`;})():''}<div class="stat small"><span>Surface habitable</span><b>${fmt(surf,1)} m²</b></div>
+    <h3>Options du tableau</h3>${[['parafoudre','Parafoudre'],['delesteur','Délesteur'],['horloge','Horloge programmable'],['hc','Contacteur jour/nuit (chauffe-eau)'],['prisetab','Prise de tableau']].map(([k,n])=>`<label class="chk"><input type="checkbox" data-e="${k}" ${E[k]?'checked':''}> ${n}</label>`).join('')}</section>
+    <section><h3>Contrôles NF C 15-100</h3>${checksHTML(elecChecks())}</section></div>
+    <h3>Circuits</h3><div class="tablewrap">${circTable(true)}</div>
+    <div class="row"><select id="addKind">${Object.entries(CIRC).map(([k,x])=>`<option value="${k}">${x.n}</option>`).join('')}</select><button data-ea="add">Ajouter le circuit</button><button data-ea="rcd">Répartir les différentiels automatiquement</button></div>
+    <h3>Interrupteurs différentiels</h3>${E.rcds.map((r,i)=>`<div class="row" style="align-items:center"><b style="min-width:52px">ID ${i+1}</b><select data-r="${r.id}" data-k="typ">${['AC','A','F'].map(t=>`<option ${t===r.typ?'selected':''}>${t}</option>`).join('')}</select><select data-r="${r.id}" data-k="cal">${[25,40,63].map(v=>`<option value="${v}" ${v===r.cal?'selected':''}>${v} A</option>`).join('')}</select><span class="note" style="margin:0">${E.circuits.filter(c=>c.rcd===r.id).length} circuit(s)</span><button data-ea="delr" data-v="${r.id}">Retirer</button></div>`).join('')}<div class="row"><button data-ea="addrcd">Ajouter un différentiel</button></div>
+    <h3>Organisation du tableau</h3><div class="svgwrap">${tableauSVG()}</div>
+    <h3>Schéma unifilaire</h3><div class="svgwrap">${unifSVG()}</div>
+    <p class="note">Établi d’après les règles principales de la NF C 15-100 (révision 2024). À vérifier sur le texte officiel avant réalisation.</p>`;
+  $('#elecBody').innerHTML=h;}
+function dossierHTML(){const E=EL(),d=new Date().toLocaleDateString('fr-FR');
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Dossier électrique – NOVARA Habitat</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;color:#212529;font-size:12px;margin:0 auto;max-width:1150px;padding:16px}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:26px 0 10px;border-bottom:2px solid #212529;padding-bottom:4px;page-break-after:avoid}table{border-collapse:collapse;width:100%}th,td{border:1px solid #adb5bd;padding:5px 7px;text-align:left}th{background:#f1f3f5}svg{max-width:100%;height:auto}.blk{page-break-inside:avoid}.ck{padding:5px 9px;margin:4px 0;border-left:4px solid #adb5bd;background:#f8f9fa}.err{border-color:#e03131}.warn{border-color:#f08c00}.info{border-color:#1c7ed6}.ok{border-color:#2f9e44}.muted{color:#495057}li{margin:4px 0}</style></head><body>
+  <h1>Dossier électrique</h1><div class="muted">NOVARA Habitat – ${d}</div>
+  <h2>Raccordement</h2><table><tr><th>Abonnement</th><td>${E.abo} kVA ${E.phase==='tri'?'triphasé':'monophasé'}</td></tr><tr><th>Disjoncteur de branchement (AGCP)</th><td>${aboCal()} A, différentiel 500 mA${E.phase==='tri'?', tétrapolaire':''}</td></tr><tr><th>Options</th><td>${[E.parafoudre&&'parafoudre',E.delesteur&&'délesteur',E.horloge&&'horloge programmable',E.hc&&'contacteur jour/nuit',E.prisetab&&'prise de tableau'].filter(Boolean).join(', ')||'aucune'}</td></tr></table>
+  <div class="blk"><h2>Schéma unifilaire</h2>${unifSVG()}</div>
+  <div class="blk"><h2>Organisation du tableau</h2>${tableauSVG()}</div>
+  <h2>Liste des circuits</h2>${circTable(false)}
+  <div class="blk"><h2>Mise à la terre</h2><ul><li>Prise de terre : piquet ou boucle à fond de fouille, résistance à viser de 100 Ω au plus (avec un AGCP 500 mA).</li><li>Conducteur de terre : 16 mm² cuivre isolé (25 mm² s’il est nu), jusqu’à la barrette de coupure et de mesure.</li><li>Liaison équipotentielle principale : 6 mm² minimum, reliant les canalisations métalliques (eau, gaz, chauffage) au bornier de terre.</li><li>Salle d’eau, si une liaison supplémentaire est nécessaire : 2,5 mm² protégé mécaniquement ou 4 mm².</li><li>Chaque circuit : conducteur de protection vert-jaune de même section que la phase et le neutre.</li></ul></div>
+  <div class="blk"><h2>Nomenclature</h2><table><tr><th>Élément</th><th>Quantité</th></tr>${nomen().map(([k,n])=>`<tr><td>${esc(k)}</td><td>${n||''}</td></tr>`).join('')}</table></div>
+  <div class="blk"><h2>Contrôles NF C 15-100</h2>${checksHTML(elecChecks())}</div>
+  <p class="muted" style="margin-top:24px">Document établi d’après les règles principales de la NF C 15-100 (révision 2024). À vérifier sur le texte officiel avant réalisation. Une attestation Consuel peut être exigée (installation neuve ou rénovation complète).</p>
+  </body></html>`;}
+async function elecExport(kind){const msg=await download(kind==='svg'?'schema-unifilaire.svg':'dossier-electrique.html',kind==='svg'?unifSVG():dossierHTML());if(msg)alertE(msg);}
+function alertE(t){const b=$('#elecBody');const d=document.createElement('div');d.className='ck warn';d.textContent=t;b.prepend(d);b.parentElement.scrollTop=0;}
+$('#elecBtn').addEventListener('click',()=>{const E=EL();if(!E.circuits.length){genCircuits();save();}renderElec();$('#elecModal').hidden=false;});
+$('#elecClose').addEventListener('click',()=>{$('#elecModal').hidden=true;updateButtons();});
+$('#elecGen').addEventListener('click',()=>{snapshot();genCircuits();save();renderElec();});
+$('#elecExport').addEventListener('click',()=>elecExport('html'));$('#elecSvg').addEventListener('click',()=>elecExport('svg'));
+$('#elecBody').addEventListener('change',e=>{const t=e.target,E=EL();if(t.id==='addKind')return;snapshot();
+  if(t.dataset.e){const k=t.dataset.e;if(t.type==='checkbox'){E[k]=t.checked;if(k==='prisetab'){if(t.checked&&!E.circuits.some(c=>c.kind==='prisetab'))addCirc('prisetab','Prise de tableau');if(!t.checked)E.circuits=E.circuits.filter(c=>c.kind!=='prisetab');}}else if(k==='phase'){E.phase=t.value;if(!aboList().includes(E.abo))E.abo=E.phase==='tri'?12:9;if(E.phase==='mono')E.circuits.forEach(c=>{c.tri=false;});else balancePhases();}else E[k]=Number(t.value);}
+  else if(t.dataset.c){const c=E.circuits.find(x=>x.id===t.dataset.c);if(c){const k=t.dataset.k;if(k==='name')c.name=t.value.trim()||c.name;else if(k==='kind'){c.kind=t.value;c.cal=CIRC[c.kind].cal;c.sec=CIRC[c.kind].sec;if(CIRC[c.kind].max&&c.pts==null)c.pts=0;}else if(k==='pts')c.pts=Math.max(0,parseInt(t.value,10)||0);else if(k==='cal')c.cal=Number(t.value);else if(k==='sec')c.sec=Number(t.value);else if(k==='rcd')c.rcd=t.value||null;else if(k==='ph'){if(t.value==='tri')c.tri=true;else{c.tri=false;c.ph=Number(t.value);}}}}
+  else if(t.dataset.r){const r=E.rcds.find(x=>x.id===t.dataset.r);if(r){if(t.dataset.k==='typ')r.typ=t.value;else r.cal=Number(t.value);}}
+  save();renderElec();});
+$('#elecBody').addEventListener('click',e=>{const b=e.target.closest('[data-ea]');if(!b)return;const E=EL(),a=b.dataset.ea;snapshot();
+  if(a==='add'){const k=$('#addKind').value;addCirc(k,CIRC[k].n);}
+  if(a==='delc')E.circuits=E.circuits.filter(c=>c.id!==b.dataset.v);
+  if(a==='rcd')autoRCD();
+  if(a==='bal')balancePhases();
+  if(a==='addrcd')E.rcds.push({id:nid('d'),typ:'AC',cal:40});
+  if(a==='delr'){E.rcds=E.rcds.filter(r=>r.id!==b.dataset.v);E.circuits.forEach(c=>{if(c.rcd===b.dataset.v)c.rcd=null;});}
+  save();renderElec();});
+/* ---------- Pack client ---------- */
+let PACKMEDIA=[];
+function PK(){if(!M.pack)M.pack={title:'',client:'',address:'',company:'',notes:'',inc:{r3d:true,plan:true,nets:true,elec:true,desc:true,photos:true,surf:true},desc:{}};return M.pack;}
+function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('novara-plan',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}});}
+let mediaT=0;function mediaSave(){clearTimeout(mediaT);mediaT=setTimeout(mediaSaveNow,400);}
+async function mediaSaveNow(){try{const db=await idb();db.transaction('kv','readwrite').objectStore('kv').put(PACKMEDIA,'pack');}catch(e){}}
+async function mediaLoad(){try{const db=await idb();const r=db.transaction('kv').objectStore('kv').get('pack');r.onsuccess=()=>{if(Array.isArray(r.result))PACKMEDIA=r.result;};}catch(e){}}
+function readPhoto(file){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1600/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82));};img.onerror=()=>res(null);img.src=fr.result;};fr.onerror=()=>res(null);fr.readAsDataURL(file);});}
+const LIGHTC={canvas:'#FFFFFF',grid:'#F1F3F5',grid2:'#DEE2E6',wall:'#28313A',ink:'#1C252D',muted:'#5B6873',accent:'#F2B705',sel:'#1F6FE0',panel:'#F8F9FA'};
+function planImage(mode){const keep={cx,PW,PH,dpr,s:view.s,ox:view.ox,oy:view.oy,vm:vmode,sel,tool,cursor,dp:drawPts,C:Object.assign({},C)};
+  const c=document.createElement('canvas');c.width=1800;c.height=1250;
+  try{cx=c.getContext('2d');PW=1800;PH=1250;dpr=1;vmode=mode;sel=null;tool='select';cursor=null;drawPts=[];Object.assign(C,LIGHTC);fitPlan();return c.toDataURL('image/png');}
+  finally{cx=keep.cx;PW=keep.PW;PH=keep.PH;dpr=keep.dpr;view.s=keep.s;view.ox=keep.ox;view.oy=keep.oy;vmode=keep.vm;sel=keep.sel;tool=keep.tool;cursor=keep.cursor;drawPts=keep.dp;Object.assign(C,keep.C);drawPlan();}}
+function capture3D(mode,overview){if(!gl3)return null;const keep={vm:vmode,cm:camMode,th:orb.th,ph:orb.ph,r:orb.r,t:orb.target.clone(),fov:camera.fov},pr=renderer.getPixelRatio();
+  try{if(mode)vmode=mode;if(overview){camMode='orbit';fit3D();orb.th=.7;orb.ph=.9;}camera.fov=camMode==='walk'?65:45;build3D();
+    renderer.setPixelRatio(1);renderer.setSize(1600,1000,false);camera.aspect=1.6;camera.updateProjectionMatrix();applyCam();renderer.render(scene,camera);return renderer.domElement.toDataURL('image/jpeg',.9);}
+  finally{renderer.setPixelRatio(pr);vmode=keep.vm;camMode=keep.cm;orb.th=keep.th;orb.ph=keep.ph;orb.r=keep.r;orb.target.copy(keep.t);camera.fov=keep.fov;size3D();pending3D=true;}}
+function descAuto(){const E=EL(),cnt=t=>M.eqs.filter(e=>e.type===t).length,len=k=>M.nets.filter(l=>l.net===k).reduce((a,l)=>a+netLen(l),0),D={};
+  const eqs=g=>Object.keys(EQ).filter(k=>EQ[k].g===g&&cnt(k)).map(k=>`${EQ[k].n} (${cnt(k)})`).join(', ');
+  const nets=g=>Object.keys(NETS).filter(k=>NETS[k].g===g&&len(k)>0).map(k=>`${NETS[k].n} environ ${fmt(len(k),0)} m`).join(', ');
+  const tri=E.phase==='tri';
+  let el=`Arrivée ${tri?'triphasée':'monophasée'}, abonnement ${E.abo} kVA, disjoncteur de branchement ${aboCal()} A 500 mA.`;
+  if(E.circuits.length){const ty=[...new Set(E.rcds.map(r=>r.typ))].join(', ');el+=` Tableau de ${layout().rows.length} rangées : ${E.rcds.length} interrupteurs différentiels 30 mA (type ${ty}) et ${E.circuits.length} circuits protégés chacun par un disjoncteur.`;}
+  const op=[E.parafoudre&&'parafoudre',E.delesteur&&'délesteur',E.horloge&&'horloge programmable',E.hc&&E.circuits.some(c=>c.kind==='chauffeeau')&&'contacteur jour/nuit pour le chauffe-eau',E.prisetab&&'prise de courant dans le tableau'].filter(Boolean);
+  if(op.length)el+=` Équipements du tableau : ${op.join(', ')}.`;if(eqs('elec'))el+=` Points installés : ${eqs('elec')}.`;if(nets('elec'))el+=` Réseau : ${nets('elec')}.`;
+  el+=' Mise à la terre avec piquet, barrette de mesure et bornier de terre, liaisons équipotentielles.';D.elec=el;
+  for(const g of['domo','eau','air','chauf']){let t='';if(eqs(g))t+=`Équipements : ${eqs(g)}.`;if(nets(g))t+=` Réseaux : ${nets(g)}.`;if(t)D[g]=t.trim();}
+  return D;}
+async function download(filename,data){let dl=null;try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads');}catch(e){dl=null;}
+  if(!dl){try{const type=filename.endsWith('.svg')?'image/svg+xml':'text/html';const url=URL.createObjectURL(new Blob([data],{type:type+';charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);return '';}catch(e){return 'Le téléchargement n’est pas disponible sur cet appareil.';}}
+  try{await dl.save({filename,data});return '';}catch(err){return err&&err.code==='declined'?'':'Export impossible : '+((err&&err.message)||'erreur inconnue')+'.';}}
+function renderPack(){const P=PK(),D=descAuto(),i3=PACKMEDIA.filter(m=>m.kind==='3d'||m.kind==='3dnet'),ph=PACKMEDIA.filter(m=>m.kind==='photo');
+  const inc=[['r3d','Vues 3D'],['plan','Plan meublé'],['surf','Tableau des surfaces'],['nets','Plans des réseaux'],['elec','Tableau électrique et schéma unifilaire'],['desc','Descriptif des systèmes'],['photos','Photos du chantier']];
+  const th=m=>`<div class="th"><img src="${m.src}" alt=""><input data-pm="${m.id}" value="${esc(m.caption||'')}" placeholder="Légende"><button data-pa="del" data-v="${m.id}">Retirer</button></div>`;
+  $('#packBody').innerHTML=`<div class="egrid"><section><h3>Informations</h3>
+    <label class="fl"><span>Titre du projet</span><input class="wide" data-p="title" value="${esc(P.title)}" placeholder="Rénovation complète"></label>
+    <label class="fl"><span>Client</span><input class="wide" data-p="client" value="${esc(P.client)}"></label>
+    <label class="fl"><span>Adresse du chantier</span><input class="wide" data-p="address" value="${esc(P.address)}"></label>
+    <label class="fl"><span>Votre entreprise et vos coordonnées</span><textarea data-p="company" placeholder="NOVARA Habitat, téléphone, e-mail">${esc(P.company)}</textarea></label></section>
+    <section><h3>Contenu du pack</h3>${inc.map(([k,n])=>`<label class="chk"><input type="checkbox" data-pi="${k}" ${P.inc[k]?'checked':''}> ${n}</label>`).join('')}
+    <label class="fl"><span>Mot pour le client (fin du dossier)</span><textarea data-p="notes">${esc(P.notes)}</textarea></label></section></div>
+    <h3>Vues 3D</h3><p class="note">Cadrez la vue 3D comme vous le voulez (Maquette ou Visite), puis ajoutez-la. Sans vue ajoutée, une vue d’ensemble est créée automatiquement.</p>
+    <div class="row"><button data-pa="cap">Ajouter la vue 3D actuelle</button><button data-pa="capnet">Ajouter la vue 3D des réseaux</button></div><div class="thumbs">${i3.map(th).join('')}</div>
+    <h3>Photos du chantier</h3><label class="filebtn">Ajouter des photos<input type="file" id="photoIn" accept="image/*" multiple hidden></label><div class="thumbs">${ph.map(th).join('')}</div>
+    <h3>Descriptif des systèmes installés</h3><p class="note">Le texte de base est rédigé à partir du plan et du tableau. Ajoutez vos précisions : marques, finitions, garanties.</p>
+    ${Object.keys(GROUPS).map(g=>`<h4>${GROUPS[g]}</h4><p class="note" style="margin:0 0 6px">${esc(D[g]||'Rien de prévu sur le plan pour ce système.')}</p><textarea data-pd="${g}" placeholder="Votre complément">${esc(P.desc[g]||'')}</textarea>`).join('')}`;}
+function packHTML(){const P=PK(),E=EL(),inc=P.inc,D=descAuto(),d=new Date().toLocaleDateString('fr-FR');
+  let i3=PACKMEDIA.filter(m=>m.kind==='3d'||m.kind==='3dnet');if(!i3.length&&gl3){const u=capture3D('plan',true);if(u)i3=[{src:u,caption:'Vue d’ensemble'}];}
+  const fig=(src,cap)=>`<figure><img src="${src}" alt="${esc(cap||'')}">${cap?`<figcaption>${esc(cap)}</figcaption>`:''}</figure>`;
+  let b=`<section class="cover"><div class="co">${esc((P.company||'NOVARA Habitat').split('\n')[0])}</div><h1>${esc(P.title||'Votre projet')}</h1>${P.client?`<p class="big">${esc(P.client)}</p>`:''}${P.address?`<p>${esc(P.address)}</p>`:''}<p class="muted">Dossier remis le ${d}</p>${i3[0]?fig(i3[0].src,''):''}</section>`;
+  if(inc.r3d&&i3.length)b+=`<section class="pg"><h2>Vues 3D du projet</h2><div class="g1">${i3.map(m=>fig(m.src,m.caption)).join('')}</div></section>`;
+  if(inc.plan){b+=`<section class="pg"><h2>Plan aménagé</h2>${fig(planImage('plan'),'')}`;
+    if(inc.surf&&M.rooms.length)b+=`<h3>Surfaces</h3><table><tr><th>Pièce</th><th>Surface habitable</th></tr>${M.rooms.map(r=>`<tr><td>${esc(r.name)}</td><td>${fmt(roomArea(r),2)} m²</td></tr>`).join('')}<tr><th>Total</th><th>${fmt(M.rooms.reduce((t,r)=>t+roomArea(r),0),2)} m²</th></tr></table>`;b+='</section>';}
+  if(inc.nets){const gs=Object.keys(GROUPS).filter(g=>M.nets.some(l=>NETS[l.net]&&NETS[l.net].g===g)||M.eqs.some(e=>EQ[e.type]&&EQ[e.type].g===g));
+    gs.forEach(g=>{b+=`<section class="pg"><h2>Plan des réseaux : ${GROUPS[g]}</h2>${fig(planImage(g),'')}</section>`;});
+    const n3=PACKMEDIA.filter(m=>m.kind==='3dnet');if(gs.length&&gl3&&!n3.length){const u=capture3D('all',true);if(u)b+=`<section class="pg"><h2>Vue 3D des réseaux</h2>${fig(u,'Murs rendus transparents pour voir les passages')}</section>`;}}
+  if(inc.elec&&E.circuits.length)b+=`<section class="pg"><h2>Installation électrique</h2><p>${esc(D.elec)}</p><h3>Schéma unifilaire</h3>${unifSVG()}</section><section class="pg"><h2>Tableau électrique</h2>${tableauSVG()}<h3>Repérage des circuits</h3>${circTable(false)}</section>`;
+  if(inc.desc){b+=`<section class="pg"><h2>Descriptif des systèmes installés</h2>`;Object.keys(GROUPS).forEach(g=>{const a=D[g],u=(P.desc[g]||'').trim();if(a||u)b+=`<h3>${GROUPS[g]}</h3>${a?`<p>${esc(a)}</p>`:''}${u?`<p>${esc(u).replace(/\n/g,'<br>')}</p>`:''}`;});b+='</section>';}
+  const ph=PACKMEDIA.filter(m=>m.kind==='photo');if(inc.photos&&ph.length)b+=`<section class="pg"><h2>Photos du chantier</h2><div class="g2">${ph.map(m=>fig(m.src,m.caption)).join('')}</div></section>`;
+  if(P.notes||P.company)b+=`<section class="end">${P.notes?`<p>${esc(P.notes).replace(/\n/g,'<br>')}</p>`:''}${P.company?`<p class="muted">${esc(P.company).replace(/\n/g,'<br>')}</p>`:''}</section>`;
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(P.title||'Pack client')}</title><style>
+  @page{size:A4;margin:14mm}body{font-family:Georgia,'Times New Roman',serif;color:#1c252d;margin:0 auto;max-width:900px;padding:20px;font-size:13px;line-height:1.5}
+  h1{font-size:34px;margin:12px 0 10px;line-height:1.1}h2{font-family:Arial,Helvetica,sans-serif;font-size:18px;margin:0 0 14px;padding-bottom:6px;border-bottom:3px solid #f2b705}h3{font-family:Arial,Helvetica,sans-serif;font-size:14px;margin:18px 0 8px}
+  .co{font-family:Arial,Helvetica,sans-serif;font-weight:bold;letter-spacing:.04em;color:#5b6873}.big{font-size:18px;margin:4px 0}.muted{color:#5b6873}
+  .pg{page-break-before:always;padding-top:6px}figure{margin:0 0 14px;page-break-inside:avoid}img,svg{max-width:100%;height:auto;display:block}figcaption{font-size:12px;color:#5b6873;margin-top:4px}
+  .cover img{margin-top:24px;border-radius:6px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g2 img{aspect-ratio:4/3;object-fit:cover;width:100%}
+  table{border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif;font-size:12px}th,td{border:1px solid #ced4da;padding:5px 7px;text-align:left}th{background:#f1f3f5}.end{page-break-before:always}
+  </style></head><body>${b}</body></html>`;}
+$('#packBtn').addEventListener('click',()=>{renderPack();$('#packModal').hidden=false;});
+$('#packClose').addEventListener('click',()=>{$('#packModal').hidden=true;});
+$('#packBody').addEventListener('change',async e=>{const t=e.target,P=PK();
+  if(t.dataset.p!=null&&t.dataset.p!==''){P[t.dataset.p]=t.value;save();return;}
+  if(t.dataset.pi){P.inc[t.dataset.pi]=t.checked;save();return;}
+  if(t.dataset.pd){P.desc[t.dataset.pd]=t.value;save();return;}
+  if(t.dataset.pm){const m=PACKMEDIA.find(x=>x.id===t.dataset.pm);if(m){m.caption=t.value;mediaSave();}return;}
+  if(t.id==='photoIn'){const files=[...t.files];for(const f of files){const src=await readPhoto(f);if(src)PACKMEDIA.push({id:'m'+Date.now()+Math.random().toString(36).slice(2,6),kind:'photo',src,caption:''});}mediaSave();renderPack();}});
+$('#packBody').addEventListener('click',e=>{const b=e.target.closest('[data-pa]');if(!b)return;const a=b.dataset.pa;
+  if(a==='del'){PACKMEDIA=PACKMEDIA.filter(m=>m.id!==b.dataset.v);mediaSave();renderPack();return;}
+  if(a==='cap'||a==='capnet'){const u=capture3D(a==='capnet'?'all':null,false);if(!u)return;PACKMEDIA.push({id:'m'+Date.now(),kind:a==='capnet'?'3dnet':'3d',src:u,caption:a==='capnet'?'Vue 3D des réseaux':''});mediaSave();renderPack();}});
+$('#packExport').addEventListener('click',async()=>{const btn=$('#packExport');btn.disabled=true;btn.textContent='Préparation…';await new Promise(r=>setTimeout(r,30));
+  let msg='';try{const html=packHTML();msg=await download('pack-client.html',html);}catch(err){msg='Export impossible : '+err.message;}
+  btn.disabled=false;btn.textContent='Exporter le pack client';if(msg){const d=document.createElement('div');d.className='ck warn';d.textContent=msg;$('#packBody').prepend(d);}});
+mediaLoad();
+function removeNiches(id){M.walls.forEach(w=>{w.openings=w.openings.filter(o=>o.item!==id);});}
+function unembed(it,moveOut){removeNiches(it.id);if(it.emb&&moveOut){it.x=r3(it.x-it.emb.dx);it.y=r3(it.y-it.emb.dy);}delete it.emb;}
+function embed(it,mode){
+  const c=CAT[it.type];if(!c)return 'Ce meuble ne peut pas être encastré.';
+  if(it.emb)unembed(it,true);
+  const th=it.rot*Math.PI/180,b={x:Math.sin(th),y:-Math.cos(th)},B={x:it.x+b.x*c.d/2,y:it.y+b.y*c.d/2};
+  let best=null;
+  for(const w of M.walls){const{u}=wInfo(w);if(Math.abs(u.x*b.x+u.y*b.y)>.05)continue;const pr=proj(w,B);if(pr.s<0||pr.s>pr.L)continue;const side=proj(w,it).d>=0?1:-1,gap=side*pr.d-w.thick/2;if(gap>.4||gap<-w.thick)continue;if(!best||Math.abs(gap)<Math.abs(best.gap))best={w,side,pr,gap};}
+  if(!best)return 'Collez d’abord le dos du meuble contre un mur (à moins de 40 cm).';
+  const{w,side,pr}=best,t=w.thick,{u,n}=wInfo(w);
+  if(pr.L<c.w+.1)return 'Ce mur est trop court pour ce meuble.';
+  const want=mode==='demi'?c.d/2:c.d,e=Math.min(want,t-.02),s=clamp(pr.s,c.w/2+.05,pr.L-c.w/2-.05);
+  const dc=side*(t/2-e+c.d/2),dOut=side*(t/2+c.d/2);
+  const nx=r3(w.a.x+u.x*s+n.x*dc),ny=r3(w.a.y+u.y*s+n.y*dc),ox=w.a.x+u.x*s+n.x*dOut,oy=w.a.y+u.y*s+n.y*dOut;
+  it.x=nx;it.y=ny;it.rot=Math.round(((Math.atan2(-side*n.x,side*n.y)*180/Math.PI)%360+360)%360);
+  it.emb={mode,dx:r3(nx-ox),dy:r3(ny-oy)};
+  const[y0,y1]=EMB[it.type]||[0,1];
+  w.openings.push({id:nid('o'),type:'niche',w:r3(c.w+.02),h:r3(y1-y0+.01),sill:y0,depth:r3(e),t:r3(s),side,hinge:0,item:it.id});
+  return e<want-1e-3?`Le mur fait ${fmt(t*100,0)} cm : le meuble dépasse de ${fmt((want-e)*100,0)} cm.`:'';
+}
+function deleteSel(){if(!sel)return;snapshot();
+  if(sel.kind==='wall')M.walls=M.walls.filter(w=>w!==sel.w);else if(sel.kind==='open')sel.w.openings=sel.w.openings.filter(o=>o!==sel.o);else if(sel.kind==='item'){removeNiches(sel.it.id);M.items=M.items.filter(i=>i!==sel.it);}else if(sel.kind==='room')M.rooms=M.rooms.filter(r=>r!==sel.r);else if(sel.kind==='eq')M.eqs=M.eqs.filter(x=>x!==sel.e);else if(sel.kind==='net')M.nets=M.nets.filter(x=>x!==sel.l);
+  sel=null;changed();}
+$('#delBtn').addEventListener('click',deleteSel);$('#undoBtn').addEventListener('click',undo);
+$('#fitBtn').addEventListener('click',()=>{fitPlan();fit3D();});
+function refresh(){drawPlan();updateHint();renderInspector();updateButtons();}
+function changed(){save();pending3D=true;refresh();}
+document.addEventListener('keydown',e=>{
+  const tg=e.target,typing=!!tg&&(tg.tagName==='INPUT'||tg.tagName==='TEXTAREA'||tg.tagName==='SELECT'||tg.isContentEditable);
+  const openM=['#modal','#elecModal','#packModal'].map(q=>$(q)).find(m=>m&&!m.hidden);
+  if(openM){if(e.key==='Escape'){openM.hidden=true;updateButtons();}return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!typing){e.preventDefault();undo();return;}
+  if(e.key==='Escape'){if(drawPts.length)finishDraw();else if(sel){sel=null;refresh();}else setTool('select');return;}
+  if((e.key==='Delete'||e.key==='Backspace')&&!typing&&sel){e.preventDefault();deleteSel();return;}
+  if(camMode==='walk'&&!typing&&KEYS.has(e.code)){keys[e.code]=true;if(e.code.startsWith('Arrow'))e.preventDefault();}
+});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+
+/* ---------- 3D ---------- */
+let renderer,scene,camera,sun,hemi,buildGroup=null,ceilings=[],needRender=true,pending3D=true,camMode='orbit',gl3=false,vis3D=false,lastBuild=0;
+const col=h=>new THREE.Color(h).convertSRGBToLinear();
+const orb={target:null,r:16,th:.6,ph:.95};const walk={pos:null,yaw:Math.PI,pitch:0};const mv={f:0,b:0,l:0,r:0};const keys={};
+const KEYS=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight']);
+const TEX={};
+function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function floorTex(kind){
+  if(TEX[kind])return TEX[kind];
+  const c=document.createElement('canvas');c.width=c.height=1024;const g=c.getContext('2d');const R=rng(kind.length*977+13);const f=FLOORS[kind];
+  if(kind.startsWith('parquet')){const dark=kind==='parquet_fonce',rows=12,ph=1024/rows,len=512;
+    for(let r=0;r<rows;r++){let x=-R()*len;while(x<1024){const hue=dark?24+R()*6:32+R()*7,sat=dark?38:44,lig=dark?24+R()*9:56+R()*11;
+      for(const ox of[0,-1024,1024]){const X=x+ox;if(X+len<0||X>1024)continue;g.fillStyle=`hsl(${hue},${sat}%,${lig}%)`;g.fillRect(X,r*ph,len,ph);
+        const R2=rng(Math.floor((x+5000)*7+r*131));for(let k=0;k<16;k++){g.strokeStyle=`rgba(${dark?20:95},${dark?10:58},${dark?4:28},${.05+R2()*.09})`;g.lineWidth=.8+R2()*1.6;g.beginPath();const yy=r*ph+R2()*ph;g.moveTo(X,yy);g.bezierCurveTo(X+len*.3,yy+(R2()-.5)*9,X+len*.65,yy+(R2()-.5)*9,X+len,yy+(R2()-.5)*6);g.stroke();}
+        g.fillStyle='rgba(0,0,0,.35)';g.fillRect(X,r*ph,2,ph);}
+      x+=len;}
+      g.fillStyle='rgba(0,0,0,.32)';g.fillRect(0,r*ph,1024,1.6);}
+  }else if(kind.startsWith('carrelage')){const dark=kind==='carrelage_fonce';
+    for(let i=0;i<2;i++)for(let j=0;j<2;j++){const v=(R()-.5)*8;g.fillStyle=dark?`rgb(${66+v},${69+v},${73+v})`:`rgb(${218+v},${214+v},${207+v})`;g.fillRect(i*512,j*512,512,512);}
+    for(let k=0;k<26000;k++){const a=R()*.06;g.fillStyle=R()<.5?`rgba(0,0,0,${a})`:`rgba(255,255,255,${a})`;g.fillRect(R()*1024,R()*1024,1+R()*2,1+R()*2);}
+    g.fillStyle=dark?'#34363a':'#bdb8b0';for(const p of[0,510,1022]){g.fillRect(p,0,p===510?4:2,1024);g.fillRect(0,p,1024,p===510?4:2);}
+  }else{g.fillStyle='#9d9a95';g.fillRect(0,0,1024,1024);
+    for(let k=0;k<420;k++){const x=R()*1024,y=R()*1024,r=30+R()*140,lt=R()<.5;for(const ox of[-1024,0,1024])for(const oy of[-1024,0,1024]){const gr=g.createRadialGradient(x+ox,y+oy,0,x+ox,y+oy,r);gr.addColorStop(0,lt?'rgba(255,255,255,.07)':'rgba(40,36,32,.07)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x+ox-r,y+oy-r,r*2,r*2);}}
+    for(let k=0;k<30000;k++){g.fillStyle=`rgba(0,0,0,${R()*.07})`;g.fillRect(R()*1024,R()*1024,1.5,1.5);}}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1/f.size,1/f.size);t.encoding=THREE.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  TEX[kind]=new THREE.MeshStandardMaterial({map:t,roughness:f.r,metalness:0});return TEX[kind];
+}
+function stdMat(c,r,m=0){return new THREE.MeshStandardMaterial({color:col(c),roughness:r,metalness:m});}
+let WALLMATS,PAINTMATS;
+function init3D(){
+  const host=$('#view3d');
+  try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){host.innerHTML='<div class="glerr">La vue 3D a besoin de WebGL, qui n’est pas disponible sur cet appareil.</div>';return;}
+  gl3=true;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;host.appendChild(renderer.domElement);
+  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(45,1,.05,2000);
+  orb.target=new THREE.Vector3();walk.pos=new THREE.Vector3(0,1.6,0);
+  const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#8fb2d6')},hor:{value:new THREE.Color('#eef0ee')},bot:{value:new THREE.Color('#a9a597')}},
+    vertexShader:'varying vec3 vP;void main(){vP=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:'uniform vec3 top;uniform vec3 hor;uniform vec3 bot;varying vec3 vP;void main(){float h=vP.y;vec3 c=h>0.0?mix(hor,top,pow(h,0.55)):mix(hor,bot,pow(-h,0.35));gl_FragColor=vec4(c,1.0);}'});
+  const envScene=new THREE.Scene();envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10,32,16),skyMat));
+  const pm=new THREE.PMREMGenerator(renderer);scene.environment=pm.fromScene(envScene,.03).texture;pm.dispose();
+  const sky=new THREE.Mesh(new THREE.SphereGeometry(900,32,16),skyMat);scene.add(sky);
+  MAT={paint:stdMat(S.wallColor,.92),cap:stdMat('#3b4046',.85),fabric:stdMat('#8c877e',.95),fabric2:stdMat('#cfc6b7',.95),linen:stdMat('#f3f1ec',.9),rug:stdMat('#b8a58c',1),wood:stdMat('#b5885c',.55),dark:stdMat('#5a3c28',.5),white:stdMat('#f2f1ed',.35),stone:stdMat('#3d3c3a',.3),metal:stdMat('#2b2e31',.4,.7),chrome:stdMat('#dadde0',.15,1),ceramic:stdMat('#f8f8f6',.12),black:stdMat('#1d1e20',.5),mirror:stdMat('#eef2f4',.03,1),leaf:stdMat('#58784a',.8),pot:stdMat('#c7b39b',.8),frame:stdMat('#f3f3f1',.4),door:stdMat('#ebe7df',.45),sill:stdMat('#e2ded6',.5),ceil:stdMat('#f4f3f0',.95),ground:stdMat('#98a28c',1),
+    glass:new THREE.MeshStandardMaterial({color:col('#d6e6ec'),roughness:.05,metalness:0,transparent:true,opacity:.18,depthWrite:false})};
+  WALLMATS=[MAT.paint,MAT.paint,MAT.cap,MAT.paint,MAT.paint,MAT.paint];PAINTMATS=MAT.paint;
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),MAT.ground);ground.rotation.x=-Math.PI/2;ground.position.y=-.003;ground.receiveShadow=true;scene.add(ground);
+  hemi=new THREE.HemisphereLight(col('#dfe8f2'),col('#8a8578'),.35);scene.add(hemi);
+  sun=new THREE.DirectionalLight(0xffffff,2.4);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;scene.add(sun);scene.add(sun.target);
+  bind3D();
+}
+function buildWall(w){
+  const dx=w.b.x-w.a.x,dy=w.b.y-w.a.y,L=Math.hypot(dx,dy);if(L<.01)return;
+  const t=w.thick,H=w.height,g=new THREE.Group();g.position.set(w.a.x,0,w.a.y);g.rotation.y=-Math.atan2(dy,dx);
+  const ops=w.openings.filter(o=>o.w<L-.1).map(o=>Object.assign({},o,{t:clamp(o.t,o.w/2+.05,L-o.w/2-.05)})).sort((p,q)=>p.t-q.t);
+  const piece=(s0,s1,y0,y1,mats=WALLMATS,zc=0,th=t)=>{if(s1-s0<.001||y1-y0<.001||th<.001)return;const me=new THREE.Mesh(new THREE.BoxGeometry(s1-s0,y1-y0,th),mats);me.position.set((s0+s1)/2,(y0+y1)/2,zc);me.castShadow=me.receiveShadow=true;g.add(me);};
+  let cur=-t/2;
+  for(const o of ops){const s0=o.t-o.w/2,s1=o.t+o.w/2;if(s0<cur)continue;piece(cur,s0,0,H);const y0=o.type==='door'?0:Math.min(o.sill,H-.1),y1=Math.min(H,y0+o.h);if(o.type==='niche'){const dp=clamp(o.depth||.1,.01,t-.01),sd=o.side||1;if(y0>0)piece(s0,s1,0,y0,PAINTMATS);piece(s0,s1,y1,H);piece(s0,s1,y0,y1,PAINTMATS,-sd*dp/2,t-dp);cur=s1;continue;}if(y0>0)piece(s0,s1,0,y0);piece(s0,s1,y1,H);buildOpening(g,o,s0,s1,y0,y1,t);cur=s1;}
+  piece(cur,L+t/2,0,H);buildGroup.add(g);
+}
+function buildOpening(g,o,s0,s1,y0,y1,t){
+  const w=s1-s0,h=y1-y0,c=(s0+s1)/2;
+  const add=(W,Hh,D,x,y,z,m,parent=g)=>{const me=new THREE.Mesh(new THREE.BoxGeometry(W,Hh,D),m);me.position.set(x,y,z);me.castShadow=m!==MAT.glass;me.receiveShadow=true;parent.add(me);return me;};
+  if(o.type==='window'){const f=.06,d=.07;
+    add(w,f,d,c,y0+f/2,0,MAT.frame);add(w,f,d,c,y1-f/2,0,MAT.frame);add(f,h,d,s0+f/2,y0+h/2,0,MAT.frame);add(f,h,d,s1-f/2,y0+h/2,0,MAT.frame);
+    if(w>1.0)add(f*.8,h-2*f,d,c,y0+h/2,0,MAT.frame);
+    add(w-2*f,h-2*f,.012,c,y0+h/2,0,MAT.glass);
+    if(y0>0)add(w+.04,.03,t+.06,c,y0-.015,0,MAT.sill);
+  }else{const f=.05,d=t+.02;
+    add(f,h,d,s0+f/2,h/2,0,MAT.frame);add(f,h,d,s1-f/2,h/2,0,MAT.frame);add(w,f,d,c,h-f/2,0,MAT.frame);
+    const lw=w-2*f,lh=h-f-.01,hs=o.hinge?-1:1,piv=new THREE.Group();piv.position.set(o.hinge?s1-f:s0+f,.005,0);
+    add(lw,lh,.04,hs*lw/2,lh/2,0,MAT.door,piv);for(const z of[-1,1])add(.12,.02,.02,hs*(lw-.1),1.0,z*.035,MAT.chrome,piv);
+    piv.rotation.y=-(o.side||1)*hs*70*Math.PI/180;g.add(piv);}
+}
+function buildFloor(r){if(r.pts.length<3)return;
+  const f=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(r.pts.map(p=>new THREE.Vector2(p.x,-p.y)))),floorTex(FLOORS[r.floor]?r.floor:'parquet'));f.rotation.x=-Math.PI/2;f.position.y=.004;f.receiveShadow=true;buildGroup.add(f);
+  const c=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(r.pts.map(p=>new THREE.Vector2(p.x,p.y)))),MAT.ceil);c.rotation.x=Math.PI/2;
+  let H=S.height;for(const w of M.walls){if(r.pts.some(p=>dist(p,w.a)<1e-3||dist(p,w.b)<1e-3))H=Math.min(H,w.height);}
+  c.position.y=H;c.castShadow=true;c.visible=camMode==='walk';ceilings.push(c);buildGroup.add(c);}
+function buildItem(it){const c=CAT[it.type];if(!c)return;const g=new THREE.Group();c.b(g);g.position.set(it.x,0,it.y);g.rotation.y=-it.rot*Math.PI/180;buildGroup.add(g);}
+const CM={};
+function colMat(c,em){const k=c+(em?'e':'');if(!CM[k]){CM[k]=new THREE.MeshStandardMaterial({color:col(c),roughness:.45,metalness:0});if(em){CM[k].emissive=col(c);CM[k].emissiveIntensity=.35;}}return CM[k];}
+function seg3(a,b,r,m){const dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,L=Math.hypot(dx,dy,dz);if(L<1e-3)return;const me=new THREE.Mesh(new THREE.CylinderGeometry(r,r,L,12),m);me.position.set((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);me.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx/L,dy/L,dz/L));buildGroup.add(me);}
+function buildNet(l){const d=NETS[l.net];if(!d||l.pts.length<2)return;const m=colMat(d.c,true),P=l.pts.map(q=>({x:q.x,y:q.z,z:q.y}));
+  for(let i=0;i<P.length-1;i++)seg3(P[i],P[i+1],d.r,m);
+  P.forEach((q,i)=>{const s=new THREE.Mesh(new THREE.SphereGeometry(d.r,10,8),m);s.position.set(q.x,q.y,q.z);buildGroup.add(s);const e=eqAt(l.pts[i]);if(e&&Math.abs(e.z-q.y)>.01)seg3(q,{x:q.x,y:e.z,z:q.z},d.r,m);});}
+function buildEq(e){const d=EQ[e.type];if(!d)return;const g=new THREE.Group();g.position.set(e.x,0,e.y);g.rotation.y=-(e.rot||0)*Math.PI/180;const z=e.z,k=d.m[0],a=d.m.slice(1),gc=GCOL[d.g],W='#f4f4f2';
+  const box=(w,h,dd,y,zz,c)=>{const me=new THREE.Mesh(new THREE.BoxGeometry(w,h,dd),colMat(c));me.position.set(0,y,zz);me.castShadow=true;me.receiveShadow=true;g.add(me);return me;};
+  const cyl=(r,h,y,c,rx=0,zz=0,x=0)=>{const me=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),colMat(c));me.position.set(x,y,zz);me.rotation.x=rx;me.castShadow=true;g.add(me);return me;};
+  if(k==='box'){const[w,h,dd,c]=a;box(w,h,dd,z,d.wall?dd/2:0,c);}
+  else if(k==='plate')box(.085,.085,.012,z,.006,W);
+  else if(k==='ceil')cyl(.09,.02,z,W);
+  else if(k==='vent')cyl(.1,.03,z,a[0]);
+  else if(k==='floorbox')cyl(.05,.5,.25,gc);
+  else if(k==='manifold'){const me=cyl(.025,.45,z,'#c9a227');me.rotation.z=Math.PI/2;me.position.z=.07;for(let i=0;i<4;i++)cyl(.012,.08,z-.06,'#c9a227',0,.07,-.15+i*.1);}
+  else if(k==='tank')cyl(.28,1.6,.8,W);
+  else if(k==='tap')cyl(.013,.07,z,a[0],Math.PI/2,.035);
+  else if(k==='column')cyl(.05,S.height,S.height/2,'#9aa0a6');
+  else if(k==='regard')box(.45,.04,.45,.02,0,'#3a3d40');
+  else if(k==='grille')box(.22,.22,.03,z,.015,'#adb5bd');
+  else if(k==='radiator')box(.8,.6,.08,z+.3,.07,W);
+  else if(k==='towel')box(.5,1.2,.05,z+.6,.06,W);
+  const pin=new THREE.Mesh(new THREE.SphereGeometry(.045,14,10),colMat(gc,true));pin.position.set(0,Math.max(z,.05),d.wall?.05:0);g.add(pin);
+  buildGroup.add(g);}
+function build3D(){
+  if(!gl3)return;
+  if(buildGroup){scene.remove(buildGroup);buildGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();});}
+  buildGroup=new THREE.Group();ceilings=[];
+  M.rooms.forEach(buildFloor);M.walls.forEach(buildWall);if(vmode==='plan')M.items.forEach(buildItem);
+  if(showNets()){M.nets.forEach(l=>{if(NETS[l.net]&&netVis(NETS[l.net].g))buildNet(l);});M.eqs.forEach(e=>{if(EQ[e.type]&&netVis(EQ[e.type].g))buildEq(e);});}
+  const xr=showNets();[MAT.paint,MAT.cap].forEach(m=>{m.transparent=xr;m.opacity=xr?(m===MAT.cap?.4:.16):1;m.depthWrite=!xr;m.needsUpdate=true;});
+  scene.add(buildGroup);fitShadow();renderer.shadowMap.needsUpdate=true;needRender=true;
+}
+function fitShadow(){const b=bounds(),half=b.size/2+3,c=sun.shadow.camera;c.left=-half;c.right=half;c.top=half;c.bottom=-half;c.near=.5;c.far=half*6+60;c.updateProjectionMatrix();updateSun();}
+function updateSun(){if(!gl3)return;const b=bounds(),h=S.hour,a=(h-6)/14*Math.PI,sa=Math.sin(a),el=.06+Math.max(0,sa)*.92;
+  let x=Math.cos(a)*Math.cos(el),z=sa*Math.cos(el);const n=S.north*Math.PI/180,rx=x*Math.cos(n)-z*Math.sin(n),rz=x*Math.sin(n)+z*Math.cos(n);
+  const D=b.size+30;sun.position.set(b.cx+rx*D,Math.sin(el)*D,b.cy+rz*D);sun.target.position.set(b.cx,0,b.cy);sun.target.updateMatrixWorld();
+  const k=clamp(Math.sin(el)*1.6,0,1);sun.color.copy(col('#ffb070')).lerp(col('#fff4e4'),k);sun.intensity=.9+1.7*k;hemi.intensity=.22+.18*k;renderer.shadowMap.needsUpdate=true;needRender=true;}
+function fit3D(){if(!gl3)return;const b=bounds();orb.target.set(b.cx,0,b.cy);orb.r=b.size*1.45+4;orb.th=.6;orb.ph=.92;needRender=true;}
+function size3D(){if(!gl3)return;const r=$('#view3d').getBoundingClientRect();vis3D=r.width>1&&r.height>1;if(!vis3D)return;renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();needRender=true;}
+function applyCam(){
+  if(camMode==='orbit'){const s=Math.sin(orb.ph);camera.position.set(orb.target.x+orb.r*s*Math.sin(orb.th),orb.target.y+orb.r*Math.cos(orb.ph),orb.target.z+orb.r*s*Math.cos(orb.th));camera.lookAt(orb.target);}
+  else{camera.position.copy(walk.pos);const cp=Math.cos(walk.pitch);camera.lookAt(walk.pos.x+Math.sin(walk.yaw)*cp,walk.pos.y+Math.sin(walk.pitch),walk.pos.z+Math.cos(walk.yaw)*cp);}
+}
+function orbitPan(dx,dy){const k=orb.r*.0016,th=orb.th;orb.target.x+=-dx*k*Math.cos(th)+dy*k*-Math.sin(th);orb.target.z+=dx*k*Math.sin(th)+dy*k*-Math.cos(th);}
+function setCam(m){if(!gl3)return;camMode=m;
+  if(m==='walk'){const r=M.rooms[0];const c=r?centroid(r.pts):{x:bounds().cx,y:bounds().cy};walk.pos.set(c.x,1.6,c.y);walk.yaw=Math.PI;walk.pitch=0;camera.fov=65;}else camera.fov=45;
+  camera.updateProjectionMatrix();ceilings.forEach(c=>c.visible=m==='walk');renderer.shadowMap.needsUpdate=true;
+  document.querySelectorAll('[data-cam]').forEach(b=>b.classList.toggle('on',b.dataset.cam===m));$('#pad').hidden=m!=='walk';$('#walkHint').hidden=m!=='walk';needRender=true;}
+function bind3D(){
+  const el=renderer.domElement,p3=new Map();let g3=null;
+  el.style.touchAction='none';
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);p3.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(p3.size===2){const[a,b]=[...p3.values()];g3={type:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2,my:(a.y+b.y)/2};}
+    else if(p3.size===1)g3={type:(e.button===2||e.shiftKey)?'pan':'rot'};});
+  el.addEventListener('pointermove',e=>{if(!p3.has(e.pointerId)||!g3)return;const prev=p3.get(e.pointerId);p3.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(g3.type==='pinch'){if(p3.size<2)return;const[a,b]=[...p3.values()];const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      if(camMode==='orbit'){orb.r=clamp(orb.r*g3.d/Math.max(d,1),1.5,300);orbitPan(mx-g3.mx,my-g3.my);}else{const fx=Math.sin(walk.yaw),fz=Math.cos(walk.yaw);walk.pos.x+=fx*(d-g3.d)*.01;walk.pos.z+=fz*(d-g3.d)*.01;}
+      g3.d=d;g3.mx=mx;g3.my=my;needRender=true;return;}
+    if(g3.type==='none')return;
+    const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+    if(camMode==='walk'){walk.yaw-=dx*.004;walk.pitch=clamp(walk.pitch-dy*.004,-1.2,1.2);}
+    else if(g3.type==='pan')orbitPan(dx,dy);else{orb.th-=dx*.008;orb.ph=clamp(orb.ph-dy*.008,.12,1.52);}
+    needRender=true;});
+  const end3=e=>{p3.delete(e.pointerId);if(!p3.size)g3=null;else if(g3&&g3.type==='pinch')g3={type:'none'};};
+  el.addEventListener('pointerup',end3);el.addEventListener('pointercancel',end3);
+  el.addEventListener('wheel',e=>{e.preventDefault();if(camMode==='orbit')orb.r=clamp(orb.r*Math.exp(e.deltaY*.001),1.5,300);else{const s=-e.deltaY*.003;walk.pos.x+=Math.sin(walk.yaw)*s;walk.pos.z+=Math.cos(walk.yaw)*s;}needRender=true;},{passive:false});
+}
+document.querySelector('.seg').addEventListener('click',e=>{const b=e.target.closest('[data-cam]');if(b)setCam(b.dataset.cam);});
+const pad=$('#pad');
+pad.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-move]');if(!b)return;e.preventDefault();b.setPointerCapture(e.pointerId);mv[b.dataset.move]=1;});
+['pointerup','pointercancel','pointerleave'].forEach(t=>pad.addEventListener(t,e=>{const b=e.target.closest('[data-move]');if(b)mv[b.dataset.move]=0;}));
+const fmtH=h=>`${Math.floor(h)}h${String(Math.round((h%1)*60)).padStart(2,'0')}`;
+$('#hour').value=S.hour;$('#north').value=S.north;$('#hourOut').textContent=fmtH(S.hour);
+$('#hour').addEventListener('input',e=>{S.hour=Number(e.target.value);$('#hourOut').textContent=fmtH(S.hour);updateSun();save();});
+$('#north').addEventListener('input',e=>{S.north=Number(e.target.value);updateSun();drawPlan();save();});
+$('#photoBtn').addEventListener('click',()=>{if(!gl3)return;
+  const pr=renderer.getPixelRatio();renderer.setPixelRatio(Math.min(3,(window.devicePixelRatio||1)*2));
+  sun.shadow.mapSize.set(4096,4096);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}renderer.shadowMap.needsUpdate=true;
+  applyCam();renderer.render(scene,camera);const url=renderer.domElement.toDataURL('image/jpeg',.93);
+  renderer.setPixelRatio(pr);sun.shadow.mapSize.set(2048,2048);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}renderer.shadowMap.needsUpdate=true;needRender=true;size3D();
+  $('#shot').src=url;$('#modal').hidden=false;});
+$('#viewSel').addEventListener('change',e=>setView(e.target.value));
+$('#closeModal').addEventListener('click',()=>{$('#modal').hidden=true;});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').hidden=true;});
+
+let last=performance.now();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;if(!gl3)return;
+  if(pending3D&&vis3D&&(!(gest&&gest.moved)||now-lastBuild>150)){pending3D=false;lastBuild=now;build3D();}
+  if(camMode==='walk'){const f=((keys.KeyW||keys.ArrowUp||mv.f)?1:0)-((keys.KeyS||keys.ArrowDown||mv.b)?1:0),st=((keys.KeyD)?1:0)-((keys.KeyA)?1:0),tr=((keys.ArrowRight||mv.r)?1:0)-((keys.ArrowLeft||mv.l)?1:0);
+    if(f||st||tr){const fx=Math.sin(walk.yaw),fz=Math.cos(walk.yaw),sp_=1.5*dt;walk.pos.x+=(fx*f-fz*st)*sp_;walk.pos.z+=(fz*f+fx*st)*sp_;walk.yaw-=tr*1.6*dt;needRender=true;}}
+  if(needRender&&vis3D){applyCam();renderer.render(scene,camera);needRender=false;}}
+
+/* ---------- Onglets mobile, démarrage ---------- */
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;document.body.dataset.tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));requestAnimationFrame(()=>{const first=!PW;resizePlan();if(first)fitPlan();size3D();});});
+{const mq=matchMedia('(prefers-color-scheme: dark)'),fn=()=>{readTheme();drawPlan();};if(mq.addEventListener)mq.addEventListener('change',fn);else if(mq.addListener)mq.addListener(fn);}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>drawPlan());
+if(!load())demo();
+readTheme();init3D();
+$('#orthoBtn').classList.toggle('on',S.ortho);
+new ResizeObserver(()=>{const first=!PW;if(resizePlan()&&first)fitPlan();size3D();}).observe($('#work'));
+setTool('select');
+requestAnimationFrame(()=>{resizePlan();fitPlan();size3D();fit3D();updateSun();requestAnimationFrame(loop);});
+})();
+</script>
+</body>
+</html>
