@@ -44,6 +44,17 @@ const liens: Lien[] = [
     ),
   },
   {
+    href: "/espace/conception",
+    label: "Conception",
+    mobile: false,
+    icone: (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" {...trait}>
+        <rect x="3" y="3" width="18" height="18" rx="1.5" />
+        <path d="M3 10h7M10 10V3M10 15h11M15 21v-6" />
+      </svg>
+    ),
+  },
+  {
     href: "/espace/devis",
     label: "Devis",
     mobile: true,
