@@ -8,9 +8,13 @@ Site public de NOVARA Habitat et espace pro privé (un seul compte : le dirigean
 - **Devis** (`/espace/devis`) : brouillon → finalisé (numéro `D-aaaa-nnnn`, encore ajustable)
   → accepté ou refusé. Sur un devis : acomptes (factures d'acompte rattachées, suivi encaissé /
   reste à payer), puis « Transformer en facture » ; la facture finale déduit les acomptes.
-- **Conception** (`/espace/conception`) : outil de plan (murs, pièces, vue 3D) servi tel quel
-  depuis `app/espace/conception/novara-plan.html` par `/espace/conception/outil`, réservé au
-  compte de l'espace pro. Le plan en cours reste dans le navigateur.
+- **Conception** (`/espace/conception`) : outil de plan (murs, pièces, réseaux, tableau
+  électrique, vue 3D), un fichier autonome servi tel quel depuis
+  `app/espace/conception/novara-plan.html` par `/espace/conception/outil`, réservé au compte
+  de l'espace pro. Un plan par chantier (table `plans`) : l'outil garde sa copie dans le
+  navigateur, l'envoie au site quand la connexion le permet et la reprend sur l'autre
+  appareil. Deux appareils en désaccord : la version la plus récente est gardée et un
+  bandeau le dit. Les photos du pack client vont dans le bucket privé `plans`.
 - **PDF** : devis (`/api/devis/[id]/pdf`), facture (`/api/factures/[id]/pdf`) et pack de fin de chantier remis au client
   (`/api/chantiers/[id]/pack`).
 
