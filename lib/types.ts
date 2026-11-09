@@ -182,7 +182,7 @@ export type MediaPlan = {
 };
 
 /** Chiffres recopiés du plan pour les afficher sans relire tout le document. */
-export type ResumePlan = { surface?: number; pieces?: number; murs?: number };
+export type ResumePlan = { surface?: number; pieces?: number; murs?: number; niveaux?: number };
 
 /**
  * Document de l'outil de conception. Sa forme appartient à l'outil : le site
