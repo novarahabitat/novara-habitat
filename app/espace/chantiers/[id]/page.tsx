@@ -91,9 +91,14 @@ export default async function ChantierPage({ params }: { params: Promise<{ id: s
         }
         retour={{ href: "/espace/chantiers", label: "Chantiers" }}
         actions={
-          <Link href={`/espace/chantiers/${id}/modifier`} className="bouton-secondaire">
-            Modifier
-          </Link>
+          <>
+            <Link href={`/espace/conception/plan?chantier=${id}`} className="bouton-secondaire">
+              Plan
+            </Link>
+            <Link href={`/espace/chantiers/${id}/modifier`} className="bouton-secondaire">
+              Modifier
+            </Link>
+          </>
         }
       />
 

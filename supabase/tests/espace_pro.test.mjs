@@ -6,6 +6,7 @@ const migrations = [
   "20260921000004_mentions_septembre_2026.sql",
   "20260921000005_acomptes.sql",
   "20261025000006_devis.sql",
+  "20261108000001_plans_conception.sql",
 ].map((f) => readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
 const db = new PGlite();
 
@@ -251,10 +252,33 @@ ok("admin dépose une photo", true);
 ok("autre compte ne voit pas les photos", (await q1(OTHER, `select * from storage.objects`)).length === 0);
 await expectError("autre compte ne dépose pas de photo", OTHER, `insert into storage.objects (bucket_id, name) values ('chantiers', 'x.jpg')`, /row-level security/);
 
+// Plans de conception
+const [plan] = await q1(ADMIN, `insert into plans (chantier_id, document, resume)
+  values ($1, '{"M":{"walls":[]}}', '{"surface":46.3}') returning id, version, modifie_le`, [chantier.id]);
+ok("plan créé avec version 1", plan.version === 1 && plan.modifie_le !== null);
+await expectError("un seul plan par chantier", ADMIN,
+  `insert into plans (chantier_id, document) values ('${chantier.id}', '{}')`, /unique|duplicate/i);
+await expectError("document doit être un objet", ADMIN,
+  `insert into plans (chantier_id, document) values ('${chantier.id}', '[]')`, /check constraint|unique|duplicate/i);
+ok("autre compte ne voit pas le plan", (await q1(OTHER, `select * from plans`)).length === 0);
+await expectError("autre compte n'écrit pas de plan", OTHER,
+  `insert into plans (chantier_id, document) values ('${chantier.id}', '{}')`, /row-level security/);
+ok("anonyme ne voit pas les plans", (await q1("anon", `select * from plans`)).length === 0);
+await q1(ADMIN, `update plans set document = '{"M":{"walls":[1]}}', version = version + 1 where id = $1`, [plan.id]);
+const [maj] = await q1(ADMIN, `select version, updated_at > created_at as touche from plans where id = $1`, [plan.id]);
+ok("version suivie et updated_at mis à jour", maj.version === 2 && maj.touche === true, JSON.stringify(maj));
+
+// Photos du pack : bucket plans
+await q1(ADMIN, `insert into storage.objects (bucket_id, name) values ('plans', '${chantier.id}/m1.jpg')`);
+ok("admin dépose une photo de pack", true);
+await expectError("autre compte ne dépose pas dans plans", OTHER,
+  `insert into storage.objects (bucket_id, name) values ('plans', 'x.jpg')`, /row-level security/);
+
 // Suppression d'un chantier : la facture émise reste, sans lien
 await q1(ADMIN, `delete from chantiers where id = $1`, [chantier.id]);
 [t] = await q1(ADMIN, `select numero, chantier_id from factures where id = $1`, [f.id]);
 ok("facture conservée si chantier supprimé", t.numero === `F-${annee}-0001` && t.chantier_id === null);
+ok("plan supprimé avec le chantier", (await q1(ADMIN, `select * from plans`)).length === 0);
 await expectError("client avec factures non supprimable", ADMIN, `delete from clients where id = '${client.id}'`, /foreign key/);
 
 console.log(failures ? `\n${failures} ÉCHEC(S)` : "\nTOUS LES TESTS PASSENT");

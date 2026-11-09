@@ -173,5 +173,48 @@ export type DemandeContact = {
   created_at: string;
 };
 
+/** Photo du pack client : l'image est dans le stockage, le document garde son chemin. */
+export type MediaPlan = {
+  id: string;
+  kind: "photo" | "3d" | "3dnet";
+  caption: string;
+  chemin: string | null;
+};
+
+/** Chiffres recopiés du plan pour les afficher sans relire tout le document. */
+export type ResumePlan = { surface?: number; pieces?: number; murs?: number; niveaux?: number };
+
+/**
+ * Document de l'outil de conception. Sa forme appartient à l'outil : le site
+ * ne lit que la liste des photos, pour savoir lesquelles ranger ou retirer.
+ */
+export type DocumentPlan = { medias?: MediaPlan[] } & Record<string, unknown>;
+
+export type Plan = {
+  id: string;
+  chantier_id: string;
+  document: DocumentPlan;
+  resume: ResumePlan;
+  version: number;
+  modifie_le: string;
+  appareil: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Réponse des routes `/api/plans/[chantier]`. */
+export type ReponsePlan = {
+  /** `depasse` : le serveur avait plus récent, l'appareil doit reprendre sa version. */
+  etat: "lu" | "enregistre" | "remplace" | "depasse";
+  existe: boolean;
+  document?: DocumentPlan;
+  resume?: ResumePlan;
+  version?: number;
+  modifie_le?: string;
+  appareil?: string | null;
+  remplace_appareil?: string | null;
+  remplace_le?: string | null;
+};
+
 /** Résultat renvoyé par les actions de formulaire. */
 export type EtatAction = { erreur?: string; ok?: string } | undefined;
