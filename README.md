@@ -18,6 +18,9 @@ Site public de NOVARA Habitat et espace pro privé (un seul compte : le dirigean
 - **PDF** : devis (`/api/devis/[id]/pdf`), facture (`/api/factures/[id]/pdf`) et pack de fin de chantier remis au client
   (`/api/chantiers/[id]/pack`).
 
+Les notes de suivi de l'outil de conception (rangement des données, tests, liste d'attente)
+sont dans [`docs/conception.md`](docs/conception.md).
+
 L'ancien système (Brain, Core, Sales, espace client…) est archivé sous l'étiquette git
 `archive-v1`. `app/naomi` est un outil personnel indépendant, hors du périmètre du site.
 
