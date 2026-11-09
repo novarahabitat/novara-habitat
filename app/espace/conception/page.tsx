@@ -52,6 +52,7 @@ export default async function ConceptionPage() {
                       {plan ? (
                         <>
                           {plan.resume?.surface ? `${plan.resume.surface} m² · ` : ""}
+                          {plan.resume?.niveaux && plan.resume.niveaux > 1 ? `${plan.resume.niveaux} niveaux · ` : ""}
                           modifié le {formatDateHeure(plan.modifie_le)}
                           {plan.appareil ? ` sur ${plan.appareil}` : ""}
                         </>
