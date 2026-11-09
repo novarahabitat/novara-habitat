@@ -20,12 +20,16 @@ export default async function PlanPage({
   const { supabase } = await requireAdmin();
   const { data } = await supabase
     .from("chantiers")
-    .select("id, titre")
+    .select("id, titre, clients(nom)")
     .eq("id", chantier)
-    .maybeSingle<Pick<Chantier, "id" | "titre">>();
+    .maybeSingle<Pick<Chantier, "id" | "titre"> & { clients: { nom: string } | null }>();
   if (!data) notFound();
 
-  const outil = `/espace/conception/outil?chantier=${data.id}&titre=${encodeURIComponent(data.titre)}`;
+  // L'outil ouvre le chantier correspondant, ou le crée avec ces renseignements.
+  const outil =
+    `/espace/conception/outil?chantier=${data.id}` +
+    `&nom=${encodeURIComponent(data.titre)}` +
+    `&client=${encodeURIComponent(data.clients?.nom ?? "")}`;
 
   return (
     <>
