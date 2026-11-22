@@ -114,8 +114,6 @@ export const realisations: Realisation[] = [
       {
         "fichier": "sdb-bleue-douche-wc.jpg",
         "legende": "Douche et WC"
-      },
-      {
       }
     ]
   },
