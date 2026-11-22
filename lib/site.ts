@@ -28,27 +28,27 @@ export const ZONE_PRINCIPALE = [
 
 export const SERVICES = [
   {
-    titre: "Rénovation de salle de bain",
+    titre: "Salle de bain",
     texte: "Baignoire remplacée par une douche à l'italienne, WC suspendu, meuble vasque sur mesure, carrelage et étanchéité.",
   },
   {
-    titre: "Rénovation de cuisine",
-    texte: "Pose de cuisine neuve ou relooking de vos meubles existants, plan de travail, évier, hotte.",
+    titre: "Cuisine",
+    texte: "Pose d'une cuisine neuve ou relooking de vos meubles existants : plan de travail, évier, hotte.",
   },
   {
     titre: "Rénovation complète",
-    texte: "Appartements et maisons repris de A à Z, avec un seul interlocuteur du début à la fin du chantier.",
+    texte: "Appartements et maisons repris de A à Z, avec un seul interlocuteur.",
   },
   {
-    titre: "Aménagements sur mesure",
-    texte: "Étagères, rangements, cheminée : on optimise chaque espace de votre intérieur.",
+    titre: "Aménagement sur mesure",
+    texte: "Étagères, rangements, cheminée : chaque espace utilisé au mieux.",
   },
   {
     titre: "Peinture et décoration",
-    texte: "Murs, plafonds, peinture décorative : une finition soignée, chantier protégé et nettoyé.",
+    texte: "Murs, plafonds, peinture décorative, avec une finition soignée.",
   },
   {
-    titre: "Votre projet en image avant les travaux",
-    texte: "Une image de votre future pièce pour valider ensemble le résultat avant de commencer.",
+    titre: "Votre projet en image",
+    texte: "Une image de votre future pièce pour valider le résultat avant de commencer.",
   },
 ];

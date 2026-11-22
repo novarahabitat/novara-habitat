@@ -8,16 +8,17 @@ export default function FormulaireContact() {
 
   if (etat?.ok) {
     return (
-      <div className="mt-14 rounded-[32px] bg-white p-8 shadow-xl md:p-10">
-        <p className="text-2xl font-light">{etat.ok}</p>
+      <div className="mt-12 rounded-md bg-white p-8 md:p-10">
+        <p className="text-2xl">{etat.ok}</p>
       </div>
     );
   }
 
-  const champ = "w-full rounded-xl border border-black/10 px-4 py-4 text-[#1f1f1f]";
+  const champ =
+    "w-full rounded-md border border-[#1F2A30]/20 bg-white px-4 py-4 text-[#1F2A30] focus:border-[#5E7C82]";
 
   return (
-    <form action={action} className="mt-14 rounded-[32px] bg-white p-6 shadow-xl sm:p-8 md:p-10">
+    <form action={action} className="mt-12 rounded-md bg-white p-6 sm:p-8 md:p-10">
       <div className="grid gap-5 md:grid-cols-2">
         <input className={champ} name="nom" placeholder="Nom complet" autoComplete="name" required />
         <input className={champ} name="telephone" placeholder="Téléphone" type="tel" autoComplete="tel" />
@@ -34,7 +35,7 @@ export default function FormulaireContact() {
 
       <button
         disabled={envoi}
-        className="mt-8 rounded-full bg-[#153126] px-10 py-5 text-sm uppercase tracking-[0.22em] text-white disabled:opacity-60"
+        className="btn mt-8 disabled:opacity-60"
       >
         {envoi ? "Envoi…" : "Envoyer la demande"}
       </button>
