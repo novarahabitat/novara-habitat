@@ -61,6 +61,7 @@
   .site .etapes{list-style:none;margin:56px 0 0;padding:0;display:grid;gap:40px}
   @media(min-width:860px){.site .etapes{grid-template-columns:repeat(4,1fr);gap:32px}}
   .site .etapes li{border-top:2px solid var(--embruns);padding-top:20px}
+  .site .etapes .scene{display:block;width:100%;max-width:260px;height:auto;margin:0 0 12px}
   .site .etapes .ico{display:block;width:64px;height:64px;margin:4px 0 20px;fill:none;stroke:#C9D6D8;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .site .etapes .n{font-weight:800;font-size:44px;line-height:1;color:var(--laiton);font-variation-settings:"wdth" 62}
   .site .etapes h3{margin:14px 0 8px;font-size:20px;font-weight:650;color:#fff}

@@ -5,7 +5,6 @@ import Footer from "@/components/Footer";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Realisations from "@/components/Realisations";
 import FicheEntreprise from "@/components/FicheEntreprise";
-import IconeEtape, { type NomIcone } from "@/components/IconeEtape";
 import { comparaisons, DOSSIER_REALISATIONS } from "@/lib/realisations";
 import { SERVICES, ZONE_PRINCIPALE } from "@/lib/site";
 import "./site.css";
@@ -15,24 +14,24 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 const ETAPES = [
   {
     titre: "Visite chez vous",
-    icone: "visite" as NomIcone,
+    image: "rencontre",
     texte: "On regarde ensemble la pièce, vos envies et votre budget. Je prends toutes les mesures.",
   },
   {
     titre: "Image et devis",
-    icone: "image" as NomIcone,
+    image: "dessin",
     texte:
       "Vous recevez une image de votre future pièce et un devis détaillé. On ajuste jusqu'à ce que ce soit exactement ce que vous voulez.",
   },
   {
     titre: "Les travaux",
-    icone: "travaux" as NomIcone,
+    image: "outils",
     texte:
       "Points fréquents, horaires tenus, meubles et sols protégés. Vous changez d'avis ? Je vous propose des solutions.",
   },
   {
     titre: "Un chantier rendu propre",
-    icone: "propre" as NomIcone,
+    image: "nettoyage",
     texte:
       "Un chantier soigné et propre tout au long des travaux. À la fin, les déchets sont évacués et votre espace vous est rendu propre, c'est garanti.",
   },
@@ -98,7 +97,7 @@ export default function Home() {
           <ol className="etapes">
             {ETAPES.map((e, i) => (
               <li key={e.titre}>
-                <IconeEtape nom={e.icone} />
+                <img className="scene" src={`/images/etapes/${e.image}.svg`} alt="" loading="lazy" />
                 <div className="n">{i + 1}</div>
                 <h3>{e.titre}</h3>
                 <p>{e.texte}</p>
