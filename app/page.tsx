@@ -86,8 +86,8 @@ export default function Home() {
         <div className="wrap">
           <h2>Comment se passe votre chantier</h2>
           <p className="intro">
-            Je travaille seul sur mes chantiers. Vous savez toujours qui est chez vous et où en sont
-            les travaux.
+            Du premier rendez-vous à la visite de fin, vous avez un seul interlocuteur : moi. Une
+            question ? Un appel ou un message suffit, et vous avez une réponse rapide, simplement.
           </p>
           <ol className="etapes">
             {ETAPES.map((e, i) => (
