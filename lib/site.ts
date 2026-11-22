@@ -5,16 +5,25 @@ export const VILLE = "Saint-Malo";
 export const CODE_POSTAL = "35400";
 export const EMAIL = "contact@novarahabitat.fr";
 
-// Communes citées comme zone d'intervention.
+// Communes à moins de 35 km de route de Saint-Malo (liste lue par Google).
 export const ZONE = [
-  "Saint-Malo",
-  "Dinard",
-  "Dinan",
-  "Cancale",
-  "Saint-Jouan-des-Guérets",
-  "Saint-Méloir-des-Ondes",
-  "Pleurtuit",
-  "Lanvallay",
+  "Saint-Malo", "Château-Malo", "Paramé", "Saint-Servan", "Rothéneuf",
+  "Dinard", "La Richardais", "Pleurtuit", "Saint-Lunaire", "Saint-Briac-sur-Mer",
+  "Lancieux", "Le Minihic-sur-Rance", "Tréméreuc", "Beaussais-sur-Mer", "Pleslin-Trigavou",
+  "Langrolay-sur-Rance", "Plouër-sur-Rance", "Saint-Samson-sur-Rance", "La Vicomté-sur-Rance",
+  "Dinan", "Lanvallay", "Taden", "Quévert", "Léhon", "Pleudihen-sur-Rance", "Saint-Hélen",
+  "Saint-Jouan-des-Guérets", "La Ville-ès-Nonais", "Saint-Suliac", "Saint-Père-Marc-en-Poulet",
+  "Châteauneuf-d'Ille-et-Vilaine", "Saint-Guinoux", "La Gouesnière", "Miniac-Morvan",
+  "Plerguer", "Le Tronchet", "Lillemer", "Saint-Pierre-de-Plesguen",
+  "Saint-Méloir-des-Ondes", "Cancale", "Saint-Coulomb", "Saint-Benoît-des-Ondes",
+  "Hirel", "La Fresnais", "Le Vivier-sur-Mer", "Mont-Dol", "Roz-Landrieux",
+  "Dol-de-Bretagne", "Baguer-Morvan", "Bonnemain", "Lanhélin", "Cherrueix",
+];
+
+// Communes citées dans le texte visible de la page d'accueil.
+export const ZONE_PRINCIPALE = [
+  "Saint-Malo", "Château-Malo", "Dinard", "Cancale", "Châteauneuf-d'Ille-et-Vilaine",
+  "Dinan", "Dol-de-Bretagne", "Pleurtuit", "Saint-Briac-sur-Mer",
 ];
 
 export const SERVICES = [

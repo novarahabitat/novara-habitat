@@ -5,7 +5,7 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Realisations from "@/components/Realisations";
 import { comparaisons, DOSSIER_REALISATIONS } from "@/lib/realisations";
 import FicheEntreprise from "@/components/FicheEntreprise";
-import { SERVICES, ZONE } from "@/lib/site";
+import { SERVICES, ZONE_PRINCIPALE } from "@/lib/site";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -93,7 +93,8 @@ export default function Home() {
           </div>
 
           <p className="mx-auto mt-14 max-w-3xl text-center text-[15px] leading-relaxed text-[#5c5a55]">
-            Nous intervenons à {ZONE.slice(0, -1).join(", ")} et {ZONE[ZONE.length - 1]}.
+            Nous intervenons à {ZONE_PRINCIPALE.join(", ")} et dans toutes les communes
+            à moins de 35 km de Saint-Malo.
             Devis gratuit, un seul interlocuteur du premier rendez-vous à la fin du chantier.
           </p>
         </div>
