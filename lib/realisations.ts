@@ -15,6 +15,8 @@ export type Realisation = {
   categorie: string;
   texte: string;
   enCours?: boolean;
+  /** true = gardé dans la liste mais pas affiché sur le site */
+  masque?: boolean;
   photos: { fichier: string; legende: string }[];
 };
 
@@ -47,7 +49,7 @@ export const comparaisons: Comparaison[] = [
   }
 ];
 
-export const realisations: Realisation[] = [
+const toutes: Realisation[] = [
   {
     "titre": "Cuisine en chêne relookée",
     "categorie": "Cuisine",
@@ -85,6 +87,7 @@ export const realisations: Realisation[] = [
   },
   {
     "titre": "Salle de bain avec WC suspendu",
+    "masque": true,
     "categorie": "Salle de bain",
     "texte": "Retrait de l'ancien jacuzzi, murs et sol repris, spots encastrés, nouvelle porte. Les toilettes ont été déplacées : WC suspendu et étagère encastrée posés dans le vide mural.",
     "photos": [
@@ -171,3 +174,6 @@ export const realisations: Realisation[] = [
     ]
   }
 ];
+
+// Photos finales à refaire chez le client pour la salle de bain WC suspendu : masquée en attendant.
+export const realisations = toutes.filter((r) => !r.masque);
