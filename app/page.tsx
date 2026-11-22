@@ -24,11 +24,12 @@ const ETAPES = [
   {
     titre: "Les travaux",
     texte:
-      "Points fréquents, horaires tenus, meubles et sols protégés, chantier nettoyé. Vous changez d'avis ? Je vous propose des solutions.",
+      "Points fréquents, horaires tenus, meubles et sols protégés. Vous changez d'avis ? Je vous propose des solutions.",
   },
   {
-    titre: "Visite de fin",
-    texte: "Je repasse après les travaux pour vérifier avec vous que tout est conforme à votre demande.",
+    titre: "Un chantier rendu propre",
+    texte:
+      "Un chantier soigné et propre tout au long des travaux. À la fin, les déchets sont évacués et votre espace vous est rendu propre, c'est garanti.",
   },
 ];
 
@@ -86,8 +87,8 @@ export default function Home() {
         <div className="wrap">
           <h2>Comment se passe votre chantier</h2>
           <p className="intro">
-            Je travaille seul sur mes chantiers. Vous savez toujours qui est chez vous et où en sont
-            les travaux.
+            Du premier rendez-vous à la fin du chantier, vous avez un seul interlocuteur : moi. Une
+            question ? Un appel ou un message suffit, et vous avez une réponse rapide, simplement.
           </p>
           <ol className="etapes">
             {ETAPES.map((e, i) => (
