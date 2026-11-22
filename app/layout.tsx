@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Archivo } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site";
 
@@ -23,15 +24,23 @@ export const metadata: Metadata = {
   },
 };
 
+// Police du site public (largeur variable : titres serrés, texte normal).
+const archivo = Archivo({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  variable: "--font-archivo",
+  display: "swap",
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#153126",
+  themeColor: "#1F2A30",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={archivo.variable}>
       <body>{children}</body>
     </html>
   );
