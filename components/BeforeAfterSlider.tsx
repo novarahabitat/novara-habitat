@@ -6,12 +6,18 @@ type BeforeAfterSliderProps = {
   beforeImage: string;
   afterImage: string;
   title: string;
+  description?: string;
+  beforeLabel?: string;
+  afterLabel?: string;
 };
 
 export default function BeforeAfterSlider({
   beforeImage,
   afterImage,
   title,
+  description,
+  beforeLabel = "Avant",
+  afterLabel = "Après",
 }: BeforeAfterSliderProps) {
   const [position, setPosition] = useState(50);
 
@@ -20,7 +26,7 @@ export default function BeforeAfterSlider({
       <div className="relative h-[320px] overflow-hidden bg-black md:h-[420px]">
         <img
           src={afterImage}
-          alt={`${title} après`}
+          alt={`${title} — ${afterLabel}`}
           draggable={false}
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -31,7 +37,7 @@ export default function BeforeAfterSlider({
         >
           <img
             src={beforeImage}
-            alt={`${title} avant`}
+            alt={`${title} — ${beforeLabel}`}
             draggable={false}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -60,11 +66,11 @@ export default function BeforeAfterSlider({
         />
 
         <div className="pointer-events-none absolute left-4 top-4 z-30 rounded-full bg-black/70 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white backdrop-blur">
-          Avant
+          {beforeLabel}
         </div>
 
         <div className="pointer-events-none absolute right-4 top-4 z-30 rounded-full bg-[#c9a45c]/90 px-4 py-2 text-xs uppercase tracking-[0.2em] text-black backdrop-blur">
-          Après
+          {afterLabel}
         </div>
       </div>
 
@@ -72,6 +78,11 @@ export default function BeforeAfterSlider({
         <h3 className="text-xl font-light text-[#1f1f1f] md:text-2xl">
           {title}
         </h3>
+        {description && (
+          <p className="mt-3 text-[15px] leading-relaxed text-[#5c5a55]">
+            {description}
+          </p>
+        )}
       </div>
     </div>
   );
