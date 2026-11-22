@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import Realisations from "@/components/Realisations";
+import { comparaisons, DOSSIER_REALISATIONS } from "@/lib/realisations";
 
 export default function Home() {
   return (
@@ -76,23 +78,44 @@ export default function Home() {
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            <BeforeAfterSlider
-              title="Rénovation intérieure"
-              beforeImage="/images/before-1.jpg"
-              afterImage="/images/after-1.jpg"
-            />
+            {comparaisons.map((c) => (
+              <BeforeAfterSlider
+                key={c.titre}
+                title={c.titre}
+                description={c.texte}
+                beforeImage={DOSSIER_REALISATIONS + c.avant}
+                afterImage={DOSSIER_REALISATIONS + c.apres}
+                beforeLabel={c.etiquetteAvant}
+                afterLabel={c.etiquetteApres}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <BeforeAfterSlider
-              title="Aménagement premium"
-              beforeImage="/images/before-2.jpg"
-              afterImage="/images/after-2.jpg"
-            />
+      {/* RÉALISATIONS */}
+      <section id="realisations" className="bg-[#f6f1e8] py-28">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <p className="mb-5 text-sm uppercase tracking-[0.4em] text-[#b99252]">
+              Nos réalisations
+            </p>
+            <h2 className="text-5xl font-light text-[#1f1f1f]">Chantiers réalisés</h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#5c5a55]">
+              Cuisines, salles de bain, aménagements : quelques chantiers menés de A à Z.
+              Cliquez sur une photo pour l&apos;agrandir.
+            </p>
+          </div>
 
-            <BeforeAfterSlider
-              title="Habitat valorisé"
-              beforeImage="/images/before-3.jpg"
-              afterImage="/images/after-3.jpg"
-            />
+          <Realisations />
+
+          <div className="mt-16 text-center">
+            <a
+              href="/contact"
+              className="inline-flex rounded-full bg-[#153126] px-10 py-5 text-sm uppercase tracking-[0.22em] text-white transition hover:bg-[#1d4435]"
+            >
+              Parlez-nous de votre projet
+            </a>
           </div>
         </div>
       </section>
