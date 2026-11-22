@@ -3,7 +3,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FormulaireContact from "./FormulaireContact";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = {
+  title: "Contact et devis gratuit — rénovation à Saint-Malo",
+  description:
+    "Demandez un devis gratuit pour vos travaux de rénovation à Saint-Malo et alentours : salle de bain, cuisine, rénovation complète, aménagements.",
+  alternates: { canonical: "/contact" },
+};
 
 export default function ContactPage() {
   return (

@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Notre façon de travailler",
+  description:
+    "Un seul interlocuteur, un suivi au jour le jour, un chantier protégé et nettoyé : la méthode NOVARA Habitat pour votre rénovation à Saint-Malo.",
+  alternates: { canonical: "/experience" },
+};
 
 export default function ExperiencePage() {
   return (
