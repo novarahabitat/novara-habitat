@@ -1,12 +1,18 @@
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import Realisations from "@/components/Realisations";
 import { comparaisons, DOSSIER_REALISATIONS } from "@/lib/realisations";
+import FicheEntreprise from "@/components/FicheEntreprise";
+import { SERVICES, ZONE } from "@/lib/site";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   return (
     <main className="overflow-hidden bg-white text-[#1a1a1a]">
+      <FicheEntreprise />
       <Header />
 
       {/* HERO */}
@@ -15,7 +21,7 @@ export default function Home() {
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
             <div>
               <p className="mb-6 text-sm uppercase tracking-[0.4em] text-[#b99252]">
-                NOVARA Habitat
+                NOVARA Habitat · Rénovation à Saint-Malo
               </p>
 
               <h1 className="max-w-2xl text-5xl font-light leading-tight tracking-tight md:text-7xl">
@@ -25,9 +31,10 @@ export default function Home() {
               </h1>
 
               <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#4b4b4b]">
-                Plus qu&apos;une rénovation, une expérience premium pensée
-                autour de votre confort, de votre sérénité et d’un
-                accompagnement digital unique.
+                Rénovation intérieure à Saint-Malo et alentours : salles de
+                bain, cuisines, rénovation complète et aménagements sur mesure.
+                Une expérience pensée autour de votre confort et de votre
+                sérénité.
               </p>
 
               <div className="mt-12 flex flex-wrap gap-5">
@@ -59,6 +66,36 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section id="services" className="bg-white py-28">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <p className="mb-5 text-sm uppercase tracking-[0.4em] text-[#b99252]">
+              Nos services
+            </p>
+            <h2 className="text-5xl font-light text-[#1f1f1f]">
+              Rénovation intérieure
+              <br />
+              à Saint-Malo et alentours
+            </h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((s) => (
+              <div key={s.titre} className="rounded-[24px] border border-black/[0.06] bg-[#f6f1e8] p-8">
+                <h3 className="text-xl font-light text-[#1f1f1f]">{s.titre}</h3>
+                <p className="mt-3 text-[15px] leading-relaxed text-[#5c5a55]">{s.texte}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mx-auto mt-14 max-w-3xl text-center text-[15px] leading-relaxed text-[#5c5a55]">
+            Nous intervenons à {ZONE.slice(0, -1).join(", ")} et {ZONE[ZONE.length - 1]}.
+            Devis gratuit, un seul interlocuteur du premier rendez-vous à la fin du chantier.
+          </p>
         </div>
       </section>
 
