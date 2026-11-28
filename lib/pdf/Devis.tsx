@@ -50,6 +50,15 @@ const s = StyleSheet.create({
   },
   mentions: { marginTop: 22, gap: 6 },
   cadre: { borderWidth: 0.5, borderColor: couleurs.filet, borderRadius: 4, padding: 10 },
+  paiement: {
+    borderLeftWidth: 3,
+    borderLeftColor: couleurs.foret,
+    backgroundColor: couleurs.creme,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    marginBottom: 6,
+  },
+  paiementTitre: { fontFamily: "Helvetica-Bold", fontSize: 10, color: couleurs.foret, marginBottom: 3 },
   signatures: { flexDirection: "row", gap: 16, marginTop: 18 },
   signature: { flex: 1, height: 96, borderWidth: 0.5, borderColor: couleurs.gris, borderRadius: 4, padding: 8 },
   filigrane: {
@@ -76,6 +85,8 @@ export function DevisPdf({ devis, lignes, entreprise: e, client: c }: Props) {
   const brouillon = devis.statut === "brouillon";
   const franchise = Boolean(e.franchise_tva);
   const nom = nomEmetteur(e);
+  // Toujours visibles : celles du devis, sinon celles des Réglages.
+  const conditions = devis.conditions?.trim() || e.conditions_paiement || "";
 
   const parTaux = new Map<number, number>();
   for (const l of lignes) {
@@ -196,11 +207,11 @@ export function DevisPdf({ devis, lignes, entreprise: e, client: c }: Props) {
             </Text>
           ))}
           <View style={s.cadre}>
-            {devis.conditions && (
-              <Text>
-                <Text style={base.gras}>Conditions de paiement : </Text>
-                {devis.conditions}
-              </Text>
+            {conditions && (
+              <View style={s.paiement}>
+                <Text style={s.paiementTitre}>Conditions de paiement</Text>
+                <Text>{conditions}</Text>
+              </View>
             )}
             {e.iban && (
               <Text>
