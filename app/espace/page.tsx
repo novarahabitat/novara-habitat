@@ -43,7 +43,7 @@ export default async function AccueilPage() {
 
       {!entreprise?.siret && (
         <Link href="/espace/parametres" className="mb-5 block rounded-2xl border border-or/40 bg-or/10 px-5 py-4 text-sm">
-          Première étape : renseignez votre entreprise (SIRET, TVA, assurance décennale) pour pouvoir émettre des
+          Première étape : renseignez votre entreprise (SIRET, TVA) pour pouvoir émettre des
           factures. <span className="underline">Réglages →</span>
         </Link>
       )}

@@ -76,6 +76,10 @@ export default async function DevisDetailPage({ params }: { params: Promise<{ id
   const factureFinale = liste.find((f) => f.id === devis.facture_id) ?? null;
   const peutAcompte = (devis.statut === "envoye" || devis.statut === "accepte") && !devis.facture_id;
 
+  // Conditions de paiement : celles du devis, sinon celles des Réglages.
+  const conditionsParDefaut = entreprise?.conditions_paiement ?? "";
+  const conditionsAffichees = devis.conditions?.trim() || reglages.conditions_paiement || conditionsParDefaut;
+
   const parTaux = new Map<number, number>();
   for (const l of lignes ?? []) {
     const ht = Math.round(Number(l.quantite) * Number(l.prix_unitaire_ht) * 100) / 100;
@@ -86,7 +90,6 @@ export default async function DevisDetailPage({ params }: { params: Promise<{ id
     !entreprise?.raison_sociale && "raison sociale",
     !entreprise?.adresse && "adresse",
     !entreprise?.siret && "SIRET",
-    !entreprise?.assureur_decennale && "assurance décennale",
   ].filter(Boolean);
 
   return (
@@ -202,10 +205,11 @@ export default async function DevisDetailPage({ params }: { params: Promise<{ id
                   <input id="lieu_travaux" name="lieu_travaux" defaultValue={devis.lieu_travaux ?? ""} className="champ" />
                   <p className="mt-1 text-xs text-gris">Si différent de l&apos;adresse du client.</p>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="etiquette" htmlFor="conditions">
+                <div className="rounded-xl border border-or/40 bg-creme/60 p-3 sm:col-span-2">
+                  <label className="etiquette font-medium" htmlFor="conditions">
                     Conditions de paiement du devis
                   </label>
+                  <p className="mb-1.5 text-xs text-gris">Imprimées en évidence sur le devis, au-dessus des signatures.</p>
                   <textarea
                     id="conditions"
                     name="conditions"
@@ -214,6 +218,11 @@ export default async function DevisDetailPage({ params }: { params: Promise<{ id
                     placeholder="Ex. Acompte de 30 % à la signature, solde à la fin des travaux."
                     className="champ text-sm"
                   />
+                  {!devis.conditions?.trim() && conditionsParDefaut && (
+                    <p className="mt-1 text-xs text-gris">
+                      Vide : les conditions des Réglages seront utilisées — « {conditionsParDefaut} »
+                    </p>
+                  )}
                   <details className="mt-1 text-xs text-gris">
                     <summary className="cursor-pointer">Exemples (à copier)</summary>
                     <ul className="mt-2 space-y-1.5">
@@ -289,10 +298,10 @@ export default async function DevisDetailPage({ params }: { params: Promise<{ id
                     <dd>{devis.lieu_travaux}</dd>
                   </div>
                 )}
-                {devis.conditions && (
-                  <div className="sm:col-span-2">
-                    <dt className="text-gris">Conditions de paiement</dt>
-                    <dd>{devis.conditions}</dd>
+                {conditionsAffichees && (
+                  <div className="rounded-xl border border-or/40 bg-creme/60 p-3 sm:col-span-2">
+                    <dt className="font-medium">Conditions de paiement</dt>
+                    <dd>{conditionsAffichees}</dd>
                   </div>
                 )}
                 {mentionsTva(devis, reglages).length > 0 && (
